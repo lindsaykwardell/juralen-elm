@@ -1,8 +1,10 @@
 module Juralen.Types.Structure exposing (..)
 
+import Juralen.Types.UnitType exposing (UnitType)
+
 
 type alias Structure =
-    { buildUnits : List String
+    { buildUnits : List UnitType
     , initDefBonus : Int
     , name : String
     }
@@ -10,7 +12,7 @@ type alias Structure =
 
 buildCitadel : Structure
 buildCitadel =
-    { buildUnits = [ "Soldier", "Warrior" ]
+    { buildUnits = [ Juralen.Types.UnitType.Soldier, Juralen.Types.UnitType.Warrior ]
     , initDefBonus = 7
     , name = "Citadel"
     }

@@ -9,6 +9,7 @@ repl-temp-*
 
 # Dependency directories
 node_modules
+.yarn/
 
 # Desktop Services Store on macOS
 .DS_Store

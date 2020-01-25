@@ -3,6 +3,7 @@ module Juralen.Types.Unit exposing (..)
 import Juralen.Types.Cell exposing (Cell)
 import Juralen.Types.Loc exposing (Loc)
 import Juralen.Types.Player exposing (Player)
+import Juralen.Types.UnitType exposing (UnitType)
 
 
 type alias Unit =
@@ -28,6 +29,15 @@ findUnitsInCell : List Unit -> Cell -> List Unit
 findUnitsInCell units cell =
     List.filter (\unit -> unit.x == cell.x && unit.y == cell.y) units
 
+
+buildUnit : UnitType -> Player -> Loc -> Int -> Unit
+buildUnit unitType =
+    case unitType of
+        Juralen.Types.UnitType.Soldier ->
+            buildSoldier
+
+        _ ->
+            buildSoldier
 
 buildSoldier : Player -> Loc -> Int -> Unit
 buildSoldier player loc id =

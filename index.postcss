@@ -1,0 +1,131 @@
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+/*
+  elm-hot creates an additional div wrapper around the app to make HMR possible.
+  This could break styling in development mode if you are using Elm UI.
+
+  More context in the issue:
+    https://github.com/halfzebra/create-elm-app/issues/320
+*/
+[data-elm-hot="true"] {
+  height: inherit;
+}
+
+body {
+  font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
+    "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
+  margin: 0;
+  text-align: center;
+  background: rgb(51, 51, 51) none repeat scroll 0% 0%;
+}
+
+.cell {
+  min-width: 100px;
+  min-height: 100px;
+  user-select: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.unit {
+}
+
+.unit:not(:last-child)::after {
+  content: ", ";
+}
+
+/* body {
+  font-family: "Roboto", sans-serif;
+} */
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.17rem;
+}
+
+h4 {
+  font-size: 1rem;
+}
+
+h5 {
+  font-size: 0.83rem;
+}
+
+h6 {
+  font-size: 0.67rem;
+}
+
+hr {
+  background-color: rgb(68, 68, 68);
+  height: 1px;
+  width: 80%;
+}
+
+.player-orange {
+  background: rgb(255, 120, 0) none repeat scroll 0% 0%;
+}
+
+.player-yellow {
+  background: rgb(255, 239, 0) none repeat scroll 0% 0%;
+}
+
+.player-red {
+  background: rgb(220, 53, 69) none repeat scroll 0% 0%;
+}
+
+.player-blue {
+  background: rgb(0, 123, 255) none repeat scroll 0% 0%;
+}
+
+.player-green {
+  background: rgb(0, 255, 28) none repeat scroll 0% 0%;
+}
+
+.player-teal {
+  background: rgb(0, 255, 243) none repeat scroll 0% 0%;
+}
+
+.player-purple {
+  background: rgb(151, 0, 255) none repeat scroll 0% 0%;
+}
+
+.player-gray {
+  background: rgb(88, 88, 88) none repeat scroll 0% 0%;
+}
+
+.terrain-mountain {
+  background: rgb(170, 170, 170) none repeat scroll 0% 0%;
+}
+
+.terrain-forest {
+  background: rgb(72, 133, 79) none repeat scroll 0% 0%;
+}
+
+.terrain-plains {
+  background: rgb(155, 118, 83) none repeat scroll 0% 0%;
+}
+
+button {
+  @apply py-2 px-3 m-2 rounded;
+
+  transition: 0.3s;
+
+  &.build-unit {
+    @apply bg-blue-500;
+
+    &:hover {
+      @apply bg-blue-400;
+    }
+  }
+}

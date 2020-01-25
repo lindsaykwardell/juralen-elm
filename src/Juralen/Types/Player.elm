@@ -3,20 +3,31 @@ module Juralen.Types.Player exposing (..)
 import Juralen.Types.Resources exposing (Resources)
 
 
+type PlayerColor
+    = Red
+    | Blue
+    | Green
+    | Orange
+    | Teal
+    | Purple
+    | Yellow
+    | Gray
+
+
 type alias Player =
     { id : Int
     , name : String
     , resources : Resources
     , hasLost : Bool
     , isHuman : Bool
-    , color : String
+    , color : PlayerColor
     }
 
 
 type alias NewPlayer =
     { name : String
     , isHuman : Bool
-    , color : String
+    , color : PlayerColor
     }
 
 
@@ -33,6 +44,7 @@ generatePlayer player id =
     , color = player.color
     }
 
+
 findPlayer : List Player -> Maybe Int -> String
 findPlayer players controlledBy =
     case controlledBy of
@@ -47,6 +59,7 @@ findPlayer players controlledBy =
                 Just player ->
                     player.name
 
+
 findPlayerColor : List Player -> Maybe Int -> String
 findPlayerColor players controlledBy =
     case controlledBy of
@@ -59,4 +72,27 @@ findPlayerColor players controlledBy =
                     ""
 
                 Just player ->
-                    player.color
+                    case player.color of
+                        Red ->
+                            "player-red"
+
+                        Blue ->
+                            "player-blue"
+
+                        Green ->
+                            "player-green"
+
+                        Orange ->
+                            "player-orange"
+
+                        Teal ->
+                            "player-teal"
+
+                        Yellow ->
+                            "player-yellow"
+
+                        Purple ->
+                            "player-purple"
+
+                        Gray ->
+                            "player-gray"

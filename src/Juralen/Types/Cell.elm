@@ -1,8 +1,10 @@
 module Juralen.Types.Cell exposing (..)
 
 import Juralen.Types.Loc exposing (Loc)
+import Juralen.Types.Player exposing (Player, findPlayerColor)
 import Juralen.Types.Structure exposing (Structure, buildCitadel)
-import Juralen.Types.Player exposing (Player)
+import Juralen.Types.UnitType exposing (UnitType)
+
 
 type alias Cell =
     { controlledBy : Maybe Int
@@ -23,7 +25,7 @@ generateCell loc roll =
         , passable = True
         , structure =
             Just
-                { buildUnits = [ "Soldier" ]
+                { buildUnits = [ Juralen.Types.UnitType.Soldier ]
                 , initDefBonus = 3
                 , name = "Town"
                 }
@@ -63,6 +65,25 @@ generateCell loc roll =
         }
 
 
+findCell : List (List Cell) -> Loc -> Maybe Cell
+findCell grid loc =
+    case List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row) > 0) grid) of
+        Nothing ->
+            Nothing
+
+        Just row ->
+            List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)
+
+findCellWithoutStructure : List (List Cell) -> Loc -> Maybe Cell
+findCellWithoutStructure grid loc =
+    case List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y && innerCell.structure == Nothing) row) > 0) grid) of
+        Nothing ->
+            Nothing
+
+        Just row ->
+            List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y && innerCell.structure == Nothing) row)
+
+
 getStructure : Maybe Structure -> String
 getStructure structure =
     case structure of
@@ -81,3 +102,19 @@ buildStructure cell structureName =
 controlledBy : Cell -> Player -> Cell
 controlledBy cell player =
     { cell | controlledBy = Just player.id }
+
+getCellColor : Cell -> List Player -> String
+getCellColor cell players =
+    case cell.controlledBy of
+        Nothing ->
+            if cell.terrain == "Mountain" then
+                "terrain-mountain"
+
+            else if cell.terrain == "Forest" then
+                "terrain-forest"
+
+            else
+                "terrain-plains"
+
+        _ ->
+            findPlayerColor players cell.controlledBy
