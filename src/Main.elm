@@ -1,11 +1,12 @@
 module Main exposing (..)
 
 import Browser
-import Html exposing (Html, br, div, table, td, text, tr)
+import Html exposing (Html, br, div, table, td, text, tr, span)
 import Html.Attributes exposing (class, style)
 import Juralen.Types.Cell exposing (Cell, buildStructure, controlledBy, generateCell, getStructure)
 import Juralen.Types.Loc exposing (Loc)
 import Juralen.Types.Player exposing (NewPlayer, Player, findPlayer, findPlayerColor, generatePlayer)
+import Juralen.Types.Unit exposing (Unit, buildSoldier, findUnitsInCell)
 import Random
 
 
@@ -17,6 +18,7 @@ type alias Model =
     { nextId : Int
     , grid : List (List Cell)
     , players : List Player
+    , units : List Unit
     , init :
         { maxX : Int
         , maxY : Int
@@ -34,6 +36,7 @@ init =
         { nextId = 1
         , grid = []
         , players = []
+        , units = []
         , init =
             { maxX = 9
             , maxY = 9
@@ -242,8 +245,11 @@ update msg model =
                                 Just playerList ->
                                     playerList
 
+                        newUnits : List Unit
+                        newUnits = [buildSoldier player loc model.nextId, buildSoldier player loc (model.nextId + 1), buildSoldier player loc (model.nextId + 2) ]
+
                         nextModel =
-                            { model | grid = newGrid }
+                            { model | grid = newGrid, units = model.units ++ newUnits, nextId = model.nextId + 3 }
                     in
                     case nextPlayer of
                         Nothing ->
@@ -285,7 +291,7 @@ replaceCell grid newCell =
 
 view : Model -> Html Msg
 view model =
-    div [] [ table [] (List.map (\row -> tr [] (List.map (\cell -> td [] [ div [ class "cell", style "background" (findPlayerColor model.players cell.controlledBy) ] [ text cell.terrain, br [] [], text (getStructure cell.structure) ] ]) row)) model.grid) ]
+    div [] [ table [] (List.map (\row -> tr [] (List.map (\cell -> td [] [ div [ class "cell", style "background" (findPlayerColor model.players cell.controlledBy) ] [ text cell.terrain, br [] [], text (getStructure cell.structure), br [] [], div [] (List.map (\unit -> span [class "unit"] [text unit.short]) (findUnitsInCell model.units cell)) ] ]) row)) model.grid) ]
 
 
 

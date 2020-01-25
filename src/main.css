@@ -32,3 +32,11 @@ img {
   cursor: pointer;
   font-size: 12px;
 }
+
+.unit {
+
+}
+
+.unit:not(:last-child)::after {
+  content: ", "
+}
