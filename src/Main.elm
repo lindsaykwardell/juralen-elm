@@ -5,11 +5,15 @@ import Browser
 import Html exposing (Html, br, button, div, span, table, td, text, tr)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
-import Juralen.Types.Cell exposing (Cell, buildStructure, controlledBy, findCell, findCellWithoutStructure, generateCell, getCellColor, getStructure)
-import Juralen.Types.Loc exposing (Loc)
-import Juralen.Types.Player exposing (NewPlayer, Player, findPlayer, findPlayerColor, generatePlayer)
-import Juralen.Types.Unit exposing (Unit, buildUnit, findUnitsInCell)
-import Juralen.Types.UnitType exposing (UnitType)
+import Juralen.Cell exposing (Cell, Loc)
+import Juralen.CellType exposing (CellType)
+import Juralen.Grid exposing (Grid)
+import Juralen.Player exposing (NewPlayer, Player)
+import Juralen.PlayerColor exposing (PlayerColor)
+import Juralen.Resources exposing (Resources)
+import Juralen.Structure exposing (Structure)
+import Juralen.Unit exposing (Unit)
+import Juralen.UnitType exposing (UnitType)
 import Random
 
 
@@ -19,7 +23,7 @@ import Random
 
 type alias Model =
     { nextId : Int
-    , grid : List (List Cell)
+    , grid : Grid
     , selectedCell : Loc
     , players : List Player
     , activePlayer : Int
@@ -51,22 +55,45 @@ init =
             , currentY = 0
             , finished = False
             , newPlayers =
-                [ { name = "Lindsay", isHuman = True, color = Juralen.Types.Player.Red }
-                , { name = "Ilthanen Juralen", isHuman = True, color = Juralen.Types.Player.Blue }
-                , { name = "Velsyph", isHuman = True, color = Juralen.Types.Player.Green }
-                , { name = "Dakh", isHuman = True, color = Juralen.Types.Player.Yellow }
+                [ { name = "Lindsay", isHuman = True, color = Juralen.PlayerColor.Red }
+                , { name = "Ilthanen Juralen", isHuman = True, color = Juralen.PlayerColor.Blue }
+                , { name = "Velsyph", isHuman = True, color = Juralen.PlayerColor.Green }
+                , { name = "Dakh", isHuman = True, color = Juralen.PlayerColor.Yellow }
                 ]
             }
         }
 
 
 
----- UPDATE ----
+---- FUNCTIONS ----
 
 
 randomDefinedMax : Int -> Random.Generator Int
 randomDefinedMax max =
     Random.int 0 max
+
+
+type alias CurrentPlayerStats =
+    { gold : String
+    , actions : String
+    , farms : String
+    , towns : String
+    , units : String
+    }
+
+
+currentPlayerStats : Model -> CurrentPlayerStats
+currentPlayerStats model =
+    { gold = String.fromInt (Juralen.Player.getResources model.players model.activePlayer).gold
+    , actions = String.fromFloat (Juralen.Player.getResources model.players model.activePlayer).actions
+    , farms = String.fromInt (Juralen.Grid.farmCountControlledBy model.grid model.activePlayer)
+    , towns = String.fromInt (Juralen.Grid.townCountControlledBy model.grid model.activePlayer)
+    , units = String.fromInt (List.length (List.filter (\unit -> unit.controlledBy == model.activePlayer) model.units))
+    }
+
+
+
+---- UPDATE ----
 
 
 type Msg
@@ -124,7 +151,7 @@ update msg model =
                         model.grid
 
                     else if model.init.currentY == 0 then
-                        model.grid ++ [ [ generateCell loc roll ] ]
+                        model.grid ++ [ [ Juralen.Cell.generate loc roll ] ]
 
                     else
                         List.map
@@ -133,7 +160,7 @@ update msg model =
                                     row
 
                                 else
-                                    row ++ [ generateCell loc roll ]
+                                    row ++ [ Juralen.Cell.generate loc roll ]
                             )
                             model.grid
 
@@ -163,7 +190,7 @@ update msg model =
                             model.nextId + 1
 
                         player =
-                            generatePlayer newPlayer model.nextId
+                            Juralen.Player.generate newPlayer model.nextId
 
                         players =
                             model.players ++ [ player ]
@@ -213,7 +240,7 @@ update msg model =
             let
                 cell : Maybe Cell
                 cell =
-                    findCellWithoutStructure model.grid loc
+                    Juralen.Cell.validStartingCell model.grid loc
             in
             case cell of
                 Nothing ->
@@ -222,7 +249,7 @@ update msg model =
                 Just realCell ->
                     let
                         newGrid =
-                            replaceCell model.grid (controlledBy (buildStructure realCell "todo") player)
+                            Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell "todo") player)
 
                         nextPlayer =
                             List.head nextPlayers
@@ -237,7 +264,7 @@ update msg model =
 
                         newUnits : List Unit
                         newUnits =
-                            [ buildUnit Juralen.Types.UnitType.Soldier player loc model.nextId, buildUnit Juralen.Types.UnitType.Soldier player loc (model.nextId + 1), buildUnit Juralen.Types.UnitType.Soldier player loc (model.nextId + 2) ]
+                            [ Juralen.Unit.buildUnit Juralen.UnitType.Soldier player.id loc model.nextId, Juralen.Unit.buildUnit Juralen.UnitType.Soldier player.id loc (model.nextId + 1), Juralen.Unit.buildUnit Juralen.UnitType.Soldier player.id loc (model.nextId + 2) ]
 
                         nextModel =
                             { model | grid = newGrid, units = model.units ++ newUnits, nextId = model.nextId + 3 }
@@ -278,29 +305,38 @@ update msg model =
             ( { model | selectedCell = loc }, Cmd.none )
 
         BuildUnit unitType ->
-            -- let
-            --     newUnit : Unit
-            --     newUnit =
-            --         buildUnit unitType model.player model.selectedCell model.nextId
-            -- in
-            ( model, Cmd.none )
+            let
+                newResources : Resources
+                newResources =
+                    Juralen.Resources.spend (Juralen.Player.getResources model.players model.activePlayer) (Juralen.UnitType.cost unitType)
 
+                newUnit : Unit
+                newUnit =
+                    Juralen.Unit.buildUnit unitType model.activePlayer model.selectedCell model.nextId
 
-replaceCell : List (List Cell) -> Cell -> List (List Cell)
-replaceCell grid newCell =
-    List.map
-        (\row ->
-            List.map
-                (\cell ->
-                    if cell.x == newCell.x && cell.y == newCell.y then
-                        newCell
+                nextId : Int
+                nextId =
+                    model.nextId + 1
 
-                    else
-                        cell
-                )
-                row
-        )
-        grid
+                newUnitList =
+                    model.units ++ [ newUnit ]
+
+                newPlayerList =
+                    List.map
+                        (\player ->
+                            if player.id == model.activePlayer then
+                                { player | resources = newResources }
+
+                            else
+                                player
+                        )
+                        model.players
+            in
+            if newResources.gold < 0 then
+                ( model, Cmd.none )
+
+            else
+                ( { model | nextId = nextId, units = newUnitList, players = newPlayerList }, Cmd.none )
 
 
 
@@ -318,7 +354,7 @@ view model =
                             (\cell ->
                                 td []
                                     [ div
-                                        [ class ("cell " ++ getCellColor cell model.players)
+                                        [ class ("cell " ++ Juralen.Cell.getColorClass cell model.players)
                                         , style "border"
                                             (if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then
                                                 "2px solid yellow"
@@ -328,9 +364,9 @@ view model =
                                             )
                                         , onClick (SelectCell { x = cell.x, y = cell.y })
                                         ]
-                                        [ text (getStructure cell.structure)
+                                        [ text (Juralen.Structure.toString cell.structure)
                                         , br [] []
-                                        , div [] (List.map (\unit -> span [ class "unit" ] [ text unit.short ]) (findUnitsInCell model.units cell))
+                                        , div [] (List.map (\unit -> span [ class "unit" ] [ text (Juralen.UnitType.short unit.unitType) ]) (Juralen.Unit.inCell model.units { x = cell.x, y = cell.y }))
                                         ]
                                     ]
                             )
@@ -340,19 +376,26 @@ view model =
                 model.grid
             )
         , div [ class "w-2/5 m-3" ]
-            [ div [ class ("text-center p-3 " ++ findPlayerColor model.players (Just model.activePlayer)) ]
-                [ text (findPlayer model.players (Just model.activePlayer))
+            [ div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
+                [ text (Juralen.Player.getName model.players (Just model.activePlayer))
+                , div [ class "flex" ]
+                    [ div [ class "flex-1 p-2" ] [ text "Gold: ", text (currentPlayerStats model).gold ]
+                    , div [ class "flex-1 p-2" ] [ text "Actions: ", text (currentPlayerStats model).actions ]
+                    , div [ class "flex-1 p-2" ] [ text "Farms: ", text (currentPlayerStats model).farms ]
+                    , div [ class "flex-1 p-2" ] [ text "Towns: ", text (currentPlayerStats model).towns ]
+                    , div [ class "flex-1 p-2" ] [ text "Units: ", text (currentPlayerStats model).units ]
+                    ]
                 ]
             , div [ class "mt-4 border-2 rounded" ]
                 [ div
                     [ class
                         ("p-3 "
-                            ++ (case findCell model.grid model.selectedCell of
+                            ++ (case Juralen.Cell.find model.grid model.selectedCell of
                                     Nothing ->
                                         ""
 
                                     Just selectedCell ->
-                                        getCellColor selectedCell model.players
+                                        Juralen.Cell.getColorClass selectedCell model.players
                                )
                         )
                     ]
@@ -363,17 +406,17 @@ view model =
                     , div [ class "flex" ]
                         [ div [ class "flex-1" ]
                             [ text
-                                (case findCell model.grid model.selectedCell of
+                                (case Juralen.Cell.find model.grid model.selectedCell of
                                     Nothing ->
                                         ""
 
                                     Just selectedCell ->
-                                        selectedCell.terrain
+                                        Juralen.CellType.toString selectedCell.cellType
                                 )
                             ]
                         , div [ class "flex-1 italic" ]
                             [ text
-                                (case findCell model.grid model.selectedCell of
+                                (case Juralen.Cell.find model.grid model.selectedCell of
                                     Nothing ->
                                         "Not Controlled"
 
@@ -384,7 +427,7 @@ view model =
                                                         "Not Controlled"
 
                                                     _ ->
-                                                        findPlayer model.players selectedCell.controlledBy
+                                                        Juralen.Player.getName model.players selectedCell.controlledBy
                                                )
                                             ++ ")"
                                 )
@@ -393,8 +436,8 @@ view model =
                     ]
                 ]
             , div []
-                (List.map (\buildableUnit -> button [ class "build-unit" ] [ text ("Build " ++ Juralen.Types.UnitType.toString buildableUnit) ])
-                    (case findCell model.grid model.selectedCell of
+                (List.map (\buildableUnit -> button [ class "build-unit", onClick (BuildUnit buildableUnit) ] [ text ("Build " ++ Juralen.UnitType.toString buildableUnit) ])
+                    (case Juralen.Cell.find model.grid model.selectedCell of
                         Nothing ->
                             []
 
@@ -408,14 +451,17 @@ view model =
                                         []
 
                                     else
-                                        case selectedCell.structure of
-                                            Nothing ->
-                                                []
-
-                                            Just structure ->
-                                                structure.buildUnits
+                                        Juralen.Structure.canBuild selectedCell.structure
                     )
                 )
+            , div [class "p-5"]
+                (List.map (\unit -> 
+                    div [class "flex p-2 bg-gray-700 my-2 rounded hover:bg-gray-600 text-white"] 
+                        [ div [ class "w-2/3 text-left" ] [ text (Juralen.UnitType.toString unit.unitType) ]
+                        , div [ class "flex-1" ] [ text "Atk: ", text (String.fromInt unit.attack) ]
+                        , div [ class "flex-1" ] [ text "HP: ", text (String.fromInt unit.health) ]
+                        , div [ class "flex-1" ] [ text "Moves: ", text (String.fromInt unit.movesLeft) ]
+                        ]) (Juralen.Unit.inCell model.units model.selectedCell))
             ]
         ]
 
