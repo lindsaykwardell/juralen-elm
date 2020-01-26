@@ -1,9 +1,9 @@
 module Juralen.Cell exposing (..)
 
+import Juralen.CellType exposing (CellType)
 import Juralen.Player exposing (Player)
 import Juralen.Structure exposing (Structure)
 import Juralen.UnitType exposing (UnitType)
-import Juralen.CellType exposing (CellType)
 
 
 type alias Loc =
@@ -65,9 +65,11 @@ find : List (List Cell) -> Loc -> Maybe Cell
 find grid loc =
     Maybe.andThen (\row -> List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)) (List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row) > 0) grid))
 
+
 validStartingCell : List (List Cell) -> Loc -> Maybe Cell
 validStartingCell grid loc =
     Maybe.andThen (\row -> List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)) (List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y && hasStructure innerCell == False) row) > 0) grid))
+
 
 hasStructure : Cell -> Bool
 hasStructure cell =
@@ -97,3 +99,23 @@ getColorClass cell players =
 
         _ ->
             Juralen.Player.getColorClass players cell.controlledBy
+
+
+getDistance : Loc -> Loc -> Int
+getDistance from to =
+    let
+        x =
+            if (from.x - to.x) < 0 then
+                (from.x - to.x) * -1
+
+            else
+                from.x - to.x
+
+        y =
+            if (from.y - to.y) < 0 then
+                (from.y - to.y) * -1
+
+            else
+                from.y - to.y
+    in
+    x + y

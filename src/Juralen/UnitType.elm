@@ -43,6 +43,16 @@ cost unitType =
         Priest ->
             4
 
+moveCost : UnitType -> Float
+moveCost unitType =
+    case unitType of
+        Wizard ->
+            0.5
+
+        _ ->
+            1
+        
+
 
 toString : UnitType -> String
 toString unitType =

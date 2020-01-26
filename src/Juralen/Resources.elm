@@ -13,3 +13,7 @@ empty =
 spend : Resources -> Int -> Resources
 spend resources cost =
     { resources | gold = resources.gold - cost}
+
+useActions : Resources -> Float -> Resources
+useActions resources cost =
+    { resources | actions = resources.actions - cost}

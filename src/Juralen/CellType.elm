@@ -31,3 +31,12 @@ getColorClass cellType =
 
         Mountain ->
             "terrain-mountain"
+
+isPassable : CellType -> Bool
+isPassable cellType =
+    case cellType of
+        Mountain ->
+            False
+
+        _ ->
+            True
