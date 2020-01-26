@@ -285,7 +285,7 @@ update msg model =
                 Just realCell ->
                     let
                         newGrid =
-                            Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell "todo") player)
+                            Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell "todo") player.id)
 
                         nextPlayer =
                             List.head nextPlayers
@@ -411,14 +411,18 @@ update msg model =
                             && unit.x == model.selectedCell.x 
                             && unit.y == model.selectedCell.y 
                                 then 
-                                    { unit | x = cell.x, y = cell.y} 
+                                    { unit | x = cell.x, y = cell.y, movesLeft = unit.movesLeft - 1} 
 
                                 else 
                                     unit) model.units
 
                         newSelectedCell = {x = cell.x, y = cell.y}
+
+                        newCell = if cell.cellType == Juralen.CellType.Plains then Juralen.Cell.updateControl cell model.activePlayer else cell
+
+                        newGrid = Juralen.Grid.replaceCell model.grid newCell
                     in
-                        ( { model | players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell}, Cmd.none)
+                        ( { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = []}, Cmd.none)
                     
 
 
@@ -484,7 +488,10 @@ view model =
                 model.grid
             )
         , div [ class "w-2/5 m-3" ]
-            [ div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
+            [ div [ class "p-3"] [
+                button [class "py-2 w-full bg-green-500 hover:bg-green-400"] [text "End Turn"]
+            ]
+            , div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
                 [ text (Juralen.Player.getName model.players (Just model.activePlayer))
                 , div [ class "flex" ]
                     [ div [ class "flex-1 p-2" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]

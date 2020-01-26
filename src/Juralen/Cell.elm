@@ -86,9 +86,9 @@ buildStructure cell structureName =
     { cell | structure = Just Juralen.Structure.Citadel, cellType = Juralen.CellType.Plains, defBonus = 7 }
 
 
-updateControl : Cell -> Player -> Cell
-updateControl cell player =
-    { cell | controlledBy = Just player.id }
+updateControl : Cell -> Int -> Cell
+updateControl cell playerId =
+    { cell | controlledBy = Just playerId }
 
 
 getColorClass : Cell -> List Player -> String
