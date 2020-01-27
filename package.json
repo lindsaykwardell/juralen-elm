@@ -2,12 +2,14 @@
   "name": "juralen-elm",
   "devDependencies": {
     "autoprefixer": "^9.7.4",
+    "create-elm-app": "^4.2.0",
     "cssnano": "^4.1.10",
     "postcss-cli": "^7.1.0",
     "postcss-nested": "^4.2.1",
     "tailwindcss": "^1.1.4"
   },
   "scripts": {
+    "build": "elm-app build",
     "build:css": "postcss index.postcss -o src/main.css",
     "watch:css": "postcss index.postcss -o src/main.css -w"
   }
