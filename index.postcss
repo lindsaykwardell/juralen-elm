@@ -15,6 +15,21 @@
   height: inherit;
 }
 
+:root {
+  --player-red: rgb(220, 53, 69);
+  --player-blue: rgb(0, 123, 255);
+  --player-orange: rgb(255, 120, 0);
+  --player-yellow: rgb(255, 239, 0);
+  --player-green: rgb(0, 255, 28);
+  --player-teal: rgb(0, 255, 243);
+  --player-purple: rgb(151, 0, 255);
+  --player-gray: rgb(88, 88, 88);
+
+  --terrain-mountain: rgb(170, 170, 170);
+  --terrain-forest: rgb(72, 133, 79);
+  --terrain-plains: rgb(155, 118, 83);
+}
+
 body {
   font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
     "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
@@ -32,15 +47,10 @@ body {
 }
 
 .unit {
+  &:not(:last-child)::after {
+    content: " ";
+  }
 }
-
-.unit:not(:last-child)::after {
-  content: " ";
-}
-
-/* body {
-  font-family: "Roboto", sans-serif;
-} */
 
 h1 {
   font-size: 2rem;
@@ -73,47 +83,47 @@ hr {
 }
 
 .player-orange {
-  background: rgb(255, 120, 0) none repeat scroll 0% 0%;
+  background: var(--player-orange) none repeat scroll 0% 0%;
 }
 
 .player-yellow {
-  background: rgb(255, 239, 0) none repeat scroll 0% 0%;
+  background: var(--player-yellow) none repeat scroll 0% 0%;
 }
 
 .player-red {
-  background: rgb(220, 53, 69) none repeat scroll 0% 0%;
+  background: var(--player-red) none repeat scroll 0% 0%;
 }
 
 .player-blue {
-  background: rgb(0, 123, 255) none repeat scroll 0% 0%;
+  background: var(--player-blue) none repeat scroll 0% 0%;
 }
 
 .player-green {
-  background: rgb(0, 255, 28) none repeat scroll 0% 0%;
+  background: var(--player-green) none repeat scroll 0% 0%;
 }
 
 .player-teal {
-  background: rgb(0, 255, 243) none repeat scroll 0% 0%;
+  background: var(--player-teal) none repeat scroll 0% 0%;
 }
 
 .player-purple {
-  background: rgb(151, 0, 255) none repeat scroll 0% 0%;
+  background: var(--player-purple) none repeat scroll 0% 0%;
 }
 
 .player-gray {
-  background: rgb(88, 88, 88) none repeat scroll 0% 0%;
+  background: var(--player-gray) none repeat scroll 0% 0%;
 }
 
 .terrain-mountain {
-  background: rgb(170, 170, 170) none repeat scroll 0% 0%;
+  background: var(--terrain-mountain) none repeat scroll 0% 0%;
 }
 
 .terrain-forest {
-  background: rgb(72, 133, 79) none repeat scroll 0% 0%;
+  background: var(--terrain-forest) none repeat scroll 0% 0%;
 }
 
 .terrain-plains {
-  background: rgb(155, 118, 83) none repeat scroll 0% 0%;
+  background: var(--terrain-plains) none repeat scroll 0% 0%;
 }
 
 button {
@@ -132,4 +142,37 @@ button {
 
 .pointer {
   cursor: pointer;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-left: 20px solid black;
+
+  &.red {
+    border-left: 20px solid var(--player-red);
+  }
+  &.blue {
+    border-left: 20px solid var(--player-blue);
+  }
+  &.orange {
+    border-left: 20px solid var(--player-orange);
+  }
+  &.yellow {
+    border-left: 20px solid var(--player-yellow);
+  }
+  &.teal {
+    border-left: 20px solid var(--player-teal);
+  }
+  &.purple {
+    border-left: 20px solid var(--player-purple);
+  }
+  &.green {
+    border-left: 20px solid var(--player-green);
+  }
+  &.gray {
+    border-left: 20px solid var(--player-gray);
+  }
 }

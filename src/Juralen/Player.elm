@@ -71,6 +71,15 @@ getResources players id =
                 player.resources
            
 
+getColor : List Player -> Int -> PlayerColor
+getColor players controlledBy =
+    case List.head (List.filter (\p -> p.id == controlledBy) players) of
+        Nothing ->
+            Juralen.PlayerColor.None
+
+        Just player ->
+            player.color
+
 getColorClass : List Player -> Maybe Int -> String
 getColorClass players controlledBy =
     case controlledBy of

@@ -483,7 +483,13 @@ update msg model =
 
                         newSelectedCell = {x = cell.x, y = cell.y}
 
-                        newCell = if cell.cellType == Juralen.CellType.Plains then Juralen.Cell.updateControl cell model.activePlayer else cell
+                        newCell = 
+                            if cell.cellType == Juralen.CellType.Plains 
+                            && List.length (Juralen.Unit.inCell model.units model.selectedCell) <= 0 
+                                then 
+                                    Juralen.Cell.updateControl cell model.activePlayer 
+                                    
+                                else cell
 
                         newGrid = Juralen.Grid.replaceCell model.grid newCell
                     in
@@ -667,7 +673,11 @@ view model =
                                 )
                             , onClick (SelectUnit unit.id)
                             ]
-                            [ div [ class "w-1/3 text-left" ] [ text (Juralen.UnitType.toString unit.unitType) ]
+                            [ div [ class "flex flex-col mr-2" ] 
+                                [ div [ class ("triangle " ++ Juralen.PlayerColor.toString (Juralen.Player.getColor model.players unit.controlledBy)) ] []
+                                , div [ class ("triangle " ++ Juralen.PlayerColor.toString (Juralen.Player.getColor model.players unit.controlledBy)) ] []
+                                ]
+                            , div [ class "w-1/3 text-left" ] [ text (Juralen.UnitType.toString unit.unitType) ]
                             , div [ class "flex-1" ] [ text "Atk: ", text (String.fromInt unit.attack) ]
                             , div [ class "flex-1" ] [ text "HP: ", text (String.fromInt unit.health) ]
                             , div [ class "flex-1" ] [ text "Moves: ", text (String.fromInt unit.movesLeft) ]

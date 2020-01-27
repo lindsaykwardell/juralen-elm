@@ -10,7 +10,38 @@ type PlayerColor
     | Purple
     | Yellow
     | Gray
+    | None
 
+
+toString : PlayerColor -> String
+toString playerColor =
+    case playerColor of
+        Red ->
+            "red"
+
+        Blue ->
+            "blue"
+
+        Green ->
+            "green"
+
+        Orange ->
+            "orange"
+
+        Teal ->
+            "teal"
+
+        Yellow ->
+            "yellow"
+
+        Purple ->
+            "purple"
+
+        Gray ->
+            "gray"
+
+        None ->
+            ""
 
 toClass : PlayerColor -> String
 toClass playerColor =
@@ -38,3 +69,6 @@ toClass playerColor =
 
         Gray ->
             "player-gray"
+
+        None ->
+            ""
