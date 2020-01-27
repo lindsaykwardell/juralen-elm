@@ -107,6 +107,22 @@ getMoveCost model =
             model.selectedUnits
 
 
+canAfford : Model -> UnitType -> Bool
+canAfford model unitType =
+    let
+        stats = currentPlayerStats model
+
+        unitCost = Juralen.UnitType.cost unitType
+    in
+        if stats.units < stats.farms && unitCost <= stats.gold 
+        then
+            True
+
+        else
+            False
+    
+
+
 isInRange : Model -> Cell -> Bool
 isInRange model cell =
     if
@@ -121,6 +137,54 @@ isInRange model cell =
 
     else
         False
+
+
+getNextActivePlayer : Model -> List Player -> Int -> Player
+getNextActivePlayer model players playerId =
+    let
+        player : Maybe Player
+        player = List.head players
+
+        remainingPlayers : List Player
+        remainingPlayers = 
+            case List.tail players of 
+                Nothing ->
+                    []
+
+                Just playerList ->
+                    playerList
+    in
+        case player of
+            Nothing ->
+                Juralen.Player.empty
+            
+            Just aPlayer ->
+                if aPlayer.id == playerId then
+                    case List.head remainingPlayers of
+                        Nothing ->
+                            case List.head model.players of
+                                Nothing ->
+                                    Juralen.Player.empty
+
+                                Just nextPlayer ->
+                                    nextPlayer
+
+                        Just nextPlayer ->
+                            nextPlayer
+
+                else
+                    getNextActivePlayer model remainingPlayers playerId
+    
+
+gainResources : CurrentPlayerStats -> Resources -> Resources
+gainResources stats resources =
+    let
+        gold = resources.gold + stats.farms
+
+        actions = Basics.toFloat stats.towns + resources.actions
+    in
+        {gold = gold
+        , actions = actions}
 
 
 onContextMenu : msg -> Attribute msg
@@ -144,6 +208,7 @@ type Msg
     | BuildUnit UnitType
     | SelectUnit Int
     | MoveSelectedUnits Cell
+    | EndTurn
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -368,11 +433,11 @@ update msg model =
                         )
                         model.players
             in
-            if newResources.gold < 0 then
-                ( model, Cmd.none )
+            if canAfford model unitType then
+                ( { model | nextId = nextId, units = newUnitList, players = newPlayerList }, Cmd.none )
 
             else
-                ( { model | nextId = nextId, units = newUnitList, players = newPlayerList }, Cmd.none )
+                ( model, Cmd.none )
 
         SelectUnit unitId ->
             if (Juralen.Unit.fromId model.units unitId).controlledBy /= model.activePlayer || (Juralen.Unit.fromId model.units unitId).movesLeft <= 0 then
@@ -423,6 +488,24 @@ update msg model =
                         newGrid = Juralen.Grid.replaceCell model.grid newCell
                     in
                         ( { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = []}, Cmd.none)
+
+        EndTurn ->
+            let
+                nextActivePlayer : Player
+                nextActivePlayer = getNextActivePlayer model model.players model.activePlayer
+
+                updatedPlayers : List Player
+                updatedPlayers = List.map (\player -> 
+                    if player.id == nextActivePlayer.id
+                        then 
+                            { nextActivePlayer | resources = gainResources (currentPlayerStats model) nextActivePlayer.resources } 
+                        
+                        else 
+                            player
+                    ) model.players
+            in
+                ( { model | players = updatedPlayers, activePlayer = nextActivePlayer.id }, Cmd.none)
+            
                     
 
 
@@ -489,7 +572,7 @@ view model =
             )
         , div [ class "w-2/5 m-3" ]
             [ div [ class "p-3"] [
-                button [class "py-2 w-full bg-green-500 hover:bg-green-400"] [text "End Turn"]
+                button [class "py-2 w-full bg-green-500 hover:bg-green-400", onClick EndTurn] [text "End Turn"]
             ]
             , div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
                 [ text (Juralen.Player.getName model.players (Just model.activePlayer))

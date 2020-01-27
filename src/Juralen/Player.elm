@@ -33,6 +33,19 @@ generate player id =
     , color = player.color
     }
 
+empty : Player
+empty =
+    { id = -1
+    , name = ""
+    , resources = 
+        { actions = -1
+        , gold = -1
+        }
+    , hasLost = True
+    , isHuman = False
+    , color = Juralen.PlayerColor.Gray
+    }
+
 getName : List Player -> Maybe Int -> String
 getName players controlledBy =
     case controlledBy of
