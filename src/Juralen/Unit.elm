@@ -1,7 +1,6 @@
 module Juralen.Unit exposing (..)
 
-import Juralen.Cell exposing (Cell, Loc)
-import Juralen.Player exposing (Player)
+import Juralen.Cell exposing (Loc)
 import Juralen.UnitType exposing (UnitType(..))
 
 

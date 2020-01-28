@@ -3,9 +3,11 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Game
-import Html exposing (div)
+import Html exposing (div, text)
+import Html.Attributes exposing (class)
 import Url exposing (Url)
-
+import Process
+import Task
 
 
 ---- MODEL ----
@@ -24,7 +26,17 @@ type alias Model =
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    ( { page = Game (Tuple.first Game.init) }, Cmd.map GotGameMsg (Tuple.second Game.init) )
+    ( { page = Splash}, delay 3000.0 (ChangePage (Game (Tuple.first Game.init))) )
+
+
+
+---- FUNCTIONS ----
+
+
+delay : Float -> msg -> Cmd msg
+delay time msg =
+    Process.sleep time
+        |> Task.perform (\_ -> msg)
 
 
 
@@ -32,12 +44,20 @@ init flags url key =
 
 
 type Msg
-    = GotGameMsg Game.Msg
+    = ChangePage Page
+    | GotGameMsg Game.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ChangePage page ->
+            case page of 
+                Game game ->
+                    ( { page = Game game }, Cmd.map GotGameMsg (Tuple.second Game.init) )
+
+                _ ->
+                    ( model, Cmd.none)
         GotGameMsg gameMsg ->
             case model.page of
                 Game gameModel ->
@@ -63,6 +83,9 @@ view model =
         [ case model.page of
             Game game ->
                 Game.view game |> Html.map GotGameMsg
+
+            Splash ->
+                div [class "splash"] [Html.h1 [] [text "JURALEN"]]
 
             _ ->
                 div [] []

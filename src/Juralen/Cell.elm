@@ -3,7 +3,6 @@ module Juralen.Cell exposing (..)
 import Juralen.CellType exposing (CellType)
 import Juralen.Player exposing (Player)
 import Juralen.Structure exposing (Structure)
-import Juralen.UnitType exposing (UnitType)
 
 
 type alias Loc =
@@ -81,9 +80,9 @@ hasStructure cell =
             True
 
 
-buildStructure : Cell -> String -> Cell
-buildStructure cell structureName =
-    { cell | structure = Just Juralen.Structure.Citadel, cellType = Juralen.CellType.Plains, defBonus = 7 }
+buildStructure : Cell -> Structure -> Cell
+buildStructure cell structure =
+    { cell | structure = Just structure, cellType = Juralen.CellType.Plains, defBonus = 7 }
 
 
 updateControl : Cell -> Int -> Cell

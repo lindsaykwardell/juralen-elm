@@ -16,9 +16,6 @@ import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Random
 
-type GameMode
-    = Map
-    | Combat
 
 
 type alias Model =
@@ -328,7 +325,7 @@ update msg model =
                 Just realCell ->
                     let
                         newGrid =
-                            Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell "todo") player.id)
+                            Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell Juralen.Structure.Citadel) player.id)
 
                         nextPlayer =
                             List.head nextPlayers

@@ -1,6 +1,6 @@
 module Juralen.Structure exposing (..)
 
-import Juralen.UnitType exposing (UnitType, UnitType(..))
+import Juralen.UnitType exposing (UnitType(..))
 
 type Structure
     = Town
