@@ -15,7 +15,12 @@ import Juralen.Structure
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Random
+import Game.Combat
 
+
+type CombatStatus
+    = NoCombat
+    | Combat Game.Combat.Model
 
 
 type alias Model =
@@ -34,6 +39,7 @@ type alias Model =
         , finished : Bool
         , newPlayers : List NewPlayer
         }
+    , combat: CombatStatus
     }
 
 init : ( Model, Cmd Msg )
@@ -59,6 +65,7 @@ init =
                 , { name = "Dakh", isHuman = True, color = Juralen.PlayerColor.Yellow }
                 ]
             }
+        , combat = NoCombat
         }
 
 randomDefinedMax : Int -> Random.Generator Int
@@ -187,6 +194,7 @@ type Msg
     | BuildUnit UnitType
     | SelectUnit Int
     | MoveSelectedUnits Cell
+    | GotCombatMsg Game.Combat.Msg
     | EndTurn
 
 
@@ -374,8 +382,21 @@ update msg model =
                 Just player ->
                     update (StartTurn player) model
 
-        StartTurn player ->
-            ( { model | activePlayer = player.id }, Cmd.none )
+        StartTurn nextActivePlayer ->
+            let
+                updatedPlayers : List Player
+                updatedPlayers =
+                    List.map
+                        (\player ->
+                            if player.id == nextActivePlayer.id then
+                                { nextActivePlayer | resources = gainResources (currentPlayerStats model) nextActivePlayer.resources }
+
+                            else
+                                player
+                        )
+                        model.players
+            in
+            ( { model | activePlayer = nextActivePlayer.id, players = updatedPlayers }, Cmd.none )
 
         SelectCell loc ->
             ( { model | selectedCell = loc }, Cmd.none )
@@ -489,8 +510,80 @@ update msg model =
 
                     newGrid =
                         Juralen.Grid.replaceCell model.grid newCell
-                in
-                ( { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = [] }, Cmd.none )
+
+                    newModel = { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = [] }
+                in                    
+                    if shouldCombatStart (Juralen.Unit.inCell newModel.units newModel.selectedCell) [] then
+                        let
+                            combatModel : Game.Combat.Model
+                            combatModel = { units = Juralen.Unit.inCell newModel.units newModel.selectedCell
+                                , deadUnits = []
+                                , attacker = Juralen.Unit.empty
+                                , defender = Juralen.Unit.empty
+                                , attackingPlayer = Juralen.Player.get newModel.players newModel.activePlayer
+                                , defendingPlayer = case Juralen.Cell.find newModel.grid newModel.selectedCell of
+                                    Nothing ->
+                                        Juralen.Player.empty
+
+                                    Just selectedCell ->
+                                        case selectedCell.controlledBy of
+                                            Nothing ->
+                                                Juralen.Player.empty
+
+                                            Just defendingPlayerId ->
+                                                Juralen.Player.get newModel.players defendingPlayerId
+                                , activePlayer = Game.Combat.Attacker
+                                , defBonus = 0
+                                }
+
+                            startCombat : CombatStatus
+                            startCombat = Combat combatModel
+                                
+                        in
+                        update (GotCombatMsg (Game.Combat.GetRandomUnit Game.Combat.Attacker)) { newModel | combat = startCombat}
+
+                    else
+                        ( newModel, Cmd.none)
+
+        GotCombatMsg combatMsg ->
+            case model.combat of
+                NoCombat ->
+                    ( model, Cmd.none)
+
+                Combat combat ->
+                    case combatMsg of
+                        Game.Combat.ExitCombat ->
+                            let
+                                _ = Debug.log "Combat is over" combat
+
+                                deadUnitIds = List.map (\unit -> unit.id) combat.deadUnits
+
+                                newUnits : List Unit
+                                newUnits = List.filter (\unit -> 
+                                    not (List.member unit.id deadUnitIds)) (
+                                        List.map (\unit -> 
+                                            case List.head (
+                                                List.filter (\livingUnit -> livingUnit.id == unit.id) combat.units) of
+                                                
+                                                Nothing ->
+                                                    unit
+                                                    
+                                                Just livingUnit ->
+                                                    livingUnit)
+                                            
+                                            model.units)
+                                
+                                winner = if List.length (Juralen.Unit.controlledBy combat.units combat.attackingPlayer.id) > 0 then combat.attackingPlayer else combat.defendingPlayer
+
+                                updatedGrid : List (List Cell)
+                                updatedGrid = List.map (\row -> List.map (\cell -> if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then { cell | controlledBy = Just winner.id} else cell) row) model.grid
+                            in
+                                ( { model | units = newUnits, grid = updatedGrid}, Cmd.none)
+                            
+
+                        _ ->
+                            toCombat model (Game.Combat.update combatMsg combat)
+
 
         EndTurn ->
             let
@@ -498,19 +591,43 @@ update msg model =
                 nextActivePlayer =
                     getNextActivePlayer model model.players model.activePlayer
 
-                updatedPlayers : List Player
-                updatedPlayers =
-                    List.map
-                        (\player ->
-                            if player.id == nextActivePlayer.id then
-                                { nextActivePlayer | resources = gainResources (currentPlayerStats model) nextActivePlayer.resources }
-
-                            else
-                                player
-                        )
-                        model.players
+                newModel = { model | activePlayer = nextActivePlayer.id }
             in
-            ( { model | players = updatedPlayers, activePlayer = nextActivePlayer.id }, Cmd.none )
+            update (StartTurn nextActivePlayer) newModel
+
+toCombat : Model -> (Game.Combat.Model, Cmd Game.Combat.Msg) -> ( Model, Cmd Msg)
+toCombat model (combat, cmd) =
+    ( { model | combat = Combat combat }, Cmd.map GotCombatMsg cmd)
+
+shouldCombatStart : List Unit -> List Int -> Bool
+shouldCombatStart units playerIdList =
+    let
+        firstUnit = List.head units
+
+        remainingUnits = List.tail units
+
+        newPlayerIdList = 
+            case firstUnit of
+                Nothing ->
+                    playerIdList
+
+                Just unit ->
+                    if not (List.member unit.controlledBy playerIdList) then
+                        playerIdList ++ [unit.controlledBy]
+
+                    else
+                        playerIdList
+
+    in
+        if List.length newPlayerIdList>= 2 then True
+        else
+            case remainingUnits of
+                Nothing ->
+                    False
+
+                Just newUnitsList ->
+                    shouldCombatStart newUnitsList newPlayerIdList
+    
 
 view : Model -> Html Msg
 view model = 

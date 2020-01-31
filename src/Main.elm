@@ -5,9 +5,12 @@ import Browser.Navigation as Nav
 import Game
 import Html exposing (div, text)
 import Html.Attributes exposing (class)
-import Url exposing (Url)
+import Http
+import Json.Decode exposing (Decoder, field, string)
 import Process
 import Task
+import Url exposing (Url)
+
 
 
 ---- MODEL ----
@@ -16,6 +19,7 @@ import Task
 type Page
     = Splash
     | Home
+    | Login
     | Lobby
     | Game Game.Model
 
@@ -24,13 +28,33 @@ type alias Model =
     { page : Page }
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
-    ( { page = Splash}, delay 3000.0 (ChangePage (Game (Tuple.first Game.init))) )
+init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init isProd url key =
+    if isProd then
+        ( { page = Splash }, delay 2000.0 (ChangePage (Game (Tuple.first Game.init))) )
+
+    else
+        case url.path of
+            "/game" ->
+                ( { page = Game (Tuple.first Game.init) }, Tuple.second Game.init |> Cmd.map GotGameMsg )
+
+            "/login" ->
+                ( { page = Home }, fetchTestData )
+
+            _ ->
+                ( { page = Splash }, delay 2000.0 (ChangePage (Game (Tuple.first Game.init))) )
 
 
 
 ---- FUNCTIONS ----
+
+
+fetchTestData : Cmd Msg
+fetchTestData =
+    Http.get
+        { url = "/test"
+        , expect = Http.expectJson GotTestData (field "name" string)
+        }
 
 
 delay : Float -> msg -> Cmd msg
@@ -45,6 +69,7 @@ delay time msg =
 
 type Msg
     = ChangePage Page
+    | GotTestData (Result Http.Error String)
     | GotGameMsg Game.Msg
 
 
@@ -52,12 +77,29 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ChangePage page ->
-            case page of 
+            case page of
                 Game game ->
                     ( { page = Game game }, Cmd.map GotGameMsg (Tuple.second Game.init) )
 
                 _ ->
-                    ( model, Cmd.none)
+                    ( model, Cmd.none )
+
+        GotTestData result ->
+            case result of
+                Ok string ->
+                    let
+                        _ =
+                            Debug.log "Success" string
+                    in
+                    ( model, Cmd.none )
+
+                Err _ ->
+                    let
+                        _ =
+                            Debug.log "Failure" ":("
+                    in
+                    ( model, Cmd.none )
+
         GotGameMsg gameMsg ->
             case model.page of
                 Game gameModel ->
@@ -85,7 +127,7 @@ view model =
                 Game.view game |> Html.map GotGameMsg
 
             Splash ->
-                div [class "splash"] [Html.h1 [] [text "JURALEN"]]
+                div [ class "splash" ] [ Html.h1 [] [ text "JURALEN" ] ]
 
             _ ->
                 div [] []
@@ -97,7 +139,7 @@ view model =
 ---- PROGRAM ----
 
 
-main : Program () Model Msg
+main : Program Bool Model Msg
 main =
     Browser.application
         { init = init

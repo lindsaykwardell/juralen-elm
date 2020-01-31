@@ -12,5 +12,8 @@
     "build": "elm-app build",
     "build:css": "postcss index.postcss -o src/main.css",
     "watch:css": "postcss index.postcss -o src/main.css -w"
+  },
+  "dependencies": {
+    "miragejs": "^0.1.33"
   }
 }

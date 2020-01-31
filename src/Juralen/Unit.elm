@@ -39,23 +39,15 @@ inCell : List Unit -> Loc -> List Unit
 inCell units loc =
     List.filter (\unit -> unit.x == loc.x && unit.y == loc.y) units
 
+
 fromId : List Unit -> Int -> Unit
 fromId units id =
     case List.head (List.filter (\unit -> unit.id == id) units) of
         Nothing ->
-            {id = -1
-            , unitType = Juralen.UnitType.Soldier
-            , movesLeft = -1
-            , attack = 0
-            , health = -1
-            , range = -1
-            , controlledBy = -1
-            , x = -1
-            , y = -1}
+            empty
 
         Just unit ->
             unit
-
 
 
 isSelected : List Int -> Int -> Bool
@@ -66,3 +58,30 @@ isSelected selectedUnits unitId =
 
         _ ->
             True
+
+
+controlledBy : List Unit -> Int -> List Unit
+controlledBy units playerId =
+    List.filter (\unit -> unit.controlledBy == playerId) units
+
+
+empty : Unit
+empty =
+    { id = -1
+    , unitType = Juralen.UnitType.Soldier
+    , movesLeft = -1
+    , attack = 0
+    , health = -1
+    , range = -1
+    , controlledBy = -1
+    , x = -1
+    , y = -1
+    }
+
+takeDamage : Unit -> Int -> Unit
+takeDamage unit damage =
+    { unit | health = unit.health - damage}
+
+isDead : Unit -> Bool
+isDead unit =
+    unit.health <= 0

@@ -1,7 +1,7 @@
 module Juralen.Player exposing (..)
 
-import Juralen.Resources exposing (Resources)
 import Juralen.PlayerColor exposing (PlayerColor)
+import Juralen.Resources exposing (Resources)
 
 
 type alias Player =
@@ -20,6 +20,7 @@ type alias NewPlayer =
     , color : PlayerColor
     }
 
+
 generate : NewPlayer -> Int -> Player
 generate player id =
     { id = id
@@ -33,11 +34,12 @@ generate player id =
     , color = player.color
     }
 
+
 empty : Player
 empty =
     { id = -1
     , name = ""
-    , resources = 
+    , resources =
         { actions = -1
         , gold = -1
         }
@@ -45,6 +47,17 @@ empty =
     , isHuman = False
     , color = Juralen.PlayerColor.Gray
     }
+
+
+get : List Player -> Int -> Player
+get players playerId =
+    case List.head (List.filter (\p -> p.id == playerId) players) of
+        Nothing ->
+            empty
+
+        Just player ->
+            player
+
 
 getName : List Player -> Maybe Int -> String
 getName players controlledBy =
@@ -63,13 +76,13 @@ getName players controlledBy =
 
 getResources : List Player -> Int -> Resources
 getResources players id =
-        case List.head (List.filter (\p -> p.id == id) players) of
-            Nothing ->
-                Juralen.Resources.empty
+    case List.head (List.filter (\p -> p.id == id) players) of
+        Nothing ->
+            Juralen.Resources.empty
 
-            Just player ->
-                player.resources
-           
+        Just player ->
+            player.resources
+
 
 getColor : List Player -> Int -> PlayerColor
 getColor players controlledBy =
@@ -79,6 +92,7 @@ getColor players controlledBy =
 
         Just player ->
             player.color
+
 
 getColorClass : List Player -> Maybe Int -> String
 getColorClass players controlledBy =
