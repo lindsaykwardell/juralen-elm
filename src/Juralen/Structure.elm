@@ -10,6 +10,7 @@ type Structure
     | Temple
     | City
     | Lodge
+    | None
 
 
 initDef : Maybe Structure -> Int
@@ -59,6 +60,9 @@ canBuild structure =
                 Lodge ->
                     [Soldier, Archer]
 
+                None ->
+                    []
+
 
 toString : Maybe Structure -> String
 toString structure =
@@ -88,3 +92,6 @@ toString structure =
 
                 Lodge ->
                     "Lodge"
+
+                None ->
+                    ""

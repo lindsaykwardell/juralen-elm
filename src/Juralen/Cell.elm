@@ -60,6 +60,16 @@ generate loc roll =
         }
 
 
+empty : Cell
+empty =
+    { cellType = Juralen.CellType.Plains
+    , controlledBy = Nothing
+    , defBonus = -1
+    , structure = Nothing
+    , x = -1
+    , y = -1
+    }
+
 find : List (List Cell) -> Loc -> Maybe Cell
 find grid loc =
     Maybe.andThen (\row -> List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)) (List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row) > 0) grid))

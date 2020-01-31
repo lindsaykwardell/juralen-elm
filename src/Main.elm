@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser exposing (Document)
 import Browser.Navigation as Nav
 import Game
+import Game.Core as Core
 import Html exposing (div, text)
 import Html.Attributes exposing (class)
 import Http
@@ -21,7 +22,7 @@ type Page
     | Home
     | Login
     | Lobby
-    | Game Game.Model
+    | Game Core.Model
 
 
 type alias Model =
@@ -109,7 +110,7 @@ update msg model =
                     ( model, Cmd.none )
 
 
-toGame : Model -> ( Game.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
+toGame : Model -> ( Core.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
 toGame model ( game, cmd ) =
     ( { model | page = Game game }, Cmd.map GotGameMsg cmd )
 
