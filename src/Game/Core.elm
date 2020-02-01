@@ -7,7 +7,7 @@ import Juralen.Grid exposing (Grid)
 import Juralen.Player exposing (NewPlayer, Player)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
-
+import Juralen.Analysis exposing (Option)
 
 type CombatStatus
     = NoCombat
@@ -31,6 +31,7 @@ type alias Model =
         , newPlayers : List NewPlayer
         }
     , combat : CombatStatus
+    , analysisResults : List Option
     }
 
 

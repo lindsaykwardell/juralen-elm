@@ -70,9 +70,36 @@ empty =
     , y = -1
     }
 
+
 find : List (List Cell) -> Loc -> Maybe Cell
 find grid loc =
     Maybe.andThen (\row -> List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)) (List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row) > 0) grid))
+
+
+atLoc : List Cell -> Loc -> Cell
+atLoc cellList loc =
+    let
+        nextCell =
+            List.head cellList
+
+        remainingCells =
+            case List.tail cellList of
+                Nothing ->
+                    []
+
+                Just nextCellList ->
+                    nextCellList
+    in
+    case nextCell of
+        Nothing ->
+            empty
+
+        Just cell ->
+            if cell.x == loc.x && cell.y == loc.y then
+                cell
+
+            else
+                atLoc remainingCells loc
 
 
 validStartingCell : List (List Cell) -> Loc -> Maybe Cell

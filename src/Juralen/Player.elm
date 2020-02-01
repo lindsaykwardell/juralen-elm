@@ -26,7 +26,7 @@ generate player id =
     { id = id
     , name = player.name
     , resources =
-        { actions = 4
+        { actions = 1
         , gold = 2
         }
     , hasLost = False

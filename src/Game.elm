@@ -1,7 +1,7 @@
 module Game exposing (Msg, init, view, update)
 
 import Array
-import Html exposing (Attribute, Html, br, button, div, span, table, td, text, tr)
+import Html exposing (Attribute, Html, br, button, div, span, table, td, text, tr, h3)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
@@ -18,6 +18,7 @@ import Random
 import Game.Combat
 import Game.Core exposing (..)
 import Game.Analyzer exposing (analyze)
+import Juralen.Analysis
 
 init : ( Model, Cmd Msg )
 init =
@@ -43,6 +44,7 @@ init =
                 ]
             }
         , combat = NoCombat
+        , analysisResults = []
         }
 
 randomDefinedMax : Int -> Random.Generator Int
@@ -95,7 +97,10 @@ gainResources stats resources =
             resources.gold + stats.farms
 
         actions =
-            Basics.toFloat stats.towns + resources.actions
+            let
+                newActions = Basics.toFloat stats.towns + resources.actions
+            in
+                if newActions < 4 then 4 else newActions
     in
     { gold = gold
     , actions = actions
@@ -116,6 +121,7 @@ type Msg
     | MakeLocFromRolls Player (List Player) Int Int
     | DetermineFirstPlayer Int
     | StartTurn Player
+    | Analyze
     | SelectCell Loc
     | BuildUnit UnitType
     | SelectUnit Int
@@ -321,15 +327,28 @@ update msg model =
                                 player
                         )
                         model.players
+                
+                updatedUnits = List.map (\unit -> { unit | movesLeft = 
+                    let
+                        initialValues : Juralen.UnitType.InitialValues
+                        initialValues = Juralen.UnitType.initialValues unit.unitType
+                    in
+                        initialValues.movesLeft }) model.units
 
-                newModel = { model | activePlayer = nextActivePlayer.id, players = updatedPlayers }
-
-                _ = Debug.log "Analysis" (analyze newModel)
+                newModel = { model | activePlayer = nextActivePlayer.id, players = updatedPlayers, units = updatedUnits }
             in
-            ( newModel, Cmd.none )
+            -- ( newModel, Cmd.none )
+            update Analyze newModel
+
+        Analyze ->
+            -- let
+            --     _ = Debug.log "Analysis" (analyze model)
+            -- in
+            
+            ( { model | analysisResults = analyze model}, Cmd.none)
 
         SelectCell loc ->
-            ( { model | selectedCell = loc }, Cmd.none )
+            ( { model | selectedCell = loc, selectedUnits  = [] }, Cmd.none )
 
         BuildUnit unitType ->
             let
@@ -360,7 +379,7 @@ update msg model =
                         model.players
             in
             if canAfford model unitType then
-                ( { model | nextId = nextId, units = newUnitList, players = newPlayerList }, Cmd.none )
+                update Analyze { model | nextId = nextId, units = newUnitList, players = newPlayerList }
 
             else
                 ( model, Cmd.none )
@@ -473,7 +492,7 @@ update msg model =
                         update (GotCombatMsg (Game.Combat.GetRandomUnit Game.Combat.Attacker)) { newModel | combat = startCombat}
 
                     else
-                        ( newModel, Cmd.none)
+                        update Analyze newModel
 
         GotCombatMsg combatMsg ->
             case model.combat of
@@ -508,7 +527,7 @@ update msg model =
                                 updatedGrid : List (List Cell)
                                 updatedGrid = List.map (\row -> List.map (\cell -> if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then { cell | controlledBy = Just winner.id} else cell) row) model.grid
                             in
-                                ( { model | units = newUnits, grid = updatedGrid}, Cmd.none)
+                                update Analyze { model | units = newUnits, grid = updatedGrid}
                             
 
                         _ ->
@@ -725,5 +744,13 @@ view model =
                         )
                         (Juralen.Unit.inCell model.units model.selectedCell)
                     )
+                , div [ class "p-5" ]
+                    [ h3 [ class "text-white" ] [ text "Recommended Actions"]]
+                    , div [ ] (List.map
+                        (\option ->
+                            div [ class "flex p-2 my-2 rounded text-white pointe text-white p-2 bg-gray-700 hover:bg-gray-600 pointer" ] 
+                            [ div [class "flex-grow"] [text (Juralen.Analysis.toString option)]
+                            , div [class "flex-shrink"] [ text (String.fromInt option.score)]])
+                        (List.take 5 model.analysisResults))
                 ]
             ]

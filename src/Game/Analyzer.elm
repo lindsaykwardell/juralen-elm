@@ -1,25 +1,13 @@
 module Game.Analyzer exposing (..)
 
-import Game.Core as Core
+import Game.Core as Core exposing (CurrentPlayerStats)
+import Juralen.Analysis exposing (Action(..), Option)
 import Juralen.Cell exposing (Cell, Loc)
 import Juralen.CellType
 import Juralen.Grid
 import Juralen.Structure exposing (Structure)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
-
-
-type Action
-    = Move (List Unit) Loc
-    | BuildUnit UnitType
-    | BuildStructure Structure
-
-
-type alias Option =
-    { loc : Loc
-    , action : Action
-    , score : Int
-    }
 
 
 
@@ -35,7 +23,11 @@ type alias Option =
 
 analyze : Core.Model -> List Option
 analyze model =
-    analyzeBuildUnits model ++ analyzeMoves model
+    analyzeBuildUnits model
+        ++ analyzeMoves model
+        |> scoreOptions model
+        |> List.filter (\option -> option.score > 0)
+        |> sortByScore
 
 
 type alias UnitOption =
@@ -51,16 +43,18 @@ analyzeMoves model =
         actions =
             (Core.currentPlayerStats model).actions
 
-        myUnits = Juralen.Unit.controlledBy model.units model.activePlayer
+        myUnits =
+            Juralen.Unit.controlledBy model.units model.activePlayer
 
-        cellsList = model.grid |> Juralen.Grid.toList
+        cellsList =
+            model.grid |> Juralen.Grid.toList
 
         cellsWithUnits =
             cellsList |> List.filter (\cell -> List.length (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }) > 0)
 
         unitCombinations : List UnitOption
         unitCombinations =
-            toList (List.map (\cell -> List.foldl (\units combinations -> combinations ++ [ { unitOptions = units, cell = cell } ]) [] (combineUnitWith [] [] (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }))) cellsWithUnits)
+            toList (List.map (\cell -> List.foldl (\units combinations -> combinations ++ [ { unitOptions = units, cell = cell } ]) [] (combineUnitWith [] [] ((Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y })))) cellsWithUnits)
     in
     toList (List.map (\combination -> getMoveOptions actions { x = combination.cell.x, y = combination.cell.y } cellsList combination.unitOptions []) unitCombinations)
 
@@ -127,7 +121,11 @@ combineUnitWith unitCombinations selectedUnits unusedUnits =
                         selectedUnits ++ [ unit ]
 
         newCombinations =
-            unitCombinations ++ [ newCombination ]
+            if List.length newCombination > 0 then
+                unitCombinations ++ [ newCombination ]
+
+            else
+                unitCombinations
     in
     if List.length newCombination <= 0 then
         newCombinations
@@ -164,7 +162,7 @@ getMoveOptions actions fromLoc cellsInRange units options =
 
         newOptions =
             if thisActionCost <= actions && distance /= 0 then
-                options ++ [ { loc = toLoc, action = Move units toLoc, score = 0 } ]
+                options ++ [ { loc = fromLoc, action = Move units toLoc, score = 0 } ]
 
             else
                 options
@@ -203,18 +201,25 @@ analyzeBuildUnits model =
     let
         cellsWithStructures : List Cell
         cellsWithStructures =
-            List.filter (\cell -> cell.structure /= Nothing && case cell.controlledBy of
-                  Nothing ->
-                    False
-                    
-                  Just controlledBy ->
-                      controlledBy == model.activePlayer) (Juralen.Grid.toList model.grid)
+            List.filter
+                (\cell ->
+                    cell.structure
+                        /= Nothing
+                        && (case cell.controlledBy of
+                                Nothing ->
+                                    False
+
+                                Just controlledBy ->
+                                    controlledBy == model.activePlayer
+                           )
+                )
+                (Juralen.Grid.toList model.grid)
     in
-    getUnitOptions cellsWithStructures []
+    getUnitOptions (Core.currentPlayerStats model) cellsWithStructures []
 
 
-getUnitOptions : List Cell -> List Option -> List Option
-getUnitOptions cells options =
+getUnitOptions : CurrentPlayerStats -> List Cell -> List Option -> List Option
+getUnitOptions stats cells options =
     let
         cell =
             case List.head cells of
@@ -233,10 +238,123 @@ getUnitOptions cells options =
                     remainder
 
         newOptions =
-            options ++ List.map (\unitType -> { loc = { x = cell.x, y = cell.y }, action = BuildUnit unitType, score = 0 }) (Juralen.Structure.canBuild cell.structure)
+            options
+                ++ List.map
+                    (\unitType ->
+                        { loc = { x = cell.x, y = cell.y }, action = BuildUnit unitType, score = 0 }
+                    )
+                    (List.filter
+                        (\unitType ->
+                            Juralen.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
+                        )
+                        (Juralen.Structure.canBuild cell.structure)
+                    )
     in
     if List.length remainingCells <= 0 then
         newOptions
 
     else
-        getUnitOptions remainingCells newOptions
+        getUnitOptions stats remainingCells newOptions
+
+
+scoreOptions : Core.Model -> List Option -> List Option
+scoreOptions model options =
+    List.map (scoreOption model) options
+
+
+scoreOption : Core.Model -> Option -> Option
+scoreOption model option =
+    case option.action of
+        Move units toLoc ->
+            let
+                stats =
+                    Core.currentPlayerStats model
+
+                targetCell =
+                    Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) toLoc
+
+                score =
+                    10
+                        - List.length units
+                        * 2
+                        - (if List.any (\unit -> unit.movesLeft <= 0) units then 1000 else 0)
+                        - Juralen.Cell.getDistance option.loc toLoc
+                        + (if targetCell.cellType == Juralen.CellType.Plains then
+                            5
+
+                           else
+                            0
+                          )
+                        + (if targetCell.structure /= Nothing then
+                            100
+
+                           else
+                            0
+                          )
+                        + (case targetCell.controlledBy of
+                            Nothing ->
+                                0
+
+                            Just playerId ->
+                                if playerId == model.activePlayer then
+                                    -100
+
+                                else if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
+                                    -100
+
+                                else
+                                    50
+                          )
+                        + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
+                            if stats.farms == stats.units then
+                                10
+
+                            else
+                                -1000
+
+                           else
+                            0
+                          )
+            in
+            { option | score = score }
+
+        BuildUnit unitType ->
+            let
+                score = 1 + unitTypeScore unitType
+            in
+                { option | score = score}
+            
+
+        BuildStructure structure ->
+            option
+
+
+unitTypeScore : UnitType -> Int
+unitTypeScore unitType =
+    case unitType of
+        Juralen.UnitType.Soldier ->
+            1
+
+        Juralen.UnitType.Warrior ->
+            2
+
+        Juralen.UnitType.Archer ->
+            2
+
+        Juralen.UnitType.Priest ->
+            2
+
+        Juralen.UnitType.Rogue ->
+            3
+
+        Juralen.UnitType.Wizard ->
+            3
+
+        Juralen.UnitType.Knight ->
+            4
+
+        
+
+sortByScore : List Option -> List Option
+sortByScore options =
+    List.sortBy .score options |> List.reverse
