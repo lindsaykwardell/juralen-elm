@@ -38,9 +38,9 @@ init =
             , finished = False
             , newPlayers =
                 [ { name = "Lindsay", isHuman = True, color = Juralen.PlayerColor.Red }
-                , { name = "Ilthanen Juralen", isHuman = True, color = Juralen.PlayerColor.Blue }
-                , { name = "Velsyph", isHuman = True, color = Juralen.PlayerColor.Green }
-                , { name = "Dakh", isHuman = True, color = Juralen.PlayerColor.Yellow }
+                , { name = "Ilthanen Juralen", isHuman = False, color = Juralen.PlayerColor.Blue }
+                , { name = "Velsyph", isHuman = False, color = Juralen.PlayerColor.Green }
+                , { name = "Dakh", isHuman = False, color = Juralen.PlayerColor.Yellow }
                 ]
             }
         , combat = NoCombat
@@ -127,6 +127,8 @@ type Msg
     | SelectUnit Int
     | MoveSelectedUnits Cell
     | GotCombatMsg Game.Combat.Msg
+    | PerformAction Juralen.Analysis.Option
+    | PerformAiTurn
     | EndTurn
 
 
@@ -345,7 +347,12 @@ update msg model =
             --     _ = Debug.log "Analysis" (analyze model)
             -- in
             
-            ( { model | analysisResults = analyze model}, Cmd.none)
+            ( { model | analysisResults = analyze model}, 
+                if (Juralen.Player.get model.players model.activePlayer).isHuman then
+                    Cmd.none
+                else
+                    Game.Core.delay 500 PerformAiTurn
+            )
 
         SelectCell loc ->
             ( { model | selectedCell = loc, selectedUnits  = [] }, Cmd.none )
@@ -533,6 +540,34 @@ update msg model =
                         _ ->
                             toCombat model (Game.Combat.update combatMsg combat)
 
+        PerformAction option ->
+            case option.action of 
+                Juralen.Analysis.Move units toLoc ->
+                    let
+                        selectedUnits = List.map (\unit -> unit.id) units
+
+                        toCell = case Juralen.Cell.find model.grid toLoc of
+                                    Nothing ->
+                                        Juralen.Cell.empty
+
+                                    Just cell ->
+                                        cell
+                    in
+                        update (MoveSelectedUnits toCell) { model | selectedUnits = selectedUnits, selectedCell = option.loc}
+
+                Juralen.Analysis.BuildUnit unitType ->
+                    update (BuildUnit unitType) { model | selectedCell = option.loc}  
+
+                _ ->
+                    (model, Cmd.none)
+
+        PerformAiTurn ->
+            case List.head (model.analysisResults) of
+                Nothing ->
+                    update (EndTurn) model
+
+                Just option ->
+                    update (PerformAction option) model
 
         EndTurn ->
             let
@@ -748,7 +783,10 @@ view model =
                     [ h3 [ class "text-white" ] [ text "Recommended Actions"]]
                     , div [ ] (List.map
                         (\option ->
-                            div [ class "flex p-2 my-2 rounded text-white pointe text-white p-2 bg-gray-700 hover:bg-gray-600 pointer" ] 
+                            div 
+                                [ class "flex p-2 my-2 rounded text-white pointe text-white p-2 bg-gray-700 hover:bg-gray-600 pointer"
+                                  , onClick (PerformAction option) 
+                                ] 
                             [ div [class "flex-grow"] [text (Juralen.Analysis.toString option)]
                             , div [class "flex-shrink"] [ text (String.fromInt option.score)]])
                         (List.take 5 model.analysisResults))

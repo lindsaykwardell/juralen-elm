@@ -1,13 +1,15 @@
 module Game.Core exposing (..)
 
 import Game.Combat
+import Juralen.Analysis exposing (Option)
 import Juralen.Cell exposing (Cell, Loc)
 import Juralen.CellType exposing (CellType)
 import Juralen.Grid exposing (Grid)
 import Juralen.Player exposing (NewPlayer, Player)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
-import Juralen.Analysis exposing (Option)
+import Process
+import Task
 
 type CombatStatus
     = NoCombat
@@ -85,3 +87,9 @@ isInRange model cell =
         && Juralen.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+
+
+delay : Float -> msg -> Cmd msg
+delay time msg =
+    Process.sleep time
+        |> Task.perform (\_ -> msg)
