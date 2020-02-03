@@ -13,6 +13,11 @@ type PlayerColor
     | None
 
 
+toList : List PlayerColor
+toList =
+    [ Red, Blue, Green, Orange, Teal, Purple, Yellow, Gray ]
+
+
 toString : PlayerColor -> String
 toString playerColor =
     case playerColor of
@@ -42,6 +47,38 @@ toString playerColor =
 
         None ->
             ""
+
+
+fromString : String -> PlayerColor
+fromString color =
+    case color of
+        "red" ->
+            Red
+
+        "blue" ->
+            Blue
+
+        "green" ->
+            Green
+
+        "orange" ->
+            Orange
+
+        "teal" ->
+            Teal
+
+        "yellow" ->
+            Yellow
+
+        "purple" ->
+            Purple
+
+        "gray" ->
+            Gray
+
+        _ ->
+            None
+
 
 toClass : PlayerColor -> String
 toClass playerColor =

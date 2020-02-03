@@ -8,6 +8,8 @@ import Html exposing (div, text)
 import Html.Attributes exposing (class)
 import Http
 import Json.Decode exposing (Decoder, field, string)
+import Juralen.Player exposing (NewPlayer)
+import Lobby
 import Process
 import Task
 import Url exposing (Url)
@@ -21,29 +23,31 @@ type Page
     = Splash
     | Home
     | Login
-    | Lobby
+    | Lobby Lobby.Model
     | Game Core.Model
 
 
 type alias Model =
-    { page : Page }
+    { page : Page
+    , newPlayers : List NewPlayer
+    }
 
 
 init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init isProd url key =
     if isProd then
-        ( { page = Splash }, delay 2000.0 (ChangePage (Game (Tuple.first Game.init))) )
+        ( { page = Splash, newPlayers = [] }, delay 2000.0 (ChangePage (Lobby (Tuple.first Lobby.init))) )
 
     else
         case url.path of
             "/game" ->
-                ( { page = Game (Tuple.first Game.init) }, Tuple.second Game.init |> Cmd.map GotGameMsg )
+                ( { page = Game (Tuple.first (Game.init [])), newPlayers = [] }, Tuple.second (Game.init []) |> Cmd.map GotGameMsg )
 
             "/login" ->
-                ( { page = Home }, fetchTestData )
+                ( { page = Lobby (Tuple.first Lobby.init), newPlayers = [] }, Cmd.none )
 
             _ ->
-                ( { page = Splash }, delay 2000.0 (ChangePage (Game (Tuple.first Game.init))) )
+                ( { page = Splash, newPlayers = [] }, delay 2000.0 (ChangePage (Lobby (Tuple.first Lobby.init))) )
 
 
 
@@ -71,6 +75,7 @@ delay time msg =
 type Msg
     = ChangePage Page
     | GotTestData (Result Http.Error String)
+    | GotLobbyMsg Lobby.Msg
     | GotGameMsg Game.Msg
 
 
@@ -80,7 +85,14 @@ update msg model =
         ChangePage page ->
             case page of
                 Game game ->
-                    ( { page = Game game }, Cmd.map GotGameMsg (Tuple.second Game.init) )
+                    let
+                        _ =
+                            Debug.log "Active players" model.newPlayers
+                    in
+                    ( { model | page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
+
+                Lobby lobby ->
+                    ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
 
                 _ ->
                     ( model, Cmd.none )
@@ -101,6 +113,19 @@ update msg model =
                     in
                     ( model, Cmd.none )
 
+        GotLobbyMsg lobbyMsg ->
+            case model.page of
+                Lobby lobbyModel ->
+                    case lobbyMsg of
+                        Lobby.StartGame ->
+                            update (ChangePage (Game (Tuple.first (Game.init lobbyModel.newPlayerList)))) { model | newPlayers = lobbyModel.newPlayerList }
+
+                        _ ->
+                            toLobby model (Lobby.update lobbyMsg lobbyModel)
+
+                _ ->
+                    ( model, Cmd.none )
+
         GotGameMsg gameMsg ->
             case model.page of
                 Game gameModel ->
@@ -108,6 +133,11 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+
+toLobby : Model -> ( Lobby.Model, Cmd Lobby.Msg ) -> ( Model, Cmd Msg )
+toLobby model ( lobby, cmd ) =
+    ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg cmd )
 
 
 toGame : Model -> ( Core.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
@@ -124,11 +154,14 @@ view model =
     { title = "Juralen"
     , body =
         [ case model.page of
-            Game game ->
-                Game.view game |> Html.map GotGameMsg
-
             Splash ->
                 div [ class "splash" ] [ Html.h1 [] [ text "JURALEN" ] ]
+
+            Lobby lobby ->
+                Lobby.view lobby |> Html.map GotLobbyMsg
+
+            Game game ->
+                Game.view game |> Html.map GotGameMsg
 
             _ ->
                 div [] []

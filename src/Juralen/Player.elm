@@ -15,7 +15,8 @@ type alias Player =
 
 
 type alias NewPlayer =
-    { name : String
+    { id : Int
+    , name : String
     , isHuman : Bool
     , color : PlayerColor
     }

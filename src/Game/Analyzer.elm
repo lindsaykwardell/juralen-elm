@@ -54,7 +54,7 @@ analyzeMoves model =
 
         unitCombinations : List UnitOption
         unitCombinations =
-            toList (List.map (\cell -> List.foldl (\units combinations -> combinations ++ [ { unitOptions = units, cell = cell } ]) [] (combineUnitWith [] [] ((Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y })))) cellsWithUnits)
+            toList (List.map (\cell -> List.foldl (\units combinations -> combinations ++ [ { unitOptions = units, cell = cell } ]) [] (combineUnitWith [] [] (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }))) cellsWithUnits)
     in
     toList (List.map (\combination -> getMoveOptions actions { x = combination.cell.x, y = combination.cell.y } cellsList combination.unitOptions []) unitCombinations)
 
@@ -277,13 +277,22 @@ scoreOption model option =
                     10
                         - List.length units
                         * 2
-                        - (if List.any (\unit -> unit.movesLeft <= 0) units then 1000 else 0)
-                        - Juralen.Cell.getDistance option.loc toLoc
-                        + (if targetCell.cellType == Juralen.CellType.Plains then
-                            5
+                        - (if List.any (\unit -> unit.movesLeft <= 0) units then
+                            1000
 
                            else
                             0
+                          )
+                        - Juralen.Cell.getDistance option.loc toLoc
+                        + (case targetCell.cellType of
+                            Juralen.CellType.Plains ->
+                                5
+
+                            Juralen.CellType.Mountain ->
+                                -1000
+
+                            _ ->
+                                0
                           )
                         + (if targetCell.structure /= Nothing then
                             100
@@ -320,10 +329,10 @@ scoreOption model option =
 
         BuildUnit unitType ->
             let
-                score = 1 + unitTypeScore unitType
+                score =
+                    1 + unitTypeScore unitType
             in
-                { option | score = score}
-            
+            { option | score = score }
 
         BuildStructure structure ->
             option
@@ -353,7 +362,6 @@ unitTypeScore unitType =
         Juralen.UnitType.Knight ->
             4
 
-        
 
 sortByScore : List Option -> List Option
 sortByScore options =

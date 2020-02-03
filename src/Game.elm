@@ -20,8 +20,8 @@ import Game.Core exposing (..)
 import Game.Analyzer exposing (analyze)
 import Juralen.Analysis
 
-init : ( Model, Cmd Msg )
-init =
+init : List NewPlayer -> ( Model, Cmd Msg )
+init newPlayerList =    
     update (RollNextCell { x = 0, y = 0 })
         { nextId = 1
         , grid = []
@@ -36,12 +36,7 @@ init =
             , currentX = 0
             , currentY = 0
             , finished = False
-            , newPlayers =
-                [ { name = "Lindsay", isHuman = True, color = Juralen.PlayerColor.Red }
-                , { name = "Ilthanen Juralen", isHuman = False, color = Juralen.PlayerColor.Blue }
-                , { name = "Velsyph", isHuman = False, color = Juralen.PlayerColor.Green }
-                , { name = "Dakh", isHuman = False, color = Juralen.PlayerColor.Yellow }
-                ]
+            , newPlayers = newPlayerList
             }
         , combat = NoCombat
         , analysisResults = []
