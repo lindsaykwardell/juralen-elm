@@ -25,7 +25,8 @@
     },
     "dependencies": {
         "electron-is-dev": "^1.1.0",
-        "miragejs": "^0.1.33"
+        "miragejs": "^0.1.33",
+        "uuid": "^3.4.0"
     },
     "build": {
         "appId": "com.nan.juralen",
