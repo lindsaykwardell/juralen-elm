@@ -33,33 +33,14 @@ type alias Model =
     }
 
 
-init : Bool -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init isProd url key =
-    if isProd then
-        ( { page = Splash, newPlayers = [] }, delay 2000.0 (ChangePage (Lobby (Tuple.first Lobby.init))) )
-
-    else
-        case url.path of
-            "/game" ->
-                ( { page = Game (Tuple.first (Game.init [])), newPlayers = [] }, Tuple.second (Game.init []) |> Cmd.map GotGameMsg )
-
-            "/login" ->
-                ( { page = Lobby (Tuple.first Lobby.init), newPlayers = [] }, Cmd.none )
-
-            _ ->
-                ( { page = Splash, newPlayers = [] }, delay 2000.0 (ChangePage (Lobby (Tuple.first Lobby.init))) )
+init : Bool -> ( Model, Cmd Msg )
+init isProd =
+    ( { page = Splash, newPlayers = [] }, delay 2000.0 (ChangePage (Lobby (Tuple.first Lobby.init))) )
 
 
 
 ---- FUNCTIONS ----
 
-
-fetchTestData : Cmd Msg
-fetchTestData =
-    Http.get
-        { url = "/test"
-        , expect = Http.expectJson GotTestData (field "name" string)
-        }
 
 
 delay : Float -> msg -> Cmd msg
@@ -74,7 +55,6 @@ delay time msg =
 
 type Msg
     = ChangePage Page
-    | GotTestData (Result Http.Error String)
     | GotLobbyMsg Lobby.Msg
     | GotGameMsg Game.Msg
 
@@ -85,32 +65,12 @@ update msg model =
         ChangePage page ->
             case page of
                 Game game ->
-                    let
-                        _ =
-                            Debug.log "Active players" model.newPlayers
-                    in
                     ( { model | page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
 
                 Lobby lobby ->
                     ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
 
                 _ ->
-                    ( model, Cmd.none )
-
-        GotTestData result ->
-            case result of
-                Ok string ->
-                    let
-                        _ =
-                            Debug.log "Success" string
-                    in
-                    ( model, Cmd.none )
-
-                Err _ ->
-                    let
-                        _ =
-                            Debug.log "Failure" ":("
-                    in
                     ( model, Cmd.none )
 
         GotLobbyMsg lobbyMsg ->
@@ -175,10 +135,8 @@ view model =
 
 main : Program Bool Model Msg
 main =
-    Browser.application
+    Browser.document
         { init = init
-        , onUrlRequest = \_ -> Debug.todo "handle URL requests"
-        , onUrlChange = \_ -> Debug.todo "handle URL changes"
         , subscriptions = always Sub.none
         , update = update
         , view = view

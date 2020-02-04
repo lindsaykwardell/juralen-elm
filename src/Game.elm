@@ -337,11 +337,7 @@ update msg model =
             -- ( newModel, Cmd.none )
             update Analyze newModel
 
-        Analyze ->
-            -- let
-            --     _ = Debug.log "Analysis" (analyze model)
-            -- in
-            
+        Analyze ->            
             ( { model | analysisResults = analyze model}, 
                 if (Juralen.Player.get model.players model.activePlayer).isHuman then
                     Cmd.none
@@ -505,8 +501,6 @@ update msg model =
                     case combatMsg of
                         Game.Combat.ExitCombat ->
                             let
-                                _ = Debug.log "Combat is over" combat
-
                                 deadUnitIds = List.map (\unit -> unit.id) combat.deadUnits
 
                                 newUnits : List Unit

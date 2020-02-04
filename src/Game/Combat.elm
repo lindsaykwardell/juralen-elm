@@ -1,11 +1,12 @@
 module Game.Combat exposing (..)
 
+import Array exposing (Array)
 import Juralen.Player exposing (Player)
 import Juralen.Unit exposing (Unit)
-import Random
-import Array exposing (Array)
-import Task
 import Process
+import Random
+import Task
+
 
 
 -- Define units in combat
@@ -63,8 +64,6 @@ update msg model =
 
                     else
                         Juralen.Unit.controlledBy model.units model.defendingPlayer.id
-                
-                _ = Debug.log "Potential fighters" units
 
                 nextCmd =
                     (if unitRole == Attacker then
@@ -80,10 +79,11 @@ update msg model =
         DetermineAttacker units roll ->
             let
                 unitArray : Array Unit
-                unitArray = Array.fromList units
+                unitArray =
+                    Array.fromList units
 
                 unit : Unit
-                unit = 
+                unit =
                     case Array.get roll unitArray of
                         Nothing ->
                             Juralen.Unit.empty
@@ -91,15 +91,16 @@ update msg model =
                         Just thisUnit ->
                             thisUnit
             in
-                update (GetRandomUnit Defender) { model | attacker = unit}
+            update (GetRandomUnit Defender) { model | attacker = unit }
 
         DetermineDefender units roll ->
             let
                 unitArray : Array Unit
-                unitArray = Array.fromList units
+                unitArray =
+                    Array.fromList units
 
                 unit : Unit
-                unit = 
+                unit =
                     case Array.get roll unitArray of
                         Nothing ->
                             Juralen.Unit.empty
@@ -107,47 +108,45 @@ update msg model =
                         Just thisUnit ->
                             thisUnit
             in
-                update (RunCombat) { model | defender = unit}
+            update RunCombat { model | defender = unit }
 
         RunCombat ->
             let
-                _ = Debug.log "Attacker" model.attacker
-                _ = Debug.log "Defender" model.defender
-
                 newModel : Model
-                newModel = model |> attackerAction |> defenderAction |> updateUnitStatus |> switchPlayerRoles
-
-                _ = Debug.log "Living Units" newModel.units
+                newModel =
+                    model |> attackerAction |> defenderAction |> updateUnitStatus |> switchPlayerRoles
 
                 attackerHasUnits : Bool
-                attackerHasUnits = List.length (Juralen.Unit.controlledBy newModel.units newModel.attackingPlayer.id) > 0
+                attackerHasUnits =
+                    List.length (Juralen.Unit.controlledBy newModel.units newModel.attackingPlayer.id) > 0
 
                 defenderHasUnits : Bool
-                defenderHasUnits = List.length (Juralen.Unit.controlledBy newModel.units newModel.defendingPlayer.id) > 0
-
-                _ = Debug.log "Attacker stands" (List.length (Juralen.Unit.controlledBy newModel.units newModel.attackingPlayer.id))
-                _ = Debug.log "defender stands" (List.length (Juralen.Unit.controlledBy newModel.units newModel.defendingPlayer.id))
+                defenderHasUnits =
+                    List.length (Juralen.Unit.controlledBy newModel.units newModel.defendingPlayer.id) > 0
             in
-                if attackerHasUnits && defenderHasUnits then
-                    update (GetRandomUnit Attacker) newModel
-                else
-                    ( newModel, Process.sleep 0 |> Task.perform (\_ -> ExitCombat))
+            if attackerHasUnits && defenderHasUnits then
+                update (GetRandomUnit Attacker) newModel
+
+            else
+                ( newModel, Process.sleep 0 |> Task.perform (\_ -> ExitCombat) )
 
         ExitCombat ->
-            ( model, Cmd.none)
+            ( model, Cmd.none )
 
-            
+
 attackerAction : Model -> Model
 attackerAction model =
     if model.defBonus > 0 then
-        { model | defBonus = model.defBonus - model.attacker.attack}
+        { model | defBonus = model.defBonus - model.attacker.attack }
 
     else
         let
-            defender = Juralen.Unit.takeDamage model.defender model.attacker.attack
+            defender =
+                Juralen.Unit.takeDamage model.defender model.attacker.attack
         in
-            { model | defender = defender}
-        
+        { model | defender = defender }
+
+
 defenderAction : Model -> Model
 defenderAction model =
     if Juralen.Unit.isDead model.defender then
@@ -155,36 +154,55 @@ defenderAction model =
 
     else
         let
-            attacker = Juralen.Unit.takeDamage model.attacker model.defender.attack
+            attacker =
+                Juralen.Unit.takeDamage model.attacker model.defender.attack
         in
-            { model | attacker = attacker}
+        { model | attacker = attacker }
+
 
 switchPlayerRoles : Model -> Model
-switchPlayerRoles model = 
-    { model | attackingPlayer = model.defendingPlayer, defendingPlayer = model.attackingPlayer}
+switchPlayerRoles model =
+    { model | attackingPlayer = model.defendingPlayer, defendingPlayer = model.attackingPlayer }
 
 
 updateUnitStatus : Model -> Model
 updateUnitStatus model =
     let
         postCombat : List Unit
-        postCombat = applyCombatToUnits model.units model.attacker model.defender
+        postCombat =
+            applyCombatToUnits model.units model.attacker model.defender
 
         livingUnits : List Unit
-        livingUnits = removeDeadUnits postCombat
+        livingUnits =
+            removeDeadUnits postCombat
 
         deadUnits : List Unit
-        deadUnits = moveUnitsToGraveyard model.deadUnits postCombat
+        deadUnits =
+            moveUnitsToGraveyard model.deadUnits postCombat
     in
-        { model | units = livingUnits, deadUnits = deadUnits}
+    { model | units = livingUnits, deadUnits = deadUnits }
+
 
 applyCombatToUnits : List Unit -> Unit -> Unit -> List Unit
 applyCombatToUnits units attacker defender =
-    List.map (\unit -> if unit.id == attacker.id then attacker else if unit.id == defender.id then defender else unit) units
+    List.map
+        (\unit ->
+            if unit.id == attacker.id then
+                attacker
+
+            else if unit.id == defender.id then
+                defender
+
+            else
+                unit
+        )
+        units
+
 
 removeDeadUnits : List Unit -> List Unit
 removeDeadUnits units =
     List.filter (\unit -> not (Juralen.Unit.isDead unit)) units
+
 
 moveUnitsToGraveyard : List Unit -> List Unit -> List Unit
 moveUnitsToGraveyard deadUnits units =
