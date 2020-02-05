@@ -133,17 +133,9 @@ update msg model =
         LoginResult result ->
             case result of
                 Err err ->
-                    let
-                        _ =
-                            Debug.log "Error!" err
-                    in
                     ( model, Cmd.none )
 
                 Ok loginPayload ->
-                    let
-                        _ =
-                            Debug.log "Success!" loginPayload
-                    in
                     update (ChangePage Home) { model | username = loginPayload.username, token = loginPayload.token }
 
         ChangePage page ->
