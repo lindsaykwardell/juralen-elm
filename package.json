@@ -13,7 +13,7 @@
         "electron-builder": "^22.3.2",
         "postcss-cli": "^7.1.0",
         "postcss-nested": "^4.2.1",
-        "tailwindcss": "^1.1.4",
+        "tailwindcss": "^1.2.0",
         "wait-on": "^4.0.0"
     },
     "scripts": {
@@ -24,7 +24,9 @@
         "pack": "electron-builder build"
     },
     "dependencies": {
+        "dotenv": "^8.2.0",
         "electron-is-dev": "^1.1.0",
+        "firebase": "^7.8.1",
         "miragejs": "^0.1.33",
         "uuid": "^3.4.0"
     },

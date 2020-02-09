@@ -723,7 +723,7 @@ view model =
                         ]
                     ]
                 , div []
-                    (List.map (\buildableUnit -> button [ class "build-unit", onClick (BuildUnit buildableUnit) ] [ text ("Build " ++ Juralen.UnitType.toString buildableUnit) ])
+                    (List.map (\buildableUnit -> button [ class "build-unit py-2 px-3 rounded m-2", onClick (BuildUnit buildableUnit) ] [ text ("Build " ++ Juralen.UnitType.toString buildableUnit) ])
                         (case Juralen.Cell.find model.grid model.selectedCell of
                             Nothing ->
                                 []

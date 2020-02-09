@@ -12,182 +12,202 @@
     https://github.com/halfzebra/create-elm-app/issues/320
 */
 [data-elm-hot="true"] {
-  height: inherit;
+    height: inherit;
 }
 
 :root {
-  --player-red: rgb(220, 53, 69);
-  --player-blue: rgb(0, 123, 255);
-  --player-orange: rgb(255, 120, 0);
-  --player-yellow: rgb(255, 239, 0);
-  --player-green: rgb(0, 255, 28);
-  --player-teal: rgb(0, 255, 243);
-  --player-purple: rgb(151, 0, 255);
-  --player-gray: rgb(88, 88, 88);
+    --bg: rgb(51, 51, 51);
 
-  --terrain-mountain: rgb(170, 170, 170);
-  --terrain-forest: rgb(72, 133, 79);
-  --terrain-plains: rgb(155, 118, 83);
+    --player-red: rgb(220, 53, 69);
+    --player-blue: rgb(0, 123, 255);
+    --player-orange: rgb(255, 120, 0);
+    --player-yellow: rgb(255, 239, 0);
+    --player-green: rgb(0, 255, 28);
+    --player-teal: rgb(0, 255, 243);
+    --player-purple: rgb(151, 0, 255);
+    --player-gray: rgb(88, 88, 88);
+
+    --terrain-mountain: rgb(170, 170, 170);
+    --terrain-forest: rgb(72, 133, 79);
+    --terrain-plains: rgb(155, 118, 83);
 }
 
 body {
-  font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
-    "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
-  margin: 0;
-  text-align: center;
-  background: rgb(51, 51, 51) none repeat scroll 0% 0%;
+    font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
+        "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
+    margin: 0;
+    text-align: center;
+    background: var(--bg) none repeat scroll 0% 0%;
+}
+
+.font-stoke {
+    font-family: "Stoke", serif;
 }
 
 .splash {
-  @apply flex justify-center items-center;
-  height: 100vh;
-  user-select: none;
+    @apply flex justify-center items-center;
+    height: 100vh;
+    background: url("./img/map.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+    user-select: none;
+}
+
+.bg-juralen {
+    background: var(--bg) none repeat scroll 0% 0%;
+}
+
+.bg-juralen-transparent, .bg-black-50 {
+    background: rgba(0, 0, 0, 0.5) none repeat scroll 0% 0%;
+}
+
+.bg-black-75 {
+    background: rgba(0, 0, 0, 0.75) none repeat scroll 0% 0%;
 }
 
 .login {
-  @apply flex justify-center items-center;
-  height: 100vh;
+    @apply flex justify-center items-center;
+    height: 100vh;
 
-  & .card {
-    
-  }
+    & .card {
+    }
 }
 
 .cell {
-  min-width: 100px;
-  min-height: 100px;
-  user-select: none;
-  cursor: pointer;
-  font-size: 12px;
+    min-width: 100px;
+    min-height: 100px;
+    user-select: none;
+    cursor: pointer;
+    font-size: 12px;
 }
 
 .unit {
-  &:not(:last-child)::after {
-    content: " ";
-  }
+    &:not(:last-child)::after {
+        content: " ";
+    }
 }
 
 h1 {
-  font-size: 2rem;
+    font-size: 2rem;
 }
 
 h2 {
-  font-size: 1.5rem;
+    font-size: 1.5rem;
 }
 
 h3 {
-  font-size: 1.17rem;
+    font-size: 1.17rem;
 }
 
 h4 {
-  font-size: 1rem;
+    font-size: 1rem;
 }
 
 h5 {
-  font-size: 0.83rem;
+    font-size: 0.83rem;
 }
 
 h6 {
-  font-size: 0.67rem;
+    font-size: 0.67rem;
 }
 
 hr {
-  background-color: rgb(68, 68, 68);
-  height: 1px;
-  width: 80%;
+    background-color: rgb(68, 68, 68);
+    height: 1px;
+    width: 80%;
 }
 
 .player-orange {
-  background: var(--player-orange) none repeat scroll 0% 0%;
+    background: var(--player-orange) none repeat scroll 0% 0%;
 }
 
 .player-yellow {
-  background: var(--player-yellow) none repeat scroll 0% 0%;
+    background: var(--player-yellow) none repeat scroll 0% 0%;
 }
 
 .player-red {
-  background: var(--player-red) none repeat scroll 0% 0%;
+    background: var(--player-red) none repeat scroll 0% 0%;
 }
 
 .player-blue {
-  background: var(--player-blue) none repeat scroll 0% 0%;
+    background: var(--player-blue) none repeat scroll 0% 0%;
 }
 
 .player-green {
-  background: var(--player-green) none repeat scroll 0% 0%;
+    background: var(--player-green) none repeat scroll 0% 0%;
 }
 
 .player-teal {
-  background: var(--player-teal) none repeat scroll 0% 0%;
+    background: var(--player-teal) none repeat scroll 0% 0%;
 }
 
 .player-purple {
-  background: var(--player-purple) none repeat scroll 0% 0%;
+    background: var(--player-purple) none repeat scroll 0% 0%;
 }
 
 .player-gray {
-  background: var(--player-gray) none repeat scroll 0% 0%;
+    background: var(--player-gray) none repeat scroll 0% 0%;
 }
 
 .terrain-mountain {
-  background: var(--terrain-mountain) none repeat scroll 0% 0%;
+    background: var(--terrain-mountain) none repeat scroll 0% 0%;
 }
 
 .terrain-forest {
-  background: var(--terrain-forest) none repeat scroll 0% 0%;
+    background: var(--terrain-forest) none repeat scroll 0% 0%;
 }
 
 .terrain-plains {
-  background: var(--terrain-plains) none repeat scroll 0% 0%;
+    background: var(--terrain-plains) none repeat scroll 0% 0%;
 }
 
 button {
-  @apply py-2 px-3 m-2 rounded;
+    /* @apply py-2 px-3 m-2 rounded; */
 
-  transition: 0.3s;
+    transition: 0.3s;
 
-  &.build-unit {
-    @apply bg-blue-500;
+    &.build-unit {
+        @apply bg-blue-500;
 
-    &:hover {
-      @apply bg-blue-400;
+        &:hover {
+            @apply bg-blue-400;
+        }
     }
-  }
 }
 
 .pointer {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .triangle {
-  width: 0;
-  height: 0;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  border-left: 20px solid black;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 20px solid black;
 
-  &.red {
-    border-left: 20px solid var(--player-red);
-  }
-  &.blue {
-    border-left: 20px solid var(--player-blue);
-  }
-  &.orange {
-    border-left: 20px solid var(--player-orange);
-  }
-  &.yellow {
-    border-left: 20px solid var(--player-yellow);
-  }
-  &.teal {
-    border-left: 20px solid var(--player-teal);
-  }
-  &.purple {
-    border-left: 20px solid var(--player-purple);
-  }
-  &.green {
-    border-left: 20px solid var(--player-green);
-  }
-  &.gray {
-    border-left: 20px solid var(--player-gray);
-  }
+    &.red {
+        border-left: 20px solid var(--player-red);
+    }
+    &.blue {
+        border-left: 20px solid var(--player-blue);
+    }
+    &.orange {
+        border-left: 20px solid var(--player-orange);
+    }
+    &.yellow {
+        border-left: 20px solid var(--player-yellow);
+    }
+    &.teal {
+        border-left: 20px solid var(--player-teal);
+    }
+    &.purple {
+        border-left: 20px solid var(--player-purple);
+    }
+    &.green {
+        border-left: 20px solid var(--player-green);
+    }
+    &.gray {
+        border-left: 20px solid var(--player-gray);
+    }
 }

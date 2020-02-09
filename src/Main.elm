@@ -2,9 +2,18 @@ port module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
+import FontAwesome.Attributes as Icon
+import FontAwesome.Brands as Icon
+import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Layering as Icon
+import FontAwesome.Solid as Icon
+import FontAwesome.Styles as Icon
+import FontAwesome.Svg as SvgIcon
+import FontAwesome.Transforms as Icon
 import Game
 import Game.Core as Core
-import Html exposing (Attribute, button, div, form, h2, input, text)
+import Game.Settings as Settings exposing (Settings, settingsModal)
+import Html exposing (Attribute, button, div, form, h2, input, text, hr)
 import Html.Attributes exposing (class, placeholder, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit, preventDefaultOn)
 import Http
@@ -23,7 +32,6 @@ import Url exposing (Url)
 
 type alias Init =
     { isProd : Bool
-    , token : String
     }
 
 
@@ -37,37 +45,36 @@ type Page
 
 type alias Model =
     { page : Page
-    , username : String
+    , inTransition : Bool
+    , showSettings : Bool
+    , settings : Settings
+    , email : String
     , password : String
-    , token : String
     , newPlayers : List NewPlayer
     }
 
 
 type alias LoginPayload =
-    { token : String
-    , username : String
+    { email : String
+    , password : String
     }
 
 
 defaultModel : Model
 defaultModel =
     { page = Splash
-    , username = ""
+    , inTransition = False
+    , showSettings = False
+    , settings = {}
+    , email = ""
     , password = ""
-    , token = ""
     , newPlayers = []
     }
 
 
 init : Init -> ( Model, Cmd Msg )
 init payload =
-    if payload.isProd then
-        ( { defaultModel | token = payload.token }, delay 2000.0 (ChangePage (Lobby (Tuple.first Lobby.init))) )
-
-    else
-        -- ( { defaultModel | page = Login, token = payload.token }, Cmd.none )
-        ( { defaultModel | token = payload.token }, delay 0 (ChangePage Login) )
+    ( defaultModel, Cmd.none )
 
 
 
@@ -85,23 +92,19 @@ preventDefaultOnSubmit msg =
     preventDefaultOn "submit" (Decode.succeed ( msg, True ))
 
 
-decodeLoginPayload : Decoder LoginPayload
-decodeLoginPayload =
-    Decode.map2 LoginPayload
-        (field "token" string)
-        (field "username" string)
-
-
 
 ---- UPDATE ----
 
 
 type Msg
-    = EnterUsername String
+    = EnterEmail String
     | EnterPassword String
     | AttemptLogin
-    | LoginResult (Result Http.Error LoginPayload)
+    | UpdateAuthStatus Bool
+    | InitChangePage Page
     | ChangePage Page
+    | ToggleSettings
+    | GotSettingsMessage Settings.Msg
     | GotLobbyMsg Lobby.Msg
     | GotGameMsg Game.Msg
 
@@ -109,73 +112,61 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        EnterUsername username ->
-            ( { model | username = username }, Cmd.none )
+        EnterEmail email ->
+            ( { model | email = email }, Cmd.none )
 
         EnterPassword password ->
             ( { model | password = password }, Cmd.none )
 
         AttemptLogin ->
             ( { model | password = "" }
-            , Http.post
-                { url = "/api/login"
-                , body =
-                    Http.jsonBody
-                        (Encode.object
-                            [ ( "username", Encode.string model.username )
-                            , ( "password", Encode.string model.password )
-                            ]
-                        )
-                , expect = Http.expectJson LoginResult decodeLoginPayload
-                }
+            , login { email = model.email, password = model.password }
             )
 
-        LoginResult result ->
-            case result of
-                Err err ->
-                    ( model, Cmd.none )
+        UpdateAuthStatus currentAuthStatus ->
+            if currentAuthStatus then
+                update (InitChangePage Home) model
 
-                Ok loginPayload ->
-                    update (ChangePage Home) { model | username = loginPayload.username, token = loginPayload.token }
+            else
+                update (InitChangePage Login) model
+
+        InitChangePage page ->
+            ( { model | inTransition = True }, delay 2000 (ChangePage page) )
 
         ChangePage page ->
             case page of
                 Login ->
-                    if String.length model.token == 0 then
-                        ( { model | page = Login }, Cmd.none )
-
-                    else
-                        -- Validate token
-                        ( { model | page = Login }
-                        , Http.post
-                            { url = "/api/auth"
-                            , body =
-                                Http.jsonBody
-                                    (Encode.object
-                                        [ ( "token", Encode.string model.token ) ]
-                                    )
-                            , expect = Http.expectJson LoginResult decodeLoginPayload
-                            }
-                        )
+                    ( { model | inTransition = False, showSettings = False, page = Login }, Cmd.none )
 
                 Home ->
-                    ( { model | page = Home }, storeJwt model.token )
+                    ( { model | inTransition = False, showSettings = False, page = Home }, Cmd.none )
 
                 Lobby lobby ->
-                    ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
+                    ( { model | inTransition = False, showSettings = False, page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
 
                 Game _ ->
-                    ( { model | page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
+                    ( { model | inTransition = False, showSettings = False, page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
 
                 _ ->
-                    ( model, Cmd.none )
+                    ( { model | inTransition = False }, Cmd.none )
+
+        ToggleSettings ->
+            ( { model | showSettings = not model.showSettings }, Cmd.none )
+
+        GotSettingsMessage settingsMsg ->
+            case settingsMsg of
+                Settings.Logout ->
+                    ( model, logout () )
+
+                Settings.CloseSettings ->
+                    update ToggleSettings model
 
         GotLobbyMsg lobbyMsg ->
             case model.page of
                 Lobby lobbyModel ->
                     case lobbyMsg of
                         Lobby.StartGame ->
-                            update (ChangePage (Game (Tuple.first (Game.init lobbyModel.newPlayerList)))) { model | newPlayers = lobbyModel.newPlayerList }
+                            update (InitChangePage (Game (Tuple.first (Game.init lobbyModel.newPlayerList)))) { model | newPlayers = lobbyModel.newPlayerList }
 
                         _ ->
                             toLobby model (Lobby.update lobbyMsg lobbyModel)
@@ -206,7 +197,24 @@ toGame model ( game, cmd ) =
 ---- PORTS ----
 
 
-port storeJwt : String -> Cmd msg
+port login : LoginPayload -> Cmd msg
+
+
+port logout : () -> Cmd msg
+
+
+port authStatus : (Bool -> msg) -> Sub msg
+
+
+
+---- SUBSCRIPTIONS ----
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ authStatus UpdateAuthStatus
+        ]
 
 
 
@@ -217,34 +225,63 @@ view : Model -> Document Msg
 view model =
     { title = "Juralen"
     , body =
-        [ case model.page of
-            Splash ->
-                div [ class "splash" ] [ Html.h1 [ class "text-white" ] [ text "JURALEN" ] ]
+        [ Icon.css
+        , div
+            [ class
+                ("fixed h-screen w-screen pointer-events-none z-20 bg-juralen transition-opacity ease-in-out duration-150"
+                    ++ (if not model.inTransition then
+                            " opacity-0"
 
-            Login ->
-                div [ class "login" ]
-                    [ div [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3" ]
-                        [ h2 [ class "m-3" ] [ text "Log In" ]
-                        , form [ preventDefaultOnSubmit AttemptLogin ]
-                            [ input [ class "rounded my-3 w-full p-2", type_ "text", placeholder "Username", onInput EnterUsername ] []
-                            , input [ class "rounded my-3 w-full p-2", type_ "password", placeholder "Password", onInput EnterPassword ] []
-                            , input [ class "px-3 py-2 bg-blue-300 hover:bg-blue-500 pointer rounded", type_ "submit" ] [ text "Log In" ]
+                        else
+                            ""
+                       )
+                )
+            ]
+            []
+        , if model.showSettings then
+            model.settings |> settingsModal |> Html.map GotSettingsMessage
+
+          else
+            div [] []
+        , div []
+            [ if model.page == Splash || model.page == Login then
+                div [] []
+
+              else
+                div [ class "sticky flex bg-gray-700 mb-3 z-10" ]
+                    [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
+            , case model.page of
+                Splash ->
+                    div []
+                        [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ], hr [] [] ]
+                        , div [ class "splash" ] []
+                        ]
+
+                Login ->
+                    div [ class "login" ]
+                        [ div [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3" ]
+                            [ h2 [ class "m-3" ] [ text "Log In" ]
+                            , form [ preventDefaultOnSubmit AttemptLogin ]
+                                [ input [ class "rounded my-3 w-full p-2", type_ "text", placeholder "Email Address", onInput EnterEmail, value model.email ] []
+                                , input [ class "rounded my-3 w-full p-2", type_ "password", placeholder "Password", onInput EnterPassword, value model.password ] []
+                                , div [ class "mx-6" ]
+                                    [ input [ class "px-3 py-2 bg-blue-300 hover:bg-blue-500 pointer rounded w-full", type_ "submit", value "Login" ] []
+                                    ]
+                                ]
                             ]
                         ]
-                    ]
 
-            Home ->
-                div [ class "login" ]
-                    [ div [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3" ]
-                        [ button [ onClick (ChangePage (Lobby (Tuple.first Lobby.init))) ] [ text "Enter Lobby" ]
+                Home ->
+                    div [ class "login" ]
+                        [ button [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3", onClick (InitChangePage (Lobby (Tuple.first Lobby.init))) ] [ text "Enter Lobby" ]
                         ]
-                    ]
 
-            Lobby lobby ->
-                Lobby.view lobby |> Html.map GotLobbyMsg
+                Lobby lobby ->
+                    Lobby.view lobby |> Html.map GotLobbyMsg
 
-            Game game ->
-                Game.view game |> Html.map GotGameMsg
+                Game game ->
+                    Game.view game |> Html.map GotGameMsg
+            ]
         ]
     }
 
@@ -257,7 +294,7 @@ main : Program Init Model Msg
 main =
     Browser.document
         { init = init
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         , update = update
         , view = view
         }
