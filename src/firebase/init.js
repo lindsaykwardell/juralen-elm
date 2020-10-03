@@ -8,7 +8,8 @@ const config = {
     databaseURL: process.env.ELM_APP_FIREBASE_DB_URL,
     projectId: process.env.ELM_APP_FIREBASE_PROJECT_ID,
     storageBucket: process.env.ELM_APP_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.ELM_APP_FIREBASE_MSGR_SENDER_ID
+    messagingSenderId: process.env.ELM_APP_FIREBASE_MSGR_SENDER_ID,
+    appId: process.env.ELM_APP_FIREBASE_APP_ID,
 }
 
 firebase.initializeApp(config)
@@ -18,7 +19,7 @@ firebase.initializeApp(config)
 firebase
     .firestore()
     .enablePersistence()
-    .catch(function(err) {
+    .catch(function (err) {
         if (err.code === "failed-precondition") {
             // Multiple tabs open, persistence can only be enabled
             // in one tab at a a time.

@@ -20,13 +20,14 @@
         "build": "PUBLIC_URL=./ elm-app build",
         "build:css": "postcss index.postcss -o src/main.css",
         "watch:css": "postcss index.postcss -o src/main.css -w",
-        "dev": "concurrently \"elm-app start\" \"wait-on http://localhost:3000 && electron .\"",
+        "dev": "elm-app start",
+        "dev:app": "concurrently \"elm-app start\" \"wait-on http://localhost:3000 && electron .\"",
         "pack": "electron-builder build"
     },
     "dependencies": {
         "dotenv": "^8.2.0",
         "electron-is-dev": "^1.1.0",
-        "firebase": "^7.8.1",
+        "firebase": "^7.22.0",
         "miragejs": "^0.1.33",
         "uuid": "^3.4.0"
     },
