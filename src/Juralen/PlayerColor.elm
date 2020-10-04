@@ -109,3 +109,33 @@ toClass playerColor =
 
         None ->
             ""
+
+isDark : PlayerColor -> Bool
+isDark playerColor =
+    case playerColor of
+        Red ->
+            True
+
+        Blue ->
+            True
+
+        Green ->
+            False
+
+        Orange ->
+            True
+
+        Teal ->
+            False
+
+        Yellow ->
+            False
+
+        Purple ->
+            True
+
+        Gray ->
+            True
+
+        None ->
+            False

@@ -5,6 +5,7 @@ import Html.Attributes exposing (checked, class, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import Juralen.Player exposing (NewPlayer)
 import Juralen.PlayerColor exposing (PlayerColor)
+import Juralen.PlayerColor
 
 
 type alias Model =
@@ -142,7 +143,11 @@ newPlayerInput player =
         , div [ class "flex-1" ]
             [ label [ class "text-white" ]
                 [ text "Color"
-                , select [ class "p-2 ml-3 rounded bg-black", onInput (UpdateColor player.id) ] (
+                , select [ class (
+                        "p-2 ml-3 rounded " 
+                        ++ Juralen.PlayerColor.toClass player.color 
+                        ++ (if Juralen.PlayerColor.isDark player.color then "" else " text-black")
+                    ), onInput (UpdateColor player.id) ] (
                     List.map (\playerColor -> 
                         option 
                             [ value (Juralen.PlayerColor.toString playerColor)

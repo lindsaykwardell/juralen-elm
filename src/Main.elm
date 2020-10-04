@@ -45,6 +45,7 @@ type Page
 
 type alias Model =
     { page : Page
+    , isGameActive : Bool
     , inTransition : Bool
     , showSettings : Bool
     , settings : Settings
@@ -63,6 +64,7 @@ type alias LoginPayload =
 defaultModel : Model
 defaultModel =
     { page = Splash
+    , isGameActive = False
     , inTransition = False
     , showSettings = False
     , settings = {}
@@ -136,16 +138,16 @@ update msg model =
         ChangePage page ->
             case page of
                 Login ->
-                    ( { model | inTransition = False, showSettings = False, page = Login }, Cmd.none )
+                    ( { model | inTransition = False, showSettings = False, isGameActive = False, page = Login }, Cmd.none )
 
                 Home ->
-                    ( { model | inTransition = False, showSettings = False, page = Home }, Cmd.none )
+                    ( { model | inTransition = False, showSettings = False, isGameActive = False, page = Home }, Cmd.none )
 
                 Lobby lobby ->
-                    ( { model | inTransition = False, showSettings = False, page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
+                    ( { model | inTransition = False, showSettings = False, isGameActive = False, page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
 
                 Game _ ->
-                    ( { model | inTransition = False, showSettings = False, page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
+                    ( { model | inTransition = False, showSettings = False, isGameActive = True, page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
 
                 _ ->
                     ( { model | inTransition = False }, Cmd.none )
@@ -157,6 +159,9 @@ update msg model =
             case settingsMsg of
                 Settings.Logout ->
                     ( model, logout () )
+
+                Settings.ExitGame ->
+                    update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
 
                 Settings.CloseSettings ->
                     update ToggleSettings model
@@ -239,7 +244,7 @@ view model =
             ]
             []
         , if model.showSettings then
-            model.settings |> settingsModal |> Html.map GotSettingsMessage
+            { isGameActive = model.isGameActive, allowLogout = True } |> settingsModal |> Html.map GotSettingsMessage
 
           else
             div [] []
