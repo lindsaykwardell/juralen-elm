@@ -120,11 +120,11 @@ view model =
     div [ class "m-auto w-3/4" ]
         [ h1 [ class "text-white" ] [ text "Start New Game" ]
         , div [ class "flex justify-end" ]
-            [ div [ class "w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600", onClick AddPlayer ] [ text "Add Player" ] ]
+            [ div [ class "w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
             ]
-        , div [ class "bg-gray-700 p-2" ] (List.map newPlayerInput model.newPlayerList)
+        , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ] (List.map newPlayerInput model.newPlayerList)
         , div [ class "text-center" ]
-            [ button [ class "bg-green-600", onClick StartGame ] [ text "Start Game" ]
+            [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick StartGame ] [ text "Start Game" ]
             ]
         ]
 
@@ -142,7 +142,13 @@ newPlayerInput player =
         , div [ class "flex-1" ]
             [ label [ class "text-white" ]
                 [ text "Color"
-                , select [ class "p-2 ml-3 rounded bg-black", onInput (UpdateColor player.id) ] (List.map (\playerColor -> option [ value (Juralen.PlayerColor.toString playerColor), selected (playerColor == player.color) ] [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]) Juralen.PlayerColor.toList)
+                , select [ class "p-2 ml-3 rounded bg-black", onInput (UpdateColor player.id) ] (
+                    List.map (\playerColor -> 
+                        option 
+                            [ value (Juralen.PlayerColor.toString playerColor)
+                            , selected (playerColor == player.color) 
+                            ] 
+                            [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]) Juralen.PlayerColor.toList)
                 ]
             ]
         ]
