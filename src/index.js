@@ -3,10 +3,10 @@ import { Elm } from "./Main.elm"
 import * as serviceWorker from "./serviceWorker"
 
 import firebaseAuth from "./firebase/auth"
-import audioControl from "./audio/audioControl"
+// import audioControl from "./audio/audioControl"
 
-audioControl.selectSong("theme:0")
-audioControl.fadeIn()
+// audioControl.selectSong("theme:0")
+// audioControl.fadeIn()
 
 // Initialize Elm application
 const app = Elm.Main.init({

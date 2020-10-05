@@ -1,48 +1,24 @@
 {
     "name": "juralen-elm",
-    "main": "public/electron.js",
-    "homepage": "./",
     "author": "Lindsay Wardell",
     "version": "0.0.1",
     "devDependencies": {
-        "autoprefixer": "^9.7.4",
-        "concurrently": "^5.1.0",
-        "create-elm-app": "^4.2.0",
+        "autoprefixer": "^10.0.1",
+        "concurrently": "^5.3.0",
+        "create-elm-app": "^5.2.1",
         "cssnano": "^4.1.10",
-        "electron": "^8.0.0",
-        "electron-builder": "^22.3.2",
-        "postcss-cli": "^7.1.0",
+        "postcss": "^8.1.1",
+        "postcss-cli": "^8.0.0",
         "postcss-nested": "^4.2.1",
-        "tailwindcss": "^1.2.0",
-        "wait-on": "^4.0.0"
+        "tailwindcss": "^1.8.10"
     },
     "scripts": {
-        "build": "PUBLIC_URL=./ elm-app build",
+        "build": "elm-app build",
         "build:css": "postcss index.postcss -o src/main.css",
         "watch:css": "postcss index.postcss -o src/main.css -w",
-        "dev": "elm-app start",
-        "dev:app": "concurrently \"elm-app start\" \"wait-on http://localhost:3000 && electron .\"",
-        "pack": "electron-builder build"
+        "dev": "elm-app start"
     },
     "dependencies": {
-        "dotenv": "^8.2.0",
-        "electron-is-dev": "^1.1.0",
-        "firebase": "^7.22.0",
-        "miragejs": "^0.1.33",
-        "uuid": "^3.4.0"
-    },
-    "build": {
-        "appId": "com.nan.juralen",
-        "files": [
-            "node_modules/**/*",
-            {
-                "from": "build",
-                "to": "public",
-                "filter": "**/*"
-            }
-        ],
-        "directories": {
-            "buildResources": "assets"
-        }
+        "firebase": "^7.22.1"
     }
 }

@@ -22,23 +22,4 @@ export default ports => {
                 console.log(error)
             })
     })
-
-    // ports.register.subscribe(({ email, password }) => {
-    //     firebase
-    //         .auth()
-    //         .createUserWithEmailAndPassword(
-    //             this.state.emailAddress,
-    //             this.state.password
-    //         )
-    //         .then(() => {
-    //             const user = firebase.auth().currentUser
-
-    //             user.updateProfile({
-    //                 displayName: "Lord Knave"
-    //             })
-    //         })
-    //         .catch(error => {
-    //             console.log(error)
-    //         })
-    // })
 }

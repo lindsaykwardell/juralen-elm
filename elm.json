@@ -14,7 +14,7 @@
             "elm/random": "1.0.0",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
-            "lattyware/elm-fontawesome": "4.0.0"
+            "lattyware/elm-fontawesome": "5.0.0"
         },
         "indirect": {
             "elm/bytes": "1.0.8",
