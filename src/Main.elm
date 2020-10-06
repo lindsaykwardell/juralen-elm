@@ -272,7 +272,7 @@ view model =
 
               else
                 div [ class "sticky flex bg-gray-700 mb-3 z-10" ]
-                    [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
+                    [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
             , case model.page of
                 Splash ->
                     div []

@@ -123,15 +123,19 @@ view model =
         , div [ class "flex justify-end" ]
             [ div [ class "w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
             ]
-        , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ] (List.map newPlayerInput model.newPlayerList)
+        , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ] (List.map 
+            (newPlayerInput 
+                (List.map (\player -> player.color) model.newPlayerList)
+            ) 
+            model.newPlayerList)
         , div [ class "text-center" ]
             [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick StartGame ] [ text "Start Game" ]
             ]
         ]
 
 
-newPlayerInput : NewPlayer -> Html Msg
-newPlayerInput player =
+newPlayerInput : List PlayerColor -> NewPlayer -> Html Msg
+newPlayerInput selectedColors player =
     div [ class "flex py-2 items-center" ]
         [ div [ class "flex-grow" ] [ input [ class "p-2 rounded w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
         , div [ class "flex-1" ]
@@ -153,7 +157,11 @@ newPlayerInput player =
                             [ value (Juralen.PlayerColor.toString playerColor)
                             , selected (playerColor == player.color) 
                             ] 
-                            [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]) Juralen.PlayerColor.toList)
+                            [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]) 
+                            (List.filter (\color -> color == player.color || 
+                                    not (List.foldl (\selectedColor found -> found || selectedColor == color) False selectedColors)
+                                ) 
+                                Juralen.PlayerColor.toList))
                 ]
             ]
         ]
