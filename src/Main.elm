@@ -19,7 +19,7 @@ import Html.Events exposing (onClick, onInput, onSubmit, preventDefaultOn)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Json.Encode as Encode
-import Juralen.Player exposing (NewPlayer)
+import Juralen.Player exposing (NewPlayer, revertToNewPlayer)
 import Lobby
 import Process
 import Task
@@ -161,7 +161,25 @@ update msg model =
                     ( model, logout () )
 
                 Settings.ExitGame ->
-                    update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
+                    case model.page of
+                        Game gameModel ->
+                            let 
+                            
+                                lobbyModel : Lobby.Model
+                                lobbyModel = 
+                                    { newPlayerList = List.map revertToNewPlayer gameModel.players
+                                    , nextId = List.foldl (\player id ->
+                                            if player.id > id then player.id else id
+                                        )
+                                        1
+                                        gameModel.players
+                                    }
+                            
+                            in
+                                update (InitChangePage (Lobby lobbyModel)) model    
+
+                        _ ->
+                            update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
 
                 Settings.CloseSettings ->
                     update ToggleSettings model

@@ -35,6 +35,14 @@ generate player id =
     , color = player.color
     }
 
+revertToNewPlayer : Player -> NewPlayer
+revertToNewPlayer player =
+    { id = player.id
+    , name = player.name
+    , isHuman = player.isHuman
+    , color = player.color
+    }
+
 
 empty : Player
 empty =
