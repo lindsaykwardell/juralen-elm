@@ -11,6 +11,7 @@ type alias Player =
     , hasLost : Bool
     , isHuman : Bool
     , color : PlayerColor
+    , score: Int
     }
 
 
@@ -33,6 +34,7 @@ generate player id =
     , hasLost = False
     , isHuman = player.isHuman
     , color = player.color
+    , score = 2
     }
 
 revertToNewPlayer : Player -> NewPlayer
@@ -55,6 +57,7 @@ empty =
     , hasLost = True
     , isHuman = False
     , color = Juralen.PlayerColor.Gray
+    , score = 0
     }
 
 

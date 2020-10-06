@@ -20,6 +20,7 @@ import Http
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Json.Encode as Encode
 import Juralen.Player exposing (NewPlayer, revertToNewPlayer)
+import Juralen.Grid
 import Lobby
 import Process
 import Task
@@ -262,7 +263,18 @@ view model =
             ]
             []
         , if model.showSettings then
-            { isGameActive = model.isGameActive, allowLogout = True } |> settingsModal |> Html.map GotSettingsMessage
+            let
+
+                playerRanking = 
+                    case model.page of
+                        Game gameModel ->
+                            List.sortBy .score gameModel.players |> List.reverse
+
+                        _ ->
+                            []
+            in
+
+            { isGameActive = model.isGameActive, allowLogout = True, playerRanking = playerRanking } |> settingsModal |> Html.map GotSettingsMessage
 
           else
             div [] []

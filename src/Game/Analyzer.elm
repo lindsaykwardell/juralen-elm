@@ -1,6 +1,6 @@
 module Game.Analyzer exposing (..)
 
-import Game.Core as Core exposing (CurrentPlayerStats)
+import Game.Core as Core exposing (PlayerStats)
 import Juralen.Analysis exposing (Action(..), Option)
 import Juralen.Cell exposing (Cell, Loc)
 import Juralen.CellType
@@ -228,7 +228,7 @@ analyzeBuildUnits model =
     getUnitOptions (Core.currentPlayerStats model) cellsWithStructures []
 
 
-getUnitOptions : CurrentPlayerStats -> List Cell -> List Option -> List Option
+getUnitOptions : PlayerStats -> List Cell -> List Option -> List Option
 getUnitOptions stats cells options =
     let
         cell =

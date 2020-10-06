@@ -19,6 +19,7 @@ import Game.Combat
 import Game.Core exposing (..)
 import Game.Analyzer exposing (analyze)
 import Juralen.Analysis
+import Juralen.Player
 
 init : List NewPlayer -> ( Model, Cmd Msg )
 init newPlayerList =    
@@ -47,45 +48,33 @@ randomDefinedMax max =
     Random.int 0 max
 
 
-getNextActivePlayer : Model -> List Player -> Int -> Player
-getNextActivePlayer model players playerId =
-    let
-        player : Maybe Player
-        player =
-            List.head players
-
-        remainingPlayers : List Player
-        remainingPlayers =
-            case List.tail players of
-                Nothing ->
-                    []
-
-                Just playerList ->
-                    playerList
-    in
-    case player of
-        Nothing ->
-            Juralen.Player.empty
-
-        Just aPlayer ->
-            if aPlayer.id == playerId then
-                case List.head remainingPlayers of
-                    Nothing ->
-                        case List.head model.players of
+getNextActivePlayer : List Player -> List Player -> Int -> Player
+getNextActivePlayer initialList players playerId =
+    case players of
+        (player :: remainingPlayers) ->
+            if player.id == playerId then
+                case remainingPlayers of
+                    (nextPlayer :: _) ->
+                        nextPlayer
+                    
+                    [] ->
+                        case List.head initialList of 
                             Nothing ->
                                 Juralen.Player.empty
 
-                            Just nextPlayer ->
-                                nextPlayer
+                            Just aPlayer ->
+                                aPlayer
+            else getNextActivePlayer initialList remainingPlayers playerId
+        [] ->
+            case List.head initialList of 
+                Nothing ->
+                    Juralen.Player.empty
 
-                    Just nextPlayer ->
-                        nextPlayer
+                Just aPlayer ->
+                    aPlayer
+            
 
-            else
-                getNextActivePlayer model remainingPlayers playerId
-
-
-gainResources : CurrentPlayerStats -> Resources -> Resources
+gainResources : PlayerStats -> Resources -> Resources
 gainResources stats resources =
     let
         gold =
@@ -562,11 +551,21 @@ update msg model =
         EndTurn ->
             let
                 players : List Player
-                players = List.map (\player -> if Juralen.Grid.townCountControlledBy model.grid player.id <= 0 then { player | hasLost = True } else player) model.players
+                players = List.map (\player -> 
+                    let
+                        score = getPlayerScore model player.id    
+
+                        hasLost = Juralen.Grid.townCountControlledBy model.grid player.id <= 0 
+                    in
+                        { player | hasLost = hasLost, score = score }
+                    ) model.players
+
+                livingPlayers : List Player
+                livingPlayers = (List.filter (\player -> not player.hasLost) players)
 
                 nextActivePlayer : Player
                 nextActivePlayer =
-                    getNextActivePlayer model (List.filter (\player -> not player.hasLost) players) model.activePlayer
+                    getNextActivePlayer livingPlayers livingPlayers model.activePlayer
 
                 newModel = { model | activePlayer = nextActivePlayer.id, players = players }
             in
@@ -609,8 +608,10 @@ shouldCombatStart units playerIdList =
 view : Model -> Html Msg
 view model = 
     div [ class "flex" ]
-            [ table [ class "w-3/5" ]
-                (List.map
+            [ div [ class "w-3/5 p-3" ]
+                [
+                    table [ class "w-full" ]
+                    (List.map
                     (\row ->
                         tr []
                             (List.map
@@ -663,7 +664,13 @@ view model =
                     )
                     model.grid
                 )
-            , div [ class "w-2/5 m-3" ]
+                , div [ class "p-3 w-64" ] (List.map (\player -> div [ class (
+                        Juralen.PlayerColor.toClass player.color 
+                        ++ (if Juralen.PlayerColor.isDark player.color then " text-white" else " text-black")
+                    ) ] 
+                    [ text (player.name ++ " - " ++ String.fromInt player.score) ]) (List.sortBy .score model.players |> List.reverse))]
+                
+            , div [ class "w-2/5 p-3" ]
                 [ div [ class "p-3" ]
                     [ button [ class "py-2 w-full bg-green-500 hover:bg-green-400", onClick EndTurn ] [ text "End Turn" ]
                     ]

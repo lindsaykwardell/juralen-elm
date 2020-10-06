@@ -37,7 +37,7 @@ type alias Model =
     }
 
 
-type alias CurrentPlayerStats =
+type alias PlayerStats =
     { gold : Int
     , actions : Float
     , farms : Int
@@ -46,14 +46,25 @@ type alias CurrentPlayerStats =
     }
 
 
-currentPlayerStats : Model -> CurrentPlayerStats
-currentPlayerStats model =
-    { gold = (Juralen.Player.getResources model.players model.activePlayer).gold
-    , actions = (Juralen.Player.getResources model.players model.activePlayer).actions
-    , farms = Juralen.Grid.farmCountControlledBy model.grid model.activePlayer
-    , towns = Juralen.Grid.townCountControlledBy model.grid model.activePlayer
-    , units = List.length (List.filter (\unit -> unit.controlledBy == model.activePlayer) model.units)
+currentPlayerStats : Model -> PlayerStats
+currentPlayerStats model = playerStats model model.activePlayer
+
+playerStats : Model -> Int -> PlayerStats
+playerStats model playerId =
+    { gold = (Juralen.Player.getResources model.players playerId).gold
+    , actions = (Juralen.Player.getResources model.players playerId).actions
+    , farms = Juralen.Grid.farmCountControlledBy model.grid playerId
+    , towns = Juralen.Grid.townCountControlledBy model.grid playerId
+    , units = List.length (List.filter (\unit -> unit.controlledBy == playerId) model.units)
     }
+
+getPlayerScore : Model -> Int -> Int
+getPlayerScore model playerId =
+    let
+        stats : PlayerStats
+        stats = playerStats model playerId
+    in
+        stats.farms + stats.towns + stats.units
 
 
 getMoveCost : Model -> Float

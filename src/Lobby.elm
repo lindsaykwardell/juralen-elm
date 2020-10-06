@@ -182,4 +182,9 @@ newPlayerInput selectedColors player =
                                 Juralen.PlayerColor.toList))
                 ]
             ]
+        , div [ class "flex-shrink" ]
+            [
+                button [ class "w-32 bg-gray-700 border-red-500 border-2 py-1 px-1 rounded hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ] 
+                    [ text "Remove Player" ]
+            ]
         ]

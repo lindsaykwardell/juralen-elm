@@ -3,6 +3,7 @@ module Game.Settings exposing (..)
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import Juralen.Player exposing (Player)
 
 
 type alias Settings =
@@ -11,6 +12,7 @@ type alias Settings =
 type alias DisplaySettings = 
     { isGameActive : Bool
     , allowLogout : Bool
+    , playerRanking : List Player
     }
 
 type Msg
@@ -24,11 +26,13 @@ settingsModal settings =
     div [ class "fixed flex justify-center items-center h-screen w-screen" ]
         [ div [ class "fixed bg-juralen-transparent z-30 h-screen w-screen", onClick CloseSettings ]
             []
-        , div [ class "bg-gray-600 z-40 w-1/3 h-64" ]
+        , div [ class "bg-gray-600 z-40 w-1/3" ]
             [ h1 [ class "text-white" ] [ text "Settings" ]
             , div [ class "flex flex-col p-2" ]
                 [ if settings.isGameActive then button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick ExitGame ] [ text "Return to Lobby" ] else text ""
                 , if settings.allowLogout then button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick Logout ] [ text "Log Out" ] else text ""
                 ]
+            , div [ class "flex flex-col p-5" ]
+                (List.map (\player -> div [ ] [ text (player.name ++ " - " ++ String.fromInt player.score) ]) settings.playerRanking)
             ]
         ]
