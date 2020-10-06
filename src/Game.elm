@@ -693,10 +693,10 @@ view model =
                     [ text (player.name ++ " - " ++ String.fromInt player.score) ]) (List.sortBy .score model.players |> List.reverse))]
                 
             , div [ class "w-2/5 p-3" ]
-                [ div [ class "p-3" ]
-                    [ button [ class "py-2 w-full bg-green-500 hover:bg-green-400", onClick EndTurn ] [ text "End Turn" ]
-                    ]
-                , div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
+                [ if model.activePlayer /= -1 then div [ class "p-3" ]
+                    [ button [ class "py-2 w-full bg-green-500 hover:bg-green-400", onClick EndTurn ] [ text "End Turn" ] 
+                    ] else text ""
+                , if model.activePlayer /= -1 then div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
                     [ text (Juralen.Player.getName model.players (Just model.activePlayer))
                     , div [ class "flex" ]
                         [ div [ class "flex-1 p-2" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
@@ -705,7 +705,7 @@ view model =
                         , div [ class "flex-1 p-2" ] [ text "Towns: ", text (String.fromInt (currentPlayerStats model).towns) ]
                         , div [ class "flex-1 p-2" ] [ text "Units: ", text (String.fromInt (currentPlayerStats model).units) ]
                         ]
-                    ]
+                    ] else text ""
                 , div [ class "mt-4 border-2 rounded" ]
                     [ div
                         [ class
