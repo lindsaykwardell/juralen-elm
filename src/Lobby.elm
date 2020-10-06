@@ -155,7 +155,8 @@ newPlayerInput selectedColors player =
                     List.map (\playerColor -> 
                         option 
                             [ value (Juralen.PlayerColor.toString playerColor)
-                            , selected (playerColor == player.color) 
+                            , selected (playerColor == player.color)
+                            , class (Juralen.PlayerColor.toClass playerColor)
                             ] 
                             [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]) 
                             (List.filter (\color -> color == player.color || 
