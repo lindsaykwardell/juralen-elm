@@ -561,11 +561,14 @@ update msg model =
 
         EndTurn ->
             let
+                players : List Player
+                players = List.map (\player -> if Juralen.Grid.townCountControlledBy model.grid player.id <= 0 then { player | hasLost = True } else player) model.players
+
                 nextActivePlayer : Player
                 nextActivePlayer =
-                    getNextActivePlayer model model.players model.activePlayer
+                    getNextActivePlayer model (List.filter (\player -> not player.hasLost) players) model.activePlayer
 
-                newModel = { model | activePlayer = nextActivePlayer.id }
+                newModel = { model | activePlayer = nextActivePlayer.id, players = players }
             in
             update (StartTurn nextActivePlayer) newModel
 

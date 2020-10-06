@@ -310,7 +310,17 @@ scoreOption model option =
                           )
                         -- Add if cell has a structure (capturing structures is better)
                         + (if targetCell.structure /= Nothing then
-                            100
+                            case targetCell.controlledBy of
+                                Nothing ->
+                                    100
+                                
+                                Just playerId ->
+                                    if 
+                                        playerId == model.activePlayer 
+                                    then
+                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 200 else -1000
+                                    else  
+                                        100
 
                            else
                             0
@@ -319,6 +329,8 @@ scoreOption model option =
                             -- No impact if cell is not controlled.
                             -- Negative if it is controller by active player
                             -- Add if controlled by someone else (capturing enemy territory is better)
+                                -- Analyze threat of enemy units before making a decision, attacking is less important than winning
+                                -- Include defensive bonus of cell before attacking
                         + (case targetCell.controlledBy of
                             Nothing ->
                                 0
@@ -328,12 +340,12 @@ scoreOption model option =
                                     -100
 
                                 else if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                    (List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
+                                    List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
                                         (List.map (\unit -> unit.unitType) units)
                                     - 
                                     List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
-                                        (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))) 
-                                    * 10
+                                        (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
+                                    - targetCell.defBonus
                                     
 
                                 else
@@ -356,8 +368,20 @@ scoreOption model option =
 
         BuildUnit unitType ->
             let
+                unitsInCell = List.length (Juralen.Unit.inCell model.units option.loc)
+
                 score =
+                    -- Build based on priority (higher scores are better)
                     1 + unitTypeScore unitType
+                    -- Build based on current unit count in cell (lower pop of units is more important)
+                    +
+                        if unitsInCell <= 0
+                        then
+                            1000
+                        else
+                            5 - unitsInCell
+
+
             in
             { option | score = score }
 
