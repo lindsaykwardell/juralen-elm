@@ -1,4 +1,4 @@
-module Game exposing (Msg, init, view, update)
+module Game exposing (..)
 
 import Array
 import Html exposing (Attribute, Html, br, button, div, span, table, td, text, tr, h3)
@@ -78,13 +78,13 @@ gainResources : PlayerStats -> Resources -> Resources
 gainResources stats resources =
     let
         gold =
-            resources.gold + stats.farms
+            resources.gold + round (toFloat stats.farms / 2)
 
         actions =
             let
                 newActions = Basics.toFloat stats.towns + resources.actions
             in
-                if newActions < 4 then 4 else newActions
+                3 + newActions
     in
     { gold = gold
     , actions = actions
@@ -114,6 +114,7 @@ type Msg
     | PerformAction Juralen.Analysis.Option
     | PerformAiTurn
     | EndTurn
+    | EndGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -249,6 +250,12 @@ update msg model =
                     update (RollStartingLocX player nextPlayers) model
 
                 Just realCell ->
+                    if 
+                        Juralen.Grid.distanceToEnemy model.grid { x = realCell.x, y = realCell.y } player.id <= 3
+                    then 
+                        update (RollStartingLocX player nextPlayers) model
+                    else
+
                     let
                         newGrid =
                             Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell Juralen.Structure.Citadel) player.id)
@@ -301,6 +308,18 @@ update msg model =
                     update (StartTurn player) model
 
         StartTurn nextActivePlayer ->
+            if 
+                Game.Core.getPlayerScore model nextActivePlayer.id >= 50 ||
+                List.length (
+                    List.filter (\player ->
+                        not player.hasLost
+                    )
+                    model.players
+                ) == 1
+            then 
+                update EndGame { model | activePlayer = -1}
+            else
+
             let
                 updatedPlayers : List Player
                 updatedPlayers =
@@ -570,6 +589,9 @@ update msg model =
                 newModel = { model | activePlayer = nextActivePlayer.id, players = players }
             in
             update (StartTurn nextActivePlayer) newModel
+        
+        EndGame ->
+            ( model, Game.Core.delay 0 EndGame )
 
 toCombat : Model -> (Game.Combat.Model, Cmd Game.Combat.Msg) -> ( Model, Cmd Msg)
 toCombat model (combat, cmd) =

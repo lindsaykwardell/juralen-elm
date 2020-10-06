@@ -318,7 +318,7 @@ scoreOption model option =
                                     if 
                                         playerId == model.activePlayer 
                                     then
-                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 200 else -1000
+                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 120 else -1000
                                     else  
                                         100
 
@@ -339,17 +339,20 @@ scoreOption model option =
                                 if playerId == model.activePlayer then
                                     -100
 
-                                else if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                    List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
-                                        (List.map (\unit -> unit.unitType) units)
-                                    - 
-                                    List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
-                                        (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
-                                    - targetCell.defBonus
-                                    
+                                else 
+                                    Core.getPlayerScore model playerId
+                                    +
+                                    if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
+                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
+                                            (List.map (\unit -> unit.unitType) units)
+                                        - 
+                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
+                                            (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
+                                        - targetCell.defBonus
+                                        
 
-                                else
-                                    50
+                                    else
+                                        50
                           )
                         -- Should we move everyone in this cell? Do we really need more farms?
                         -- Defending territory is preferable if we can get away with it

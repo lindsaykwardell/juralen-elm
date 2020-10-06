@@ -124,7 +124,9 @@ buildStructure cell structure =
 
 updateControl : Cell -> Int -> Cell
 updateControl cell playerId =
-    { cell | controlledBy = Just playerId }
+    if cell.cellType == Juralen.CellType.Plains then 
+        { cell | controlledBy = Just playerId }
+    else cell
 
 
 getColorClass : Cell -> List Player -> String

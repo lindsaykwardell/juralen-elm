@@ -1,6 +1,6 @@
 module Juralen.Grid exposing (..)
 
-import Juralen.Cell exposing (Cell)
+import Juralen.Cell exposing (Cell, Loc, getDistance)
 
 
 type alias Grid =
@@ -61,6 +61,20 @@ replaceCell grid newCell =
         )
         grid
 
+distanceToEnemy : Grid -> Loc -> Int -> Int
+distanceToEnemy grid loc playerId =
+    List.foldl (\cell closest -> 
+        case cell.controlledBy of
+            Nothing -> 
+                closest
+            
+            Just controller ->
+                let
+                    distance = getDistance loc { x = cell.x, y = cell.y }
+                in
+                    if controller /= playerId && distance < closest then distance else closest
+    ) 100 (toList grid)
+    
 
 farmCountControlledBy : Grid -> Int -> Int
 farmCountControlledBy grid playerId =

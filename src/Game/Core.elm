@@ -11,6 +11,11 @@ import Juralen.UnitType exposing (UnitType)
 import Process
 import Task
 
+type GameStatus
+    = NoGame
+    | ActiveGame
+    | CompletedGame
+
 type CombatStatus
     = NoCombat
     | Combat Game.Combat.Model
