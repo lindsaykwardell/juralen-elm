@@ -54,7 +54,17 @@ analyzeMoves model =
 
         unitCombinations : List UnitOption
         unitCombinations =
-            toList (List.map (\cell -> List.foldl (\units combinations -> combinations ++ [ { unitOptions = units, cell = cell } ]) [] (combineUnitWith [] [] (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }))) cellsWithUnits)
+            toList 
+                (List.map 
+                    (\cell -> 
+                        List.foldl 
+                            (\units combinations -> 
+                                combinations ++ [ { unitOptions = units, cell = cell } ]
+                            ) [] 
+                            (combineUnitWith [] [] (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }))
+                    ) 
+                    cellsWithUnits
+                )
     in
     toList (List.map (\combination -> getMoveOptions actions { x = combination.cell.x, y = combination.cell.y } cellsList combination.unitOptions []) unitCombinations)
 
@@ -275,15 +285,19 @@ scoreOption model option =
 
                 score =
                     10
-                        - List.length units
-                        * 2
+                        -- Subtract number of units to move * 2 (fewer units is better)
+                        - List.length units * 2
+                        -- Don't move units without moves left
                         - (if List.any (\unit -> unit.movesLeft <= 0) units then
                             1000
 
                            else
                             0
                           )
+                        -- Subtract distance (shorter is better)
                         - Juralen.Cell.getDistance option.loc toLoc
+                        -- Add based on cell type (plains are better than forests)
+                        -- Don't move to mountains
                         + (case targetCell.cellType of
                             Juralen.CellType.Plains ->
                                 5
@@ -294,12 +308,17 @@ scoreOption model option =
                             _ ->
                                 0
                           )
+                        -- Add if cell has a structure (capturing structures is better)
                         + (if targetCell.structure /= Nothing then
                             100
 
                            else
                             0
                           )
+                        -- Is it worth moving there?
+                            -- No impact if cell is not controlled.
+                            -- Negative if it is controller by active player
+                            -- Add if controlled by someone else (capturing enemy territory is better)
                         + (case targetCell.controlledBy of
                             Nothing ->
                                 0
@@ -309,11 +328,19 @@ scoreOption model option =
                                     -100
 
                                 else if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                    -100
+                                    (List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
+                                        (List.map (\unit -> unit.unitType) units)
+                                    - 
+                                    List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
+                                        (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))) 
+                                    * 10
+                                    
 
                                 else
                                     50
                           )
+                        -- Should we move everyone in this cell? Do we really need more farms?
+                        -- Defending territory is preferable if we can get away with it
                         + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
                             if stats.farms == stats.units then
                                 10

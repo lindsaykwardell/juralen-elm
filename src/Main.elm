@@ -172,7 +172,7 @@ update msg model =
                                             if player.id > id then player.id else id
                                         )
                                         1
-                                        gameModel.players
+                                        gameModel.players + 1
                                     }
                             
                             in

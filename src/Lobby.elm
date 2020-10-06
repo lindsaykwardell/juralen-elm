@@ -6,6 +6,7 @@ import Html.Events exposing (onClick, onInput)
 import Juralen.Player exposing (NewPlayer)
 import Juralen.PlayerColor exposing (PlayerColor)
 import Juralen.PlayerColor
+import Juralen.PlayerColor
 
 
 type alias Model =
@@ -36,6 +37,19 @@ init =
     , Cmd.none
     )
 
+firstAvailableColor : List PlayerColor -> List PlayerColor -> PlayerColor
+firstAvailableColor colorList selectedColors =
+    case colorList of
+        (color :: remainingColors) ->
+            if 
+                List.foldl (\selectedColor found -> found || color == selectedColor) False selectedColors
+            then
+                firstAvailableColor remainingColors selectedColors
+            else
+                color
+
+        _ ->
+            Juralen.PlayerColor.None
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -94,8 +108,11 @@ update msg model =
                     nextId =
                         model.nextId + 1
 
+                    color : PlayerColor
+                    color = firstAvailableColor Juralen.PlayerColor.toList (List.map (\player -> player.color) model.newPlayerList)
+
                     newPlayer =
-                        { id = model.nextId, name = "Player " ++ String.fromInt model.nextId, isHuman = False, color = Juralen.PlayerColor.None }
+                        { id = model.nextId, name = "Player " ++ String.fromInt model.nextId, isHuman = False, color = color }
 
                     newPlayerList =
                         model.newPlayerList ++ [ newPlayer ]
@@ -148,7 +165,7 @@ newPlayerInput selectedColors player =
             [ label [ class "text-white" ]
                 [ text "Color"
                 , select [ class (
-                        "p-2 ml-3 rounded " 
+                        "p-2 ml-3 rounded w-64 " 
                         ++ Juralen.PlayerColor.toClass player.color 
                         ++ (if Juralen.PlayerColor.isDark player.color then "" else " text-black")
                     ), onInput (UpdateColor player.id) ] (

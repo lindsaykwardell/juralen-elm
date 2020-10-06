@@ -463,7 +463,8 @@ update msg model =
                     if shouldCombatStart (Juralen.Unit.inCell newModel.units newModel.selectedCell) [] then
                         let
                             combatModel : Game.Combat.Model
-                            combatModel = { units = Juralen.Unit.inCell newModel.units newModel.selectedCell
+                            combatModel = 
+                                { units = Juralen.Unit.inCell newModel.units newModel.selectedCell
                                 , deadUnits = []
                                 , attacker = Juralen.Unit.empty
                                 , defender = Juralen.Unit.empty

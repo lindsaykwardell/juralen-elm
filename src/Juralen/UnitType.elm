@@ -52,6 +52,29 @@ moveCost unitType =
         _ ->
             1
         
+threat : UnitType -> Int
+threat unitType =
+    case unitType of
+        Soldier ->
+            1
+
+        Warrior ->
+            2
+
+        Archer ->
+            3
+
+        Knight ->
+            4
+
+        Rogue ->
+            3
+
+        Wizard ->
+            4
+
+        Priest ->
+            0
 
 
 toString : UnitType -> String
