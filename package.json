@@ -19,6 +19,6 @@
         "dev": "elm-app start"
     },
     "dependencies": {
-        "firebase": "^7.22.1"
+        "netlify-identity-widget": "^1.9.1"
     }
 }

@@ -1,8 +1,8 @@
 import "./main.css"
 import { Elm } from "./Main.elm"
 import * as serviceWorker from "./serviceWorker"
+import netlifyIdentity from 'netlify-identity-widget'
 
-import firebaseAuth from "./firebase/auth"
 // import audioControl from "./audio/audioControl"
 
 // audioControl.selectSong("theme:0")
@@ -17,11 +17,38 @@ const app = Elm.Main.init({
     node: document.getElementById("root")
 })
 
-// Firebase integration
-// Set to a timeout to display the splash screen.
+// Initialize identity
+netlifyIdentity.init()
+
+// Validate existing user
 setTimeout(() => {
-    firebaseAuth(app.ports)
-}, 3000)
+    try {
+        netlifyIdentity.refresh().then(jwt => {
+            app.ports.authStatus.send(true)
+        })
+    } catch (err) {
+        app.ports.authStatus.send(false)
+    }
+}, 3000);
+
+// Inform Elm when auth has taken place
+netlifyIdentity.on('login', user => {
+    console.log(user)
+    netlifyIdentity.close()
+    app.ports.authStatus.send(true)
+})
+
+// Subscribe to Elm login
+app.ports.login.subscribe(() => {
+    netlifyIdentity.open()
+})
+
+// Subscribe to Elm logout
+app.ports.logout.subscribe(() => {
+    netlifyIdentity.logout()
+    app.ports.authStatus.send(false)
+})
+
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

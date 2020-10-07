@@ -14,7 +14,7 @@ import Game
 import Game.Core as Core
 import Game.Settings as Settings exposing (Settings, settingsModal)
 import Html exposing (Attribute, button, div, form, h2, input, text, hr)
-import Html.Attributes exposing (class, placeholder, type_, value)
+import Html.Attributes exposing (attribute, class, placeholder, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit, preventDefaultOn)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, string)
@@ -50,8 +50,6 @@ type alias Model =
     , inTransition : Bool
     , showSettings : Bool
     , settings : Settings
-    , email : String
-    , password : String
     , newPlayers : List NewPlayer
     }
 
@@ -69,8 +67,6 @@ defaultModel =
     , inTransition = False
     , showSettings = False
     , settings = {}
-    , email = ""
-    , password = ""
     , newPlayers = []
     }
 
@@ -100,9 +96,7 @@ preventDefaultOnSubmit msg =
 
 
 type Msg
-    = EnterEmail String
-    | EnterPassword String
-    | AttemptLogin
+    = AttemptLogin
     | UpdateAuthStatus Bool
     | InitChangePage Page
     | ChangePage Page
@@ -115,16 +109,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        EnterEmail email ->
-            ( { model | email = email }, Cmd.none )
-
-        EnterPassword password ->
-            ( { model | password = password }, Cmd.none )
-
         AttemptLogin ->
-            ( { model | password = "" }
-            , login { email = model.email, password = model.password }
-            )
+            ( model, login ())
 
         UpdateAuthStatus currentAuthStatus ->
             if currentAuthStatus then
@@ -227,7 +213,7 @@ toGame model ( game, cmd ) =
 ---- PORTS ----
 
 
-port login : LoginPayload -> Cmd msg
+port login : () -> Cmd msg
 
 
 port logout : () -> Cmd msg
@@ -300,16 +286,7 @@ view model =
 
                 Login ->
                     div [ class "login" ]
-                        [ div [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3" ]
-                            [ h2 [ class "m-3" ] [ text "Log In" ]
-                            , form [ preventDefaultOnSubmit AttemptLogin ]
-                                [ input [ class "rounded my-3 w-full p-2", type_ "text", placeholder "Email Address", onInput EnterEmail, value model.email ] []
-                                , input [ class "rounded my-3 w-full p-2", type_ "password", placeholder "Password", onInput EnterPassword, value model.password ] []
-                                , div [ class "mx-6" ]
-                                    [ input [ class "px-3 py-2 bg-blue-300 hover:bg-blue-500 pointer rounded w-full", type_ "submit", value "Login" ] []
-                                    ]
-                                ]
-                            ]
+                        [ button [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3", onClick AttemptLogin ] [ text "Sign in with Netlify" ]
                         ]
 
                 Home ->
