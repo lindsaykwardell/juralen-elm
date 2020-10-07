@@ -1,7 +1,8 @@
 import "./main.css"
 import { Elm } from "./Main.elm"
 import * as serviceWorker from "./serviceWorker"
-import netlifyIdentity from 'netlify-identity-widget'
+
+const netlifyIdentity = window.netlifyIdentity
 
 // import audioControl from "./audio/audioControl"
 

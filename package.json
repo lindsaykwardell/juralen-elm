@@ -17,8 +17,5 @@
         "build:css": "postcss index.postcss -o src/main.css",
         "watch:css": "postcss index.postcss -o src/main.css -w",
         "dev": "elm-app start"
-    },
-    "dependencies": {
-        "netlify-identity-widget": "^1.9.1"
     }
 }
