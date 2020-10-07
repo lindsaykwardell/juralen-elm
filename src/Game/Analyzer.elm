@@ -366,8 +366,17 @@ scoreOption model option =
                            else
                             0
                           )
+                
+                isAttack = 
+                    case targetCell.controlledBy of
+                        Nothing ->
+                            False
+
+                        Just playerId ->
+                            if playerId == model.activePlayer then False
+                            else True
             in
-            { option | score = score }
+            { option | score = score, action = if isAttack then Attack units toLoc else Move units toLoc }
 
         BuildUnit unitType ->
             let
@@ -389,6 +398,9 @@ scoreOption model option =
             { option | score = score }
 
         BuildStructure structure ->
+            option
+
+        _ ->
             option
 
 

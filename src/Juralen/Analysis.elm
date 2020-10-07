@@ -8,6 +8,7 @@ import Juralen.UnitType exposing (UnitType)
 
 type Action
     = Move (List Unit) Loc
+    | Attack (List Unit) Loc
     | BuildUnit UnitType
     | BuildStructure Structure
 
@@ -29,6 +30,14 @@ toString option =
                     List.foldl (\unit total -> total ++ Juralen.UnitType.toString unit.unitType ++ " ") "" units
             in
             "Move [ " ++ unitString ++ "] from " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y ++ " to " ++ String.fromInt loc.x ++ ", " ++ String.fromInt loc.y
+
+        Attack units loc ->
+            let
+                unitString : String
+                unitString =
+                    List.foldl (\unit total -> total ++ Juralen.UnitType.toString unit.unitType ++ " ") "" units
+            in
+            "Attack - Move [ " ++ unitString ++ "] from " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y ++ " to " ++ String.fromInt loc.x ++ ", " ++ String.fromInt loc.y
 
         BuildUnit unitType ->
             "Build [ " ++ Juralen.UnitType.toString unitType ++ " ] in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y

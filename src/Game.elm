@@ -553,6 +553,19 @@ update msg model =
                     in
                         update (MoveSelectedUnits toCell) { model | selectedUnits = selectedUnits, selectedCell = option.loc}
 
+                Juralen.Analysis.Attack units toLoc ->
+                    let
+                        selectedUnits = List.map (\unit -> unit.id) units
+
+                        toCell = case Juralen.Cell.find model.grid toLoc of
+                                    Nothing ->
+                                        Juralen.Cell.empty
+
+                                    Just cell ->
+                                        cell
+                    in
+                        update (MoveSelectedUnits toCell) { model | selectedUnits = selectedUnits, selectedCell = option.loc}
+
                 Juralen.Analysis.BuildUnit unitType ->
                     update (BuildUnit unitType) { model | selectedCell = option.loc}  
 
