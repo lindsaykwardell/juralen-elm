@@ -24,13 +24,13 @@ getColorClass : CellType -> String
 getColorClass cellType =
     case cellType of
         Plains ->
-            "terrain-plains"
+            "bg-terrain-plains"
 
         Forest ->
-            "terrain-forest"
+            "bg-terrain-forest"
 
         Mountain ->
-            "terrain-mountain"
+            "bg-terrain-mountain"
 
 isPassable : CellType -> Bool
 isPassable cellType =

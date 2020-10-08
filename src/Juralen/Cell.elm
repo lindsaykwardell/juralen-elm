@@ -136,7 +136,7 @@ getColorClass cell players =
             Juralen.CellType.getColorClass cell.cellType
 
         _ ->
-            Juralen.Player.getColorClass players cell.controlledBy
+            "bg-" ++ Juralen.Player.getColorClass players cell.controlledBy
 
 
 getDistance : Loc -> Loc -> Int

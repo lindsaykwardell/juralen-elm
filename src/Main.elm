@@ -38,7 +38,6 @@ type alias Init =
 
 type Page
     = Splash
-    | Login
     | Home
     | Lobby Lobby.Model
     | Game Core.Model
@@ -96,7 +95,7 @@ preventDefaultOnSubmit msg =
 
 
 type Msg
-    = AttemptLogin
+    = Login
     | UpdateAuthStatus Bool
     | InitChangePage Page
     | ChangePage Page
@@ -109,7 +108,7 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        AttemptLogin ->
+        Login ->
             ( model, login ())
 
         UpdateAuthStatus currentAuthStatus ->
@@ -117,15 +116,18 @@ update msg model =
                 update (InitChangePage Home) model
 
             else
-                update (InitChangePage Login) model
+                if model.page /= Splash then 
+                    update (InitChangePage Splash) model
+                else
+                    ( model, login ())
 
         InitChangePage page ->
-            ( { model | inTransition = True }, delay 2000 (ChangePage page) )
+            ( { model | inTransition = True }, delay 1000 (ChangePage page) )
 
         ChangePage page ->
             case page of
-                Login ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Login }, Cmd.none )
+                Splash ->
+                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, login ())
 
                 Home ->
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Home }, Cmd.none )
@@ -135,9 +137,6 @@ update msg model =
 
                 Game game ->
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.ActiveGame, page = Game (Tuple.first (Game.init model.newPlayers game.aiSpeed)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers game.aiSpeed)) )
-
-                _ ->
-                    ( { model | inTransition = False }, Cmd.none )
 
         ToggleSettings ->
             ( { model | showSettings = not model.showSettings }, Cmd.none )
@@ -271,35 +270,30 @@ view model =
 
           else
             div [] []
-        , div []
-            [ if model.page == Splash || model.page == Login then
+        , div [ class "flex flex-col  h-screen" ]
+            [ if model.page == Splash then
                 div [] []
 
               else
-                div [ class "sticky flex bg-gray-700 mb-3 z-10" ]
+                div [ class "flex bg-gray-700 mb-3 z-10" ]
                     [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
             , case model.page of
                 Splash ->
-                    div []
+                    div [ onClick Login]
                         [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ], hr [] [] ]
                         , div [ class "splash" ] []
                         ]
 
-                Login ->
-                    div [ class "login" ]
-                        [ button [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3", onClick AttemptLogin ] [ text "Sign in with Netlify" ]
-                        ]
-
                 Home ->
-                    div [ class "login" ]
+                    div [ class "flex-grow flex justify-center items-center" ]
                         [ button [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3", onClick (InitChangePage (Lobby (Tuple.first Lobby.init))) ] [ text "Enter Lobby" ]
                         ]
 
                 Lobby lobby ->
-                    Lobby.view lobby |> Html.map GotLobbyMsg
+                    div [ class "flex-grow" ] [ Lobby.view lobby |> Html.map GotLobbyMsg ]
 
                 Game game ->
-                    Game.view game |> Html.map GotGameMsg
+                    div [ class "flex-grow" ] [ Game.view game |> Html.map GotGameMsg ]
             ]
         ]
     }
