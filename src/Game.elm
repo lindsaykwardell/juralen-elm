@@ -710,7 +710,7 @@ view model =
                 [ if model.activePlayer /= -1 then div [ class "p-3" ]
                     [ button [ class "py-2 w-full bg-green-500 hover:bg-green-400", onClick EndTurn ] [ text "End Turn" ] 
                     ] else text ""
-                , if model.activePlayer /= -1 then div [ class ("text-center p-3 bg-" ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
+                , if model.activePlayer /= -1 then div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
                     [ text (Juralen.Player.getName model.players (Just model.activePlayer))
                     , div [ class "flex" ]
                         [ div [ class "flex-1 p-2" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
