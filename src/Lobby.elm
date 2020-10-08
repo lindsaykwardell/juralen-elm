@@ -7,11 +7,13 @@ import Juralen.Player exposing (NewPlayer)
 import Juralen.PlayerColor exposing (PlayerColor)
 import Juralen.PlayerColor
 import Juralen.PlayerColor
+import Juralen.AnalyzerMode exposing (AnalyzerMode)
 
 
 type alias Model =
     { newPlayerList : List NewPlayer
     , nextId : Int
+    , aiSpeed : Float
     }
 
 
@@ -19,6 +21,8 @@ type Msg
     = UpdateName Int String
     | UpdateHumanity Int Bool
     | UpdateColor Int String
+    | UpdateAnalyzer Int String
+    | UpdateAiSpeed String
     | AddPlayer
     | RemovePlayer Int
     | StartGame
@@ -27,12 +31,17 @@ type Msg
 init : ( Model, Cmd Msg )
 init =
     ( { newPlayerList =
-            [ { id = 1, name = "Lindsay", isHuman = True, color = Juralen.PlayerColor.Red }
-            , { id = 2, name = "Ilthanen Juralen", isHuman = False, color = Juralen.PlayerColor.Blue }
-            , { id = 3, name = "Velsyph", isHuman = False, color = Juralen.PlayerColor.Green }
-            , { id = 4, name = "Dakh", isHuman = False, color = Juralen.PlayerColor.Yellow }
+            [ { id = 1, name = "Aggro", isHuman = False, color = Juralen.PlayerColor.Red, analyzer = Juralen.AnalyzerMode.Aggressive }
+            , { id = 2, name = "Aggro", isHuman = False, color = Juralen.PlayerColor.Blue, analyzer = Juralen.AnalyzerMode.Aggressive }
+            , { id = 3, name = "Defense", isHuman = False, color = Juralen.PlayerColor.Green, analyzer = Juralen.AnalyzerMode.Defensive }
+            , { id = 4, name = "Defense", isHuman = False, color = Juralen.PlayerColor.Yellow, analyzer = Juralen.AnalyzerMode.Defensive }
+            , { id = 5, name = "Passive", isHuman = False, color = Juralen.PlayerColor.Orange, analyzer = Juralen.AnalyzerMode.Passive }
+            , { id = 6, name = "Passive", isHuman = False, color = Juralen.PlayerColor.Teal, analyzer = Juralen.AnalyzerMode.Passive }
+            , { id = 7, name = "Default", isHuman = False, color = Juralen.PlayerColor.Purple, analyzer = Juralen.AnalyzerMode.Default }
+            , { id = 8, name = "Default", isHuman = False, color = Juralen.PlayerColor.Gray, analyzer = Juralen.AnalyzerMode.Default }
             ]
-      , nextId = 5
+      , nextId = 9
+      , aiSpeed = 500
       }
     , Cmd.none
     )
@@ -101,7 +110,36 @@ update msg model =
               }
             , Cmd.none
             )
+        UpdateAnalyzer id analyzerName ->
+            let
+                analyzer : AnalyzerMode
+                analyzer =
+                    case analyzerName of
+                        "DEFAULT" ->
+                            Juralen.AnalyzerMode.Default
+                        "AGGRESSIVE" ->
+                            Juralen.AnalyzerMode.Aggressive
+                        "DEFENSIVE" ->
+                            Juralen.AnalyzerMode.Defensive
+                        "PASSIVE" ->
+                            Juralen.AnalyzerMode.Passive
+                        _ ->
+                            Juralen.AnalyzerMode.Default
 
+                newPlayerList : List NewPlayer
+                newPlayerList = List.map (\player -> if player.id == id then { player | analyzer = analyzer} else player) model.newPlayerList
+            in
+                ( { model | newPlayerList = newPlayerList}, Cmd.none)
+        UpdateAiSpeed speed ->
+            ( { model | aiSpeed = 
+                case String.toFloat speed of
+                    Just speedFloat ->
+                        speedFloat
+
+                    _ ->
+                        500
+            }, Cmd.none)
+            
         AddPlayer ->
             if List.length model.newPlayerList < 8 then
                 let
@@ -112,7 +150,7 @@ update msg model =
                     color = firstAvailableColor Juralen.PlayerColor.toList (List.map (\player -> player.color) model.newPlayerList)
 
                     newPlayer =
-                        { id = model.nextId, name = "Player " ++ String.fromInt model.nextId, isHuman = False, color = color }
+                        { id = model.nextId, name = "Player " ++ String.fromInt model.nextId, isHuman = False, color = color, analyzer = Juralen.AnalyzerMode.Default }
 
                     newPlayerList =
                         model.newPlayerList ++ [ newPlayer ]
@@ -140,11 +178,25 @@ view model =
         , div [ class "flex justify-end" ]
             [ div [ class "w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
             ]
-        , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ] (List.map 
-            (newPlayerInput 
-                (List.map (\player -> player.color) model.newPlayerList)
-            ) 
-            model.newPlayerList)
+        , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ] 
+            (List.concat 
+                [ (List.map 
+                    (newPlayerInput 
+                        (List.map (\player -> player.color) model.newPlayerList)
+                    ) 
+                     model.newPlayerList)
+                , [ div [ class "p-3 flex justify-end" ]
+                    [ label [ class "text-white" ] 
+                        [ text "AI Speed"
+                        , input [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1"
+                                , type_ "number"
+                                , value (String.fromFloat model.aiSpeed)
+                                , onInput UpdateAiSpeed
+                                ] []
+                        ]
+                    ]
+                  ]
+                ])
         , div [ class "text-center" ]
             [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick StartGame ] [ text "Start Game" ]
             ]
@@ -162,10 +214,19 @@ newPlayerInput selectedColors player =
                 ]
             ]
         , div [ class "flex-1" ]
+            [ label [ class "text-white" ] [ text "Analyzer" ]
+            , select [ class "p-2 ml-3 rounded", onInput (UpdateAnalyzer player.id) ] 
+                [ option [ value "DEFAULT", selected (player.analyzer == Juralen.AnalyzerMode.Default) ] [ text "Default" ]
+                , option [ value "AGGRESSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Aggressive) ] [ text "Aggressive" ]
+                , option [ value "DEFENSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Defensive) ] [ text "Defensive" ]
+                , option [ value "PASSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Passive) ] [ text "Passive" ]
+                ]
+            ]
+        , div [ class "flex-1" ]
             [ label [ class "text-white" ]
                 [ text "Color"
                 , select [ class (
-                        "p-2 ml-3 rounded w-64 " 
+                        "p-2 ml-3 rounded w-32 " 
                         ++ Juralen.PlayerColor.toClass player.color 
                         ++ (if Juralen.PlayerColor.isDark player.color then "" else " text-black")
                     ), onInput (UpdateColor player.id) ] (

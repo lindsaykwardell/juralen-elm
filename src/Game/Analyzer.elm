@@ -8,6 +8,9 @@ import Juralen.Grid
 import Juralen.Structure exposing (Structure)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
+import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
+import Juralen.AnalyzerMode
+import Juralen.AnalyzerMode
 
 
 
@@ -274,6 +277,10 @@ scoreOptions model options =
 
 scoreOption : Core.Model -> Option -> Option
 scoreOption model option =
+    let
+        analyzer = Core.playerAnalyzer model.players model.activePlayer
+    in
+
     case option.action of
         Move units toLoc ->
             let
@@ -286,7 +293,9 @@ scoreOption model option =
                 score =
                     10
                         -- Subtract number of units to move * 2 (fewer units is better)
-                        - List.length units * 2
+                        - List.length units * (
+                            if analyzer == Juralen.AnalyzerMode.Defensive then 3 else 2
+                        )
                         -- Don't move units without moves left
                         - (if List.any (\unit -> unit.movesLeft <= 0) units then
                             1000
@@ -295,12 +304,12 @@ scoreOption model option =
                             0
                           )
                         -- Subtract distance (shorter is better)
-                        - Juralen.Cell.getDistance option.loc toLoc
+                        - Juralen.Cell.getDistance option.loc toLoc * (if analyzer == Juralen.AnalyzerMode.Defensive then 3 else 1)
                         -- Add based on cell type (plains are better than forests)
                         -- Don't move to mountains
                         + (case targetCell.cellType of
                             Juralen.CellType.Plains ->
-                                5
+                                15
 
                             Juralen.CellType.Mountain ->
                                 -1000
@@ -318,12 +327,12 @@ scoreOption model option =
                                     if 
                                         playerId == model.activePlayer 
                                     then
-                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 120 else -1000
+                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 120 else 0
                                     else  
-                                        100
+                                        if analyzer == Juralen.AnalyzerMode.Aggressive then 125 else 75
 
                            else
-                            0
+                            if analyzer == Juralen.AnalyzerMode.Aggressive then 100 else 0
                           )
                         -- Is it worth moving there?
                             -- No impact if cell is not controlled.
@@ -343,6 +352,8 @@ scoreOption model option =
                                     Core.getPlayerScore model playerId
                                     +
                                     if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
+                                        if analyzer == Juralen.AnalyzerMode.Passive then -1000 else
+
                                         List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
                                             (List.map (\unit -> unit.unitType) units)
                                         - 
@@ -352,7 +363,7 @@ scoreOption model option =
                                         
 
                                     else
-                                        50
+                                        if analyzer == Juralen.AnalyzerMode.Aggressive then 100 else 50
                           )
                         -- Should we move everyone in this cell? Do we really need more farms?
                         -- Defending territory is preferable if we can get away with it

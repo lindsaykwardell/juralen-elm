@@ -2,6 +2,7 @@ module Juralen.Player exposing (..)
 
 import Juralen.PlayerColor exposing (PlayerColor)
 import Juralen.Resources exposing (Resources)
+import Juralen.AnalyzerMode exposing (AnalyzerMode)
 
 
 type alias Player =
@@ -10,6 +11,7 @@ type alias Player =
     , resources : Resources
     , hasLost : Bool
     , isHuman : Bool
+    , analyzer : AnalyzerMode
     , color : PlayerColor
     , score: Int
     }
@@ -19,6 +21,7 @@ type alias NewPlayer =
     { id : Int
     , name : String
     , isHuman : Bool
+    , analyzer : AnalyzerMode
     , color : PlayerColor
     }
 
@@ -33,6 +36,7 @@ generate player id =
         }
     , hasLost = False
     , isHuman = player.isHuman
+    , analyzer = player.analyzer
     , color = player.color
     , score = 2
     }
@@ -42,6 +46,7 @@ revertToNewPlayer player =
     { id = player.id
     , name = player.name
     , isHuman = player.isHuman
+    , analyzer = player.analyzer
     , color = player.color
     }
 
@@ -56,6 +61,7 @@ empty =
         }
     , hasLost = True
     , isHuman = False
+    , analyzer = Juralen.AnalyzerMode.Default
     , color = Juralen.PlayerColor.Gray
     , score = 0
     }

@@ -21,8 +21,8 @@ import Game.Analyzer exposing (analyze)
 import Juralen.Analysis
 import Juralen.Player
 
-init : List NewPlayer -> ( Model, Cmd Msg )
-init newPlayerList =    
+init : List NewPlayer -> Float -> ( Model, Cmd Msg )
+init newPlayerList aiSpeed =    
     update (RollNextCell { x = 0, y = 0 })
         { nextId = 1
         , grid = []
@@ -41,6 +41,7 @@ init newPlayerList =
             }
         , combat = NoCombat
         , analysisResults = []
+        , aiSpeed = aiSpeed
         }
 
 randomDefinedMax : Int -> Random.Generator Int
@@ -251,7 +252,7 @@ update msg model =
 
                 Just realCell ->
                     if 
-                        Juralen.Grid.distanceToEnemy model.grid { x = realCell.x, y = realCell.y } player.id <= 3
+                        Juralen.Grid.distanceToEnemy model.grid { x = realCell.x, y = realCell.y } player.id <= 2
                     then 
                         update (RollStartingLocX player nextPlayers) model
                     else
@@ -350,7 +351,7 @@ update msg model =
                 if (Juralen.Player.get model.players model.activePlayer).isHuman then
                     Cmd.none
                 else
-                    Game.Core.delay 500 PerformAiTurn
+                    Game.Core.delay model.aiSpeed PerformAiTurn
             )
 
         SelectCell loc ->

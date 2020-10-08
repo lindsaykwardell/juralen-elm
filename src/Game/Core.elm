@@ -10,6 +10,7 @@ import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Process
 import Task
+import Juralen.AnalyzerMode exposing (AnalyzerMode)
 
 type GameStatus
     = NoGame
@@ -39,6 +40,7 @@ type alias Model =
         }
     , combat : CombatStatus
     , analysisResults : List Option
+    , aiSpeed : Float
     }
 
 
@@ -62,6 +64,19 @@ playerStats model playerId =
     , towns = Juralen.Grid.townCountControlledBy model.grid playerId
     , units = List.length (List.filter (\unit -> unit.controlledBy == playerId) model.units)
     }
+
+playerAnalyzer : List Player -> Int -> AnalyzerMode
+playerAnalyzer players playerId =
+    case players of
+        (player :: remainingPlayers) ->
+            if player.id == playerId then
+                player.analyzer
+            
+            else
+                playerAnalyzer remainingPlayers playerId
+
+        [] ->
+            Juralen.AnalyzerMode.Default
 
 getPlayerScore : Model -> Int -> Int
 getPlayerScore model playerId =

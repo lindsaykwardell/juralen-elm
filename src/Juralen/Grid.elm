@@ -12,7 +12,6 @@ toList : Grid -> List Cell
 toList grid =
     addNextRow grid []
 
-
 addNextRow : Grid -> List Cell -> List Cell
 addNextRow grid cellList =
     let

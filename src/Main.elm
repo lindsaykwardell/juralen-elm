@@ -133,8 +133,8 @@ update msg model =
                 Lobby lobby ->
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
 
-                Game _ ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.ActiveGame, page = Game (Tuple.first (Game.init model.newPlayers)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers)) )
+                Game game ->
+                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.ActiveGame, page = Game (Tuple.first (Game.init model.newPlayers game.aiSpeed)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers game.aiSpeed)) )
 
                 _ ->
                     ( { model | inTransition = False }, Cmd.none )
@@ -160,6 +160,7 @@ update msg model =
                                         )
                                         1
                                         gameModel.players + 1
+                                    , aiSpeed = gameModel.aiSpeed
                                     }
                             
                             in
@@ -176,7 +177,7 @@ update msg model =
                 Lobby lobbyModel ->
                     case lobbyMsg of
                         Lobby.StartGame ->
-                            update (InitChangePage (Game (Tuple.first (Game.init lobbyModel.newPlayerList)))) { model | newPlayers = lobbyModel.newPlayerList }
+                            update (InitChangePage (Game (Tuple.first (Game.init lobbyModel.newPlayerList lobbyModel.aiSpeed)))) { model | newPlayers = lobbyModel.newPlayerList }
 
                         _ ->
                             toLobby model (Lobby.update lobbyMsg lobbyModel)
