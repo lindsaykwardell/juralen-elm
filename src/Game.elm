@@ -20,6 +20,10 @@ import Game.Core exposing (..)
 import Game.Analyzer exposing (analyze)
 import Juralen.Analysis
 import Juralen.Player
+import Juralen.TechTree as TechTree exposing (TechTree, TechDescription, TechLevel(..))
+import Game.Core
+import Juralen.Resources
+import Juralen.Resources
 
 init : List NewPlayer -> Float -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed =    
@@ -79,7 +83,7 @@ gainResources : PlayerStats -> Resources -> Resources
 gainResources stats resources =
     let
         gold =
-            resources.gold + round (toFloat stats.farms / 2)
+            resources.gold + stats.farms
 
         actions =
             let
@@ -111,6 +115,7 @@ type Msg
     | BuildUnit UnitType
     | SelectUnit Int
     | MoveSelectedUnits Cell
+    | ResearchTech TechDescription
     | GotCombatMsg Game.Combat.Msg
     | PerformAction Juralen.Analysis.Option
     | PerformAiTurn
@@ -502,6 +507,25 @@ update msg model =
                     else
                         update Analyze newModel
 
+        ResearchTech tech ->
+            let
+                stats = Game.Core.currentPlayerStats model
+
+                cost = tech.cost
+            in
+                if stats.gold < cost then
+                    (model, Cmd.none)
+
+                else
+                let
+                    techTree = TechTree.research (Game.Core.getPlayerTechTree model.players model.activePlayer) tech.tech
+
+                    players = List.map (\player -> if player.id == model.activePlayer then { player | techTree = techTree, resources = Juralen.Resources.spend player.resources tech.cost } else player) model.players
+                in
+                    ( { model | players = players}, Cmd.none)
+                
+            
+
         GotCombatMsg combatMsg ->
             case model.combat of
                 NoCombat ->
@@ -788,6 +812,8 @@ view model =
                                             Juralen.Structure.canBuild selectedCell.structure
                         )
                     )
+                , div []
+                    (Game.Core.getPlayerTechTree model.players model.activePlayer |> TechTree.nextAvailableTech |> List.map techTreeButton)
                 , div [ class "p-5" ]
                     (List.map
                         (\unit ->
@@ -828,3 +854,12 @@ view model =
                         (List.take 5 model.analysisResults))
                 ]
             ]
+
+techTreeButton : TechDescription -> Html Msg
+techTreeButton tech =
+    button [ class "bg-yellow-400 hover:bg-yellow-200 py-2 px-3 rounded m-2"
+           , onClick (ResearchTech tech)
+           ] 
+        [ text (tech.name ++ " (" ++ String.fromInt tech.cost ++ ")")
+        , br [] []
+        , text tech.description ]

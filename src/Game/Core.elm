@@ -11,6 +11,8 @@ import Juralen.UnitType exposing (UnitType)
 import Process
 import Task
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
+import Juralen.TechTree exposing (TechTree)
+import Juralen.TechTree
 
 type GameStatus
     = NoGame
@@ -86,6 +88,15 @@ getPlayerScore model playerId =
     in
         stats.farms + stats.towns + stats.units
 
+getPlayerTechTree : List Player -> Int -> TechTree
+getPlayerTechTree players playerId =
+    case players of 
+        (player :: remainingPlayers) ->
+            if player.id == playerId then player.techTree
+
+            else getPlayerTechTree remainingPlayers playerId
+        [] ->
+            Juralen.TechTree.empty
 
 getMoveCost : Model -> Float
 getMoveCost model =

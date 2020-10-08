@@ -3,7 +3,7 @@ module Juralen.Player exposing (..)
 import Juralen.PlayerColor exposing (PlayerColor)
 import Juralen.Resources exposing (Resources)
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
-
+import Juralen.TechTree as TechTree exposing (TechTree)
 
 type alias Player =
     { id : Int
@@ -13,7 +13,8 @@ type alias Player =
     , isHuman : Bool
     , analyzer : AnalyzerMode
     , color : PlayerColor
-    , score: Int
+    , score : Int
+    , techTree : TechTree
     }
 
 
@@ -39,6 +40,7 @@ generate player id =
     , analyzer = player.analyzer
     , color = player.color
     , score = 2
+    , techTree = TechTree.empty
     }
 
 revertToNewPlayer : Player -> NewPlayer
@@ -64,6 +66,7 @@ empty =
     , analyzer = Juralen.AnalyzerMode.Default
     , color = Juralen.PlayerColor.Gray
     , score = 0
+    , techTree = TechTree.empty
     }
 
 
