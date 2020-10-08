@@ -259,14 +259,14 @@ newPlayerInput selectedColors player =
                 [ text "Color"
                 , select [ class (
                         "p-2 ml-3 rounded w-32 " 
-                        ++ "bg-" ++ Juralen.PlayerColor.toClass player.color 
+                        ++ Juralen.PlayerColor.toClass player.color 
                         ++ (if Juralen.PlayerColor.isDark player.color then "" else " text-black")
                     ), onInput (UpdateColor player.id) ] (
                     List.map (\playerColor -> 
                         option 
                             [ value (Juralen.PlayerColor.toString playerColor)
                             , selected (playerColor == player.color)
-                            , class ("bg-" ++ Juralen.PlayerColor.toClass playerColor)
+                            , class (Juralen.PlayerColor.toClass playerColor)
                             ] 
                             [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]) 
                             (List.filter (\color -> color == player.color || 

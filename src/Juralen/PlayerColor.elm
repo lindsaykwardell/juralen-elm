@@ -84,28 +84,28 @@ toClass : PlayerColor -> String
 toClass playerColor =
     case playerColor of
         Red ->
-            "player-red"
+            "bg-player-red"
 
         Blue ->
-            "player-blue"
+            "bg-player-blue"
 
         Green ->
-            "player-green"
+            "bg-player-green"
 
         Orange ->
-            "player-orange"
+            "bg-player-orange"
 
         Teal ->
-            "player-teal"
+            "bg-player-teal"
 
         Yellow ->
-            "player-yellow"
+            "bg-player-yellow"
 
         Purple ->
-            "player-purple"
+            "bg-player-purple"
 
         Gray ->
-            "player-gray"
+            "bg-player-gray"
 
         None ->
             ""

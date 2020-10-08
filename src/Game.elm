@@ -701,7 +701,7 @@ view model =
                     model.grid
                 )
                 , div [ class "p-3 w-64" ] (List.map (\player -> div [ class (
-                        "bg-" ++ Juralen.PlayerColor.toClass player.color
+                        Juralen.PlayerColor.toClass player.color
                         ++ (if Juralen.PlayerColor.isDark player.color then " text-white" else " text-black")
                     ) ] 
                     [ text (player.name ++ " - " ++ String.fromInt player.score) ]) (List.sortBy .score model.players |> List.reverse))]

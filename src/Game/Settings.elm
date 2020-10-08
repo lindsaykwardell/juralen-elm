@@ -45,7 +45,7 @@ settingsModal settings =
                         ]],
                     List.map (\player -> div [ class (
                         "py-1 " ++
-                        "bg-" ++ Juralen.PlayerColor.toClass player.color 
+                        Juralen.PlayerColor.toClass player.color 
                         ++ (if Juralen.PlayerColor.isDark player.color then " text-white" else " text-black")
                     ) ] 
                     [ text (player.name ++ " - " ++ String.fromInt player.score) ]) settings.playerRanking
