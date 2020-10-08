@@ -8,6 +8,8 @@ import Juralen.PlayerColor exposing (PlayerColor)
 import Juralen.PlayerColor
 import Juralen.PlayerColor
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
+import Random
+import Array exposing (Array)
 
 
 type alias Model =
@@ -24,23 +26,40 @@ type Msg
     | UpdateAnalyzer Int String
     | UpdateAiSpeed String
     | AddPlayer
+    | AddPlayerName Int Int
     | RemovePlayer Int
     | StartGame
 
 
+nameList : Array.Array String
+nameList = 
+    Array.fromList 
+        [ "Ilthanen Juralen"
+        , "Lord Telinstrom"
+        , "Archmage Velsyph"
+        , "Uinen"
+        , "Dakh"
+        , "Drelk'ar"
+        , "Tevin"
+        , "Vanaan"
+        , "Lord Laisonen"
+        , "Lord Nerison"
+        , "Lord Sielvern"
+        , "Heliel"
+        , "Veladion"
+        , "Lady Elisten"
+        ]
+
+randomDefinedMax : Int -> Random.Generator Int
+randomDefinedMax max =
+    Random.int 0 max
+
 init : ( Model, Cmd Msg )
 init =
     ( { newPlayerList =
-            [ { id = 1, name = "Aggro", isHuman = False, color = Juralen.PlayerColor.Red, analyzer = Juralen.AnalyzerMode.Aggressive }
-            , { id = 2, name = "Aggro", isHuman = False, color = Juralen.PlayerColor.Blue, analyzer = Juralen.AnalyzerMode.Aggressive }
-            , { id = 3, name = "Defense", isHuman = False, color = Juralen.PlayerColor.Green, analyzer = Juralen.AnalyzerMode.Defensive }
-            , { id = 4, name = "Defense", isHuman = False, color = Juralen.PlayerColor.Yellow, analyzer = Juralen.AnalyzerMode.Defensive }
-            , { id = 5, name = "Passive", isHuman = False, color = Juralen.PlayerColor.Orange, analyzer = Juralen.AnalyzerMode.Passive }
-            , { id = 6, name = "Passive", isHuman = False, color = Juralen.PlayerColor.Teal, analyzer = Juralen.AnalyzerMode.Passive }
-            , { id = 7, name = "Default", isHuman = False, color = Juralen.PlayerColor.Purple, analyzer = Juralen.AnalyzerMode.Default }
-            , { id = 8, name = "Default", isHuman = False, color = Juralen.PlayerColor.Gray, analyzer = Juralen.AnalyzerMode.Default }
+            [ { id = 1, name = "Player 1", isHuman = True, color = Juralen.PlayerColor.Red, analyzer = Juralen.AnalyzerMode.Default }
             ]
-      , nextId = 9
+      , nextId = 2
       , aiSpeed = 500
       }
     , Cmd.none
@@ -155,10 +174,23 @@ update msg model =
                     newPlayerList =
                         model.newPlayerList ++ [ newPlayer ]
                 in
-                ( { model | newPlayerList = newPlayerList, nextId = nextId }, Cmd.none )
+                ( { model | newPlayerList = newPlayerList, nextId = nextId }, Random.generate (AddPlayerName newPlayer.id) (randomDefinedMax (Array.length nameList - 1)) )
 
             else
                 ( model, Cmd.none )
+
+        AddPlayerName playerId randomNumber ->
+            case Array.get randomNumber nameList of 
+                Just name ->
+                    let
+                        nameExists = List.length (List.filter (\player -> player.name == name) model.newPlayerList) > 0
+                    in
+                        if nameExists then 
+                            ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (Array.length nameList - 1)))
+                        else
+                            ( { model | newPlayerList = List.map (\player -> if player.id == playerId then { player | name = name } else player) model.newPlayerList }, Cmd.none)
+                Nothing ->
+                    ( model, Cmd.none)
 
         RemovePlayer id ->
             let
