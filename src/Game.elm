@@ -24,6 +24,7 @@ import Juralen.TechTree as TechTree exposing (TechTree, TechDescription, TechLev
 import Game.Core
 import Juralen.Resources
 import Juralen.Resources
+import Juralen.Analysis
 
 init : List NewPlayer -> Float -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed =    
@@ -522,7 +523,7 @@ update msg model =
 
                     players = List.map (\player -> if player.id == model.activePlayer then { player | techTree = techTree, resources = Juralen.Resources.spend player.resources tech.cost } else player) model.players
                 in
-                    ( { model | players = players}, Cmd.none)
+                    update Analyze { model | players = players}
                 
             
 
@@ -593,6 +594,9 @@ update msg model =
 
                 Juralen.Analysis.BuildUnit unitType ->
                     update (BuildUnit unitType) { model | selectedCell = option.loc}  
+
+                Juralen.Analysis.Research tech ->
+                    update (ResearchTech tech) model
 
                 _ ->
                     (model, Cmd.none)
@@ -809,7 +813,7 @@ view model =
                                             []
 
                                         else
-                                            Juralen.Structure.canBuild selectedCell.structure
+                                            Juralen.Structure.canBuild selectedCell.structure (currentPlayerStats model |> .techTree)
                         )
                     )
                 , div []

@@ -12,7 +12,6 @@ import Process
 import Task
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
 import Juralen.TechTree exposing (TechTree)
-import Juralen.TechTree
 
 type GameStatus
     = NoGame
@@ -52,6 +51,7 @@ type alias PlayerStats =
     , farms : Int
     , towns : Int
     , units : Int
+    , techTree : TechTree
     }
 
 
@@ -65,6 +65,7 @@ playerStats model playerId =
     , farms = Juralen.Grid.farmCountControlledBy model.grid playerId
     , towns = Juralen.Grid.townCountControlledBy model.grid playerId
     , units = List.length (List.filter (\unit -> unit.controlledBy == playerId) model.units)
+    , techTree = getPlayerTechTree model.players playerId
     }
 
 playerAnalyzer : List Player -> Int -> AnalyzerMode
@@ -87,6 +88,25 @@ getPlayerScore model playerId =
         stats = playerStats model playerId
     in
         stats.farms + stats.towns + stats.units
+
+type alias PlayerScore =
+    { playerId : Int
+    , score : Int }
+
+getPlayerRankings : Model -> List PlayerScore
+getPlayerRankings model =
+    List.map (\player -> { playerId = player.id, score = getPlayerScore model player.id }) model.players    
+
+getPlayerRanking : List PlayerScore -> Int -> Int -> Int
+getPlayerRanking playerScores playerId rank =
+    case playerScores of
+        (score :: scores) ->
+            if score.playerId == playerId then rank 
+            else getPlayerRanking scores playerId rank + 1
+
+        [] ->
+            -1
+    
 
 getPlayerTechTree : List Player -> Int -> TechTree
 getPlayerTechTree players playerId =

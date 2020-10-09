@@ -4,6 +4,7 @@ import Juralen.Cell exposing (Loc)
 import Juralen.Structure exposing (Structure)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
+import Juralen.TechTree exposing (TechDescription)
 
 
 type Action
@@ -11,6 +12,7 @@ type Action
     | Attack (List Unit) Loc
     | BuildUnit UnitType
     | BuildStructure Structure
+    | Research TechDescription
 
 
 type alias Option =
@@ -18,7 +20,6 @@ type alias Option =
     , action : Action
     , score : Int
     }
-
 
 toString : Option -> String
 toString option =
@@ -41,6 +42,9 @@ toString option =
 
         BuildUnit unitType ->
             "Build [ " ++ Juralen.UnitType.toString unitType ++ " ] in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+
+        Research tech ->
+            "Research " ++ tech.name
 
         _ ->
             ""

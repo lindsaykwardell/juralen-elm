@@ -1,15 +1,12 @@
 module Juralen.Structure exposing (..)
 
 import Juralen.UnitType exposing (UnitType(..))
+import Juralen.TechTree exposing (TechTree)
+import Juralen.UnitType
 
 type Structure
     = Town
     | Citadel
-    | Castle
-    | Academy
-    | Temple
-    | City
-    | Lodge
     | None
 
 
@@ -31,37 +28,17 @@ initDef structure =
                     5
 
 
-canBuild : Maybe Structure -> List UnitType
-canBuild structure =
+canBuild : Maybe Structure -> TechTree -> List UnitType
+canBuild structure techTree =
     case structure of
         Nothing ->
             []
 
         Just real ->
-            case real of
-                Town ->
-                    [Soldier]
-
-                Citadel ->
-                    [Soldier, Warrior]
-
-                Castle ->
-                    [Soldier, Knight]
-
-                Academy ->
-                    [Soldier, Wizard]
-
-                Temple ->
-                    [Soldier, Priest]
-
-                City ->
-                    [Soldier, Rogue]
-
-                Lodge ->
-                    [Soldier, Archer]
-
-                None ->
-                    []
+            if real == Town then 
+                [Soldier] 
+            else
+                Juralen.UnitType.researchedUnits techTree
 
 
 toString : Maybe Structure -> String
@@ -77,21 +54,6 @@ toString structure =
 
                 Citadel ->
                     "Citadel"
-
-                Castle ->
-                    "Castle"
-
-                Academy ->
-                    "Academy"
-
-                Temple ->
-                    "Temple"
-
-                City ->
-                    "City"
-
-                Lodge ->
-                    "Lodge"
 
                 None ->
                     ""

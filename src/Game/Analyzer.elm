@@ -9,8 +9,7 @@ import Juralen.Structure exposing (Structure)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
-import Juralen.AnalyzerMode
-import Juralen.AnalyzerMode
+import Juralen.TechTree as TechTree exposing (TechLevel(..))
 
 
 
@@ -28,6 +27,7 @@ analyze : Core.Model -> List Option
 analyze model =
     analyzeBuildUnits model
         ++ analyzeMoves model
+        ++ analyzeResearchOptions model
         |> scoreOptions model
         |> List.filter (\option -> option.score > 0)
         |> sortByScore
@@ -38,6 +38,15 @@ type alias UnitOption =
     , cell : Cell
     }
 
+analyzeResearchOptions : Core.Model -> List Option
+analyzeResearchOptions model =
+    Core.getPlayerTechTree model.players model.activePlayer 
+        |> TechTree.nextAvailableTech 
+        |> List.map (\tech -> 
+            { loc = { x = 0, y = 0 }
+            , action = Research tech
+            , score = 0
+            })
 
 analyzeMoves : Core.Model -> List Option
 analyzeMoves model =
@@ -260,7 +269,7 @@ getUnitOptions stats cells options =
                         (\unitType ->
                             Juralen.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
                         )
-                        (Juralen.Structure.canBuild cell.structure)
+                        (Juralen.Structure.canBuild cell.structure stats.techTree)
                     )
     in
     if List.length remainingCells <= 0 then
@@ -279,14 +288,20 @@ scoreOption : Core.Model -> Option -> Option
 scoreOption model option =
     let
         analyzer = Core.playerAnalyzer model.players model.activePlayer
+
+        stats = Core.currentPlayerStats model
+
+        rank = Core.getPlayerRanking (Core.getPlayerRankings model) model.activePlayer 1
+
+        isFirstPlace = rank == 1
+        isLastPlace = rank == List.length model.players
+        isTopHalf = round ((toFloat rank / toFloat (List.length model.players)) * 100) < 50
+        isBottomHalf = round ((toFloat rank / toFloat (List.length model.players)) * 100) >= 50
     in
 
     case option.action of
         Move units toLoc ->
             let
-                stats =
-                    Core.currentPlayerStats model
-
                 targetCell =
                     Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) toLoc
 
@@ -411,6 +426,39 @@ scoreOption model option =
         BuildStructure structure ->
             option
 
+        Research research ->
+            if stats.gold <= research.cost || stats.farms == stats.units || analyzer == Passive then
+                { option | score = -1000 }
+
+            else
+                case research.tech of
+                    LevelOne tech ->
+                        { option | score = 200 }
+
+                    LevelTwo tech ->
+                        case tech of
+                            TechTree.BuildArchers ->
+                                { option | score = 200 + if isBottomHalf then 200 else 0 + if analyzer == Aggressive then 200 else 0 }
+                            
+                            TechTree.BuildWarriors ->
+                                { option | score = 200 + if isTopHalf then 200 else 0 + if analyzer == Defensive then 200 else 0 }
+
+                    LevelThree tech ->
+                        case tech of
+                            TechTree.BuildKnights ->
+                                { option | score = 200 + if analyzer == Aggressive then 1000 else 0 + if not isTopHalf then 500 else 0}
+
+                            TechTree.BuildRogues ->
+                                { option | score = 200 + if isTopHalf then 300 else 0 + if analyzer == Defensive then 300 else 0}
+
+                    LevelFour tech ->
+                        case tech of
+                            TechTree.BuildWizards ->
+                                { option | score = 500 + if stats.gold > 25 then 1000 else 0 + if analyzer == Default then 1000 else 0 }
+
+                            TechTree.BuildPriests ->
+                                { option | score = 500 + if stats.farms > 15 then 500 else 0 + if analyzer == Defensive then 1000 else 0 }
+
         _ ->
             option
 
@@ -428,13 +476,13 @@ unitTypeScore unitType =
             2
 
         Juralen.UnitType.Priest ->
-            2
+            3
 
         Juralen.UnitType.Rogue ->
             3
 
         Juralen.UnitType.Wizard ->
-            3
+            4
 
         Juralen.UnitType.Knight ->
             4

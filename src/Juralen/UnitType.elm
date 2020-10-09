@@ -1,5 +1,9 @@
 module Juralen.UnitType exposing (..)
 
+import Juralen.TechTree exposing (TechTree)
+import Juralen.TechTree exposing (LevelTwo(..))
+import Juralen.TechTree exposing (LevelThree(..))
+import Juralen.TechTree exposing (LevelFour(..))
 
 type UnitType
     = Soldier
@@ -35,13 +39,13 @@ cost unitType =
             6
 
         Rogue ->
-            5
+            4
 
         Wizard ->
             7
 
         Priest ->
-            4
+            3
 
 moveCost : UnitType -> Float
 moveCost unitType =
@@ -74,32 +78,32 @@ threat unitType =
             4
 
         Priest ->
-            0
+            1
 
 
 toString : UnitType -> String
 toString unitType =
     case unitType of
         Soldier ->
-            "Soldier"
+            "Soldier (" ++ String.fromInt (cost unitType) ++ ")"
 
         Warrior ->
-            "Warrior"
+            "Warrior (" ++ String.fromInt (cost unitType) ++ ")"
 
         Archer ->
-            "Archer"
+            "Archer (" ++ String.fromInt (cost unitType) ++ ")"
 
         Knight ->
-            "Knight"
+            "Knight (" ++ String.fromInt (cost unitType) ++ ")"
 
         Rogue ->
-            "Rogue"
+            "Rogue (" ++ String.fromInt (cost unitType) ++ ")"
 
         Wizard ->
-            "Wizard"
+            "Wizard (" ++ String.fromInt (cost unitType) ++ ")"
 
         Priest ->
-            "Priest"
+            "Priest (" ++ String.fromInt (cost unitType) ++ ")"
 
 
 short : UnitType -> String
@@ -174,7 +178,61 @@ initialValues unitType =
 
         Priest ->
             { movesLeft = 1
-            , attack = 0
+            , attack = 1
             , health = 5
             , range = 0
             }
+
+researchedUnits : TechTree -> List UnitType
+researchedUnits techTree =
+    case techTree.levelTwo of
+        Nothing ->
+            [Soldier]
+
+        Just levelTwo ->
+            let
+                unitTwo = levelTwoUnit levelTwo
+            in
+
+            case techTree.levelThree of
+                Nothing ->
+                    [Soldier, unitTwo]
+
+                Just levelThree ->
+                    let
+                        unitThree = levelThreeUnit levelThree
+                    in
+
+                    case techTree.levelFour of
+                        Nothing ->
+                            [Soldier, unitTwo, unitThree]
+
+                        Just levelFour ->
+                            [Soldier, unitTwo, unitThree, levelFourUnit levelFour]
+
+levelTwoUnit : LevelTwo -> UnitType
+levelTwoUnit level =
+    case level of 
+        BuildWarriors ->
+            Warrior
+
+        BuildArchers ->
+            Archer
+
+levelThreeUnit : LevelThree -> UnitType
+levelThreeUnit level =
+    case level of
+        BuildKnights ->
+            Knight
+
+        BuildRogues ->
+            Rogue
+
+levelFourUnit : LevelFour -> UnitType
+levelFourUnit level =
+    case level of
+        BuildWizards ->
+            Wizard
+
+        BuildPriests ->
+            Priest
