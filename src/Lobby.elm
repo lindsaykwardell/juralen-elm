@@ -60,7 +60,7 @@ init =
             [ { id = 1, name = "Player 1", isHuman = True, color = Juralen.PlayerColor.Red, analyzer = Juralen.AnalyzerMode.Default }
             ]
       , nextId = 2
-      , aiSpeed = 500
+      , aiSpeed = 250
       }
     , Cmd.none
     )

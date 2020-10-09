@@ -25,6 +25,9 @@ import Game.Core
 import Juralen.Resources
 import Juralen.Resources
 import Juralen.Analysis
+import Juralen.UnitType exposing (InitialValues)
+import Juralen.UnitType
+import Juralen.Player
 
 init : List NewPlayer -> Float -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed =    
@@ -495,7 +498,7 @@ update msg model =
 
                                             Just defendingPlayerId ->
                                                 Juralen.Player.get newModel.players defendingPlayerId
-                                , activePlayer = Game.Combat.Attacker
+                                , whoGoesFirst = Game.Combat.Attacker
                                 , defBonus = 0
                                 }
 
@@ -510,6 +513,8 @@ update msg model =
 
         ResearchTech tech ->
             let
+                _ = Debug.log  
+                _ = Debug.log ("Researching! " ++ ((Just model.activePlayer) |> Juralen.Player.getName model.players)) tech.name
                 stats = Game.Core.currentPlayerStats model
 
                 cost = tech.cost
@@ -628,12 +633,45 @@ update msg model =
                 nextActivePlayer =
                     getNextActivePlayer livingPlayers livingPlayers model.activePlayer
 
-                newModel = { model | activePlayer = nextActivePlayer.id, players = players }
+                priests : List Unit
+                priests = List.filter (\unit -> unit.unitType == Juralen.UnitType.Priest) model.units
+
+                priestLocs : List Loc
+                priestLocs = List.map (\unit -> { x = unit.x, y = unit.y }) priests
+
+                healedUnits : List Unit
+                healedUnits = healUnits model.units priestLocs
+
+                newModel = { model | activePlayer = nextActivePlayer.id, players = players, units = healedUnits }
             in
             update (StartTurn nextActivePlayer) newModel
         
         EndGame ->
             ( model, Game.Core.delay 0 EndGame )
+
+healUnits : List Unit -> List Loc -> List Unit
+healUnits units inLocs =
+    case inLocs of
+        (loc :: locs) ->
+            let
+                healedUnits : List Unit
+                healedUnits = List.map (\unit -> 
+                    if unit.x == loc.x && unit.y == loc.y then
+                        let
+                            initialValues : InitialValues
+                            initialValues = Juralen.UnitType.initialValues unit.unitType
+
+                            maxHealth : Int
+                            maxHealth = initialValues.health
+                        in
+                            { unit | health = if unit.health + 1 > maxHealth then unit.health else unit.health + 1 }
+
+                    else unit) units
+            in
+                healUnits healedUnits locs
+            
+        [] ->
+            units
 
 toCombat : Model -> (Game.Combat.Model, Cmd Game.Combat.Msg) -> ( Model, Cmd Msg)
 toCombat model (combat, cmd) =

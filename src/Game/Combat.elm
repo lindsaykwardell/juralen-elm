@@ -6,6 +6,7 @@ import Juralen.Unit exposing (Unit)
 import Process
 import Random
 import Task
+import Juralen.UnitType
 
 
 
@@ -30,7 +31,7 @@ type alias Model =
     , defender : Unit
     , attackingPlayer : Player
     , defendingPlayer : Player
-    , activePlayer : CombatRole
+    , whoGoesFirst : CombatRole
     , defBonus : Int
     }
 
@@ -114,7 +115,22 @@ update msg model =
             let
                 newModel : Model
                 newModel =
-                    model |> attackerAction |> defenderAction |> updateUnitStatus |> switchPlayerRoles
+                    if model.whoGoesFirst == Attacker then
+                        model 
+                            |> attackerAction 
+                            |> defenderAction 
+                            |> updateUnitStatus 
+                            |> healUnits Attacker 
+                            |> healUnits Defender
+                            |> switchPlayerRoles
+
+                    else
+                        model 
+                            |> defenderAction 
+                            |> attackerAction 
+                            |> updateUnitStatus 
+                            |> healUnits Attacker 
+                            |> switchPlayerRoles
 
                 attackerHasUnits : Bool
                 attackerHasUnits =
@@ -159,10 +175,54 @@ defenderAction model =
         in
         { model | attacker = attacker }
 
+healUnits : CombatRole -> Model -> Model
+healUnits role model =
+    case role of
+        Attacker ->
+            if model.attacker.unitType == Juralen.UnitType.Priest then
+                let
+                    healedUnits : List Unit
+                    healedUnits = List.map (\unit -> 
+                        if unit.controlledBy == model.attackingPlayer.id && unit.id /= model.attacker.id then
+                            let
+                                initialValues : Juralen.UnitType.InitialValues
+                                initialValues = Juralen.UnitType.initialValues unit.unitType
+
+                                maxHealth : Int
+                                maxHealth = initialValues.health
+                            in
+                                { unit | health = if unit.health + 1 > maxHealth then unit.health else unit.health + 1 }
+
+                        else unit) model.units
+                in
+                    { model | units = healedUnits }
+            else
+                model
+
+        Defender ->
+            if model.defender.unitType == Juralen.UnitType.Priest then
+                let
+                    healedUnits : List Unit
+                    healedUnits = List.map (\unit -> 
+                        if unit.controlledBy == model.defendingPlayer.id && unit.id /= model.defender.id then
+                            let
+                                initialValues : Juralen.UnitType.InitialValues
+                                initialValues = Juralen.UnitType.initialValues unit.unitType
+
+                                maxHealth : Int
+                                maxHealth = initialValues.health
+                            in
+                                { unit | health = if unit.health + 1 > maxHealth then unit.health else unit.health + 1 }
+
+                        else unit) model.units
+                in
+                    { model | units = healedUnits }
+            else
+                model
 
 switchPlayerRoles : Model -> Model
 switchPlayerRoles model =
-    { model | attackingPlayer = model.defendingPlayer, defendingPlayer = model.attackingPlayer }
+    { model | whoGoesFirst = if model.whoGoesFirst == Attacker then Defender else Attacker }
 
 
 updateUnitStatus : Model -> Model

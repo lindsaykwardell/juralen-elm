@@ -79,16 +79,16 @@ techCost : TechLevel -> Int
 techCost level =
   case level of
     LevelOne _ ->
-      5
+      3
     
     LevelTwo _ ->
-      8
+      5
     
     LevelThree _ ->
-      11
+      8
 
     LevelFour _ ->
-      14
+      13
 
 techDescription : TechLevel -> TechDescription
 techDescription level =

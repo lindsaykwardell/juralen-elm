@@ -305,6 +305,10 @@ scoreOption model option =
                 targetCell =
                     Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) toLoc
 
+                isOnlyPriests : Bool
+                isOnlyPriests = 
+                    List.foldl (\unit isPriests -> isPriests && unit.unitType == Juralen.UnitType.Priest) True units
+
                 score =
                     10
                         -- Subtract number of units to move * 2 (fewer units is better)
@@ -367,7 +371,8 @@ scoreOption model option =
                                     Core.getPlayerScore model playerId
                                     +
                                     if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                        if analyzer == Juralen.AnalyzerMode.Passive then -1000 else
+                                        if analyzer == Juralen.AnalyzerMode.Passive -- || isOnlyPriests
+                                        then -1000 else
 
                                         List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
                                             (List.map (\unit -> unit.unitType) units)
@@ -410,7 +415,9 @@ scoreOption model option =
 
                 score =
                     -- Build based on priority (higher scores are better)
-                    1 + unitTypeScore unitType
+                    1 
+                    + unitTypeScore unitType
+                    - round (toFloat (List.length (List.filter (\unit -> unit.unitType == unitType && unit.controlledBy == model.activePlayer) model.units)) / 2)
                     -- Build based on current unit count in cell (lower pop of units is more important)
                     +
                         if unitsInCell <= 0
@@ -446,10 +453,10 @@ scoreOption model option =
                     LevelThree tech ->
                         case tech of
                             TechTree.BuildKnights ->
-                                { option | score = 200 + if analyzer == Aggressive then 1000 else 0 + if not isTopHalf then 500 else 0}
+                                { option | score = 200 + if analyzer == Aggressive then 1000 else 0 + if isTopHalf then 500 else 0}
 
                             TechTree.BuildRogues ->
-                                { option | score = 200 + if isTopHalf then 300 else 0 + if analyzer == Defensive then 300 else 0}
+                                { option | score = 200 + if not isTopHalf then 300 else 0 + if analyzer == Defensive then 300 else 0}
 
                     LevelFour tech ->
                         case tech of
@@ -476,7 +483,7 @@ unitTypeScore unitType =
             2
 
         Juralen.UnitType.Priest ->
-            3
+            4
 
         Juralen.UnitType.Rogue ->
             3
@@ -485,7 +492,7 @@ unitTypeScore unitType =
             4
 
         Juralen.UnitType.Knight ->
-            4
+            3
 
 
 sortByScore : List Option -> List Option

@@ -33,25 +33,25 @@ cost unitType =
             2
 
         Archer ->
-            3
+            2
 
         Knight ->
-            6
+            4
 
         Rogue ->
             4
 
         Wizard ->
-            7
+            6
 
         Priest ->
-            3
+            6
 
 moveCost : UnitType -> Float
 moveCost unitType =
     case unitType of
         Wizard ->
-            0.5
+            0.25
 
         _ ->
             1
@@ -66,10 +66,10 @@ threat unitType =
             2
 
         Archer ->
-            3
+            2
 
         Knight ->
-            4
+            3
 
         Rogue ->
             3
@@ -78,7 +78,7 @@ threat unitType =
             4
 
         Priest ->
-            1
+            4
 
 
 toString : UnitType -> String
@@ -156,23 +156,23 @@ initialValues unitType =
             }
 
         Knight ->
-            { movesLeft = 3
+            { movesLeft = 2
             , attack = 2
-            , health = 4
+            , health = 3
             , range = 1
             }
 
         Rogue ->
             { movesLeft = 2
             , attack = 3
-            , health = 1
+            , health = 2
             , range = 1
             }
 
         Wizard ->
-            { movesLeft = 2
-            , attack = 2
-            , health = 2
+            { movesLeft = 3
+            , attack = 3
+            , health = 3
             , range = 2
             }
 
@@ -180,7 +180,7 @@ initialValues unitType =
             { movesLeft = 1
             , attack = 1
             , health = 5
-            , range = 0
+            , range = 1
             }
 
 researchedUnits : TechTree -> List UnitType
