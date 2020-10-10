@@ -30,7 +30,7 @@ setTimeout(() => {
     } catch (err) {
         app.ports.authStatus.send(false)
     }
-}, 3000);
+}, 2000);
 
 // Inform Elm when auth has taken place
 netlifyIdentity.on('login', user => {

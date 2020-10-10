@@ -561,7 +561,13 @@ update msg model =
                                 winner = if List.length (Juralen.Unit.controlledBy combat.units combat.attackingPlayer.id) > 0 then combat.attackingPlayer else combat.defendingPlayer
 
                                 updatedGrid : List (List Cell)
-                                updatedGrid = List.map (\row -> List.map (\cell -> if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then { cell | controlledBy = Just winner.id} else cell) row) model.grid
+                                updatedGrid = List.map (\row -> 
+                                    List.map (\cell -> 
+                                        if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then 
+                                            { cell | controlledBy = Just winner.id, farms = 0, towers = 0} 
+                                            
+                                        else cell
+                                    ) row) model.grid
                             in
                                 update Analyze { model | units = newUnits, grid = updatedGrid}
                             
@@ -658,7 +664,7 @@ update msg model =
 
                                 Just someone ->
                                     if List.foldl (\player thisPlayer -> thisPlayer || someone == player.id) False deadPlayers then
-                                        { cell | controlledBy = Just model.activePlayer }
+                                        { cell | controlledBy = Just model.activePlayer, farms = 0, towers = 0 }
 
                                     else
                                         cell

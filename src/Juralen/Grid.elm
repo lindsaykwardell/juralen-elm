@@ -90,7 +90,7 @@ farmCountControlledBy grid playerId =
 
                                 Just controlledBy ->
                                     if controlledBy == playerId then
-                                        1
+                                        1 + cell.farms
                                         + case cell.structure of
                                             Nothing ->
                                                 0
@@ -131,7 +131,7 @@ townCountControlledBy grid playerId =
 
                                 Just controlledBy ->
                                     if cell.structure /= Nothing && controlledBy == playerId then
-                                        1
+                                        1 + cell.towers
 
                                     else
                                         0

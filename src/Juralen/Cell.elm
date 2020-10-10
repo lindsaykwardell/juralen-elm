@@ -16,6 +16,8 @@ type alias Cell =
     , controlledBy : Maybe Int
     , defBonus : Int
     , structure : Maybe Structure
+    , farms : Int
+    , towers : Int
     , x : Int
     , y : Int
     }
@@ -28,6 +30,8 @@ generate loc roll =
         , controlledBy = Nothing
         , defBonus = 3
         , structure = Just Juralen.Structure.Town
+        , farms = 0
+        , towers = 0
         , x = loc.x
         , y = loc.y
         }
@@ -37,6 +41,8 @@ generate loc roll =
         , controlledBy = Nothing
         , defBonus = 0
         , structure = Nothing
+        , farms = 0
+        , towers = 0
         , x = loc.x
         , y = loc.y
         }
@@ -46,6 +52,8 @@ generate loc roll =
         , controlledBy = Nothing
         , defBonus = 1
         , structure = Nothing
+        , farms = 0
+        , towers = 0
         , x = loc.x
         , y = loc.y
         }
@@ -55,6 +63,8 @@ generate loc roll =
         , controlledBy = Nothing
         , defBonus = 0
         , structure = Nothing
+        , farms = 0
+        , towers = 0
         , x = loc.x
         , y = loc.y
         }
@@ -66,6 +76,8 @@ empty =
     , controlledBy = Nothing
     , defBonus = -1
     , structure = Nothing
+    , farms = 0
+    , towers = 0
     , x = -1
     , y = -1
     }
