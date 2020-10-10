@@ -152,7 +152,10 @@ update msg model =
 
 attackerAction : Model -> Model
 attackerAction model =
-    if model.defBonus > 0 then
+    if Juralen.Unit.isDead model.attacker then
+        model
+
+    else if model.defBonus > 0 then
         { model | defBonus = model.defBonus - model.attacker.attack }
 
     else

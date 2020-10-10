@@ -629,6 +629,9 @@ update msg model =
                 livingPlayers : List Player
                 livingPlayers = (List.filter (\player -> not player.hasLost) players)
 
+                deadPlayers : List Player
+                deadPlayers = List.filter (\player -> player.hasLost) players
+
                 nextActivePlayer : Player
                 nextActivePlayer =
                     getNextActivePlayer livingPlayers livingPlayers model.activePlayer
@@ -639,15 +642,49 @@ update msg model =
                 priestLocs : List Loc
                 priestLocs = List.map (\unit -> { x = unit.x, y = unit.y }) priests
 
-                healedUnits : List Unit
-                healedUnits = healUnits model.units priestLocs
+                capturedUnits : List Unit
+                capturedUnits = List.map (\unit -> captureUnit unit deadPlayers model.activePlayer) model.units
 
-                newModel = { model | activePlayer = nextActivePlayer.id, players = players, units = healedUnits }
+                healedUnits : List Unit
+                healedUnits = healUnits capturedUnits priestLocs
+
+                capturedGrid : List (List Cell)
+                capturedGrid = 
+                    List.map (\row -> 
+                        List.map (\cell -> 
+                            case cell.controlledBy of
+                                Nothing ->
+                                    cell
+
+                                Just someone ->
+                                    if List.foldl (\player thisPlayer -> thisPlayer || someone == player.id) False deadPlayers then
+                                        { cell | controlledBy = Just model.activePlayer }
+
+                                    else
+                                        cell
+                            ) 
+                        row) 
+                    model.grid
+
+                newModel = { model | activePlayer = nextActivePlayer.id, players = players, units = healedUnits, grid = capturedGrid }
             in
             update (StartTurn nextActivePlayer) newModel
         
         EndGame ->
             ( model, Game.Core.delay 0 EndGame )
+
+captureUnit : Unit -> List Player -> Int -> Unit
+captureUnit unit deadPlayers playerId =
+    case deadPlayers of
+        (dead :: otherDead) ->
+            if unit.controlledBy == dead.id then
+                { unit | controlledBy = playerId }
+
+            else
+                captureUnit unit otherDead playerId
+
+        [] ->
+            unit
 
 healUnits : List Unit -> List Loc -> List Unit
 healUnits units inLocs =

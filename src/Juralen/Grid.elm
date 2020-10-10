@@ -1,6 +1,7 @@
 module Juralen.Grid exposing (..)
 
 import Juralen.Cell exposing (Cell, Loc, getDistance)
+import Juralen.Structure
 
 
 type alias Grid =
@@ -90,6 +91,20 @@ farmCountControlledBy grid playerId =
                                 Just controlledBy ->
                                     if controlledBy == playerId then
                                         1
+                                        + case cell.structure of
+                                            Nothing ->
+                                                0
+
+                                            Just structure ->
+                                                case structure of
+                                                    Juralen.Structure.Town ->
+                                                        1
+
+                                                    Juralen.Structure.Citadel ->
+                                                        2
+
+                                                    Juralen.Structure.None ->
+                                                        0
 
                                     else
                                         0
