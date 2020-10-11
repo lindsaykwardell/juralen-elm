@@ -131,7 +131,7 @@ hasStructure cell =
 
 buildStructure : Cell -> Structure -> Cell
 buildStructure cell structure =
-    { cell | structure = Just structure, cellType = Juralen.CellType.Plains, defBonus = 7 }
+    { cell | structure = Just structure, cellType = Juralen.CellType.Plains, defBonus = 5 }
 
 
 updateControl : Cell -> Int -> Cell

@@ -10,13 +10,17 @@ import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
 import Juralen.TechTree as TechTree exposing (TechLevel(..))
+import Juralen.Analysis exposing (UpgradeType)
+import Juralen.Analysis
+import Juralen.Cell
 
 
 
 -- 1. Get options
 -- 1.1 Find movement options            // analyzeMoves : Core.Model -> List Option
 -- 1.2 Find units to build              // analyzeBuildUnits : Core.Model -> List Option
--- 1.3 Find structures to build         // analyzeBuildStructure : Core.Model -> List Option
+-- 1.3 Find research options            // analyzeResearchOptions : Core.Model -> List Option
+-- 1.4 Upgrade structures               // analyzeUpgrades : Core.Model -> List Option
 -- 2. Score options                     // scoreOptions : List Option -> List Option
 -- 3. Sort options by score             // sortOptions : List Option -> List Option
 -- 4. Filter undesireable options       // filterBadOptions : List Option -> List Option
@@ -28,6 +32,7 @@ analyze model =
     analyzeBuildUnits model
         ++ analyzeMoves model
         ++ analyzeResearchOptions model
+        ++ analyzeUpgrades model
         |> scoreOptions model
         |> List.filter (\option -> option.score > 0)
         |> sortByScore
@@ -37,6 +42,46 @@ type alias UnitOption =
     { unitOptions : List Unit
     , cell : Cell
     }
+
+analyzeUpgrades : Core.Model -> List Option
+analyzeUpgrades model =
+    let
+        targetCells : List Cell
+        targetCells = List.filter (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Nothing ) (toList model.grid)
+
+        levelOneTech : Maybe TechTree.LevelOne
+        levelOneTech = Core.getPlayerTechTree model.players model.activePlayer |> .levelOne
+    in
+        List.concat 
+            [   if levelOneTech == Just TechTree.BuildFarms then 
+                    checkCellForUpgrades Juralen.Analysis.BuildFarm targetCells []
+                else []
+            ,   if levelOneTech == Just TechTree.BuildActions then
+                    checkCellForUpgrades Juralen.Analysis.BuildTower targetCells []
+                else []
+            ,   checkCellForUpgrades Juralen.Analysis.RepairDefense targetCells []
+            ]
+
+checkCellForUpgrades : UpgradeType -> List Cell -> List Option -> List Option
+checkCellForUpgrades upgradeType cells options =
+    case cells of
+        ( cell :: remainingCells ) ->
+            case upgradeType of
+                Juralen.Analysis.BuildFarm ->
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildFarm, score = 0 } ]])
+
+                Juralen.Analysis.BuildTower ->
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildTower, score = 0 } ]])
+
+                Juralen.Analysis.RepairDefense ->        
+                    if Juralen.Structure.initDef cell.structure > cell.defBonus then
+                        checkCellForUpgrades upgradeType remainingCells (List.concat [options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.RepairDefense, score = 0 } ]])
+                    else
+                        checkCellForUpgrades upgradeType remainingCells options
+
+        [] ->
+            options
+
 
 analyzeResearchOptions : Core.Model -> List Option
 analyzeResearchOptions model =
@@ -440,7 +485,12 @@ scoreOption model option =
             else
                 case research.tech of
                     LevelOne tech ->
-                        { option | score = 200 }
+                        case tech of
+                            TechTree.BuildFarms ->
+                                { option | score = if analyzer == Aggressive then 1000 else 150 + (stats.units * 10) - (stats.farms * 10) }
+                            
+                            TechTree.BuildActions ->
+                                { option | score = if analyzer == Default then 1000 else 150 + (50 - (stats.towns * 10) - (stats.units * 10)) }
 
                     LevelTwo tech ->
                         case tech of
@@ -466,6 +516,27 @@ scoreOption model option =
                             TechTree.BuildPriests ->
                                 { option | score = 500 + if stats.farms > 15 then 500 else 0 + if analyzer == Defensive then 1000 else 0 }
 
+        Upgrade upgradeType ->
+            let
+                cell = Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) option.loc
+            in
+
+            case upgradeType of
+                Juralen.Analysis.RepairDefense ->
+                    { option 
+                    | score = 
+                        if stats.gold < 1 then -1000 else 
+                        0 
+                        + if stats.units < round (toFloat stats.farms / 2) then -100 else 0
+                        + if cell.defBonus <= 0 then 300 else 0
+                        + if analyzer /= Aggressive then 150 else 25 
+                        }
+
+                Juralen.Analysis.BuildFarm ->
+                    { option | score = if stats.gold < 2 || cell.farms >= 4 then -1000 else 1 }
+
+                Juralen.Analysis.BuildTower ->
+                    { option | score = if stats.gold < 2 ||  cell.towers >= 4 then -1000 else 1 }
         _ ->
             option
 

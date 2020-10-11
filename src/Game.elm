@@ -28,6 +28,10 @@ import Juralen.Analysis
 import Juralen.UnitType exposing (InitialValues)
 import Juralen.UnitType
 import Juralen.Player
+import Game.Core
+import Juralen.Cell
+import Juralen.Analysis
+import Juralen.Analysis
 
 init : List NewPlayer -> Float -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed =    
@@ -120,6 +124,7 @@ type Msg
     | SelectUnit Int
     | MoveSelectedUnits Cell
     | ResearchTech TechDescription
+    | UpgradeCell Juralen.Analysis.UpgradeType
     | GotCombatMsg Game.Combat.Msg
     | PerformAction Juralen.Analysis.Option
     | PerformAiTurn
@@ -530,7 +535,65 @@ update msg model =
                 in
                     update Analyze { model | players = players}
                 
-            
+        UpgradeCell upgradeType ->
+            let
+                _ = Debug.log ("Upgrading! " ++ ((Just model.activePlayer) |> Juralen.Player.getName model.players)) upgradeType
+                stats = Game.Core.currentPlayerStats model
+            in
+
+            case upgradeType of
+                Juralen.Analysis.BuildFarm ->
+                    if stats.gold < 2 then
+                        (model, Cmd.none)
+
+                    else
+                        let
+                            players = List.map (\player -> if player.id == model.activePlayer then { player | resources = Juralen.Resources.spend player.resources 2 } else player) model.players
+
+                            cell : Cell
+                            cell = Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell
+
+                            grid : Grid
+                            grid = Juralen.Grid.replaceCell model.grid { cell | farms = cell.farms + 1 }
+
+                        in
+                            update Analyze { model | players = players, grid = grid }
+
+                Juralen.Analysis.BuildTower ->
+                    if stats.gold < 2 then
+                        (model, Cmd.none)
+
+                    else
+                        let
+                            players = List.map (\player -> if player.id == model.activePlayer then { player | resources = Juralen.Resources.spend player.resources 2 } else player) model.players
+
+                            cell : Cell
+                            cell = Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell
+
+                            grid : Grid
+                            grid = Juralen.Grid.replaceCell model.grid { cell | towers = cell.towers + 1 }
+
+                        in
+                            update Analyze { model | players = players, grid = grid }
+
+                Juralen.Analysis.RepairDefense ->
+                    if stats.gold < 1 then
+                        (model, Cmd.none)
+
+                    else
+                        let
+                            players = List.map (\player -> if player.id == model.activePlayer then { player | resources = Juralen.Resources.spend player.resources 1 } else player) model.players
+
+                            cell : Cell
+                            cell = Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell
+
+                            grid : Grid
+                            grid = Juralen.Grid.replaceCell model.grid { cell | defBonus = if Juralen.Structure.initDef cell.structure > cell.defBonus then cell.defBonus + 1 else cell.defBonus }
+
+                        in
+                            update Analyze { model | players = players, grid = grid }
+
+                        
 
         GotCombatMsg combatMsg ->
             case model.combat of
@@ -564,8 +627,15 @@ update msg model =
                                 updatedGrid = List.map (\row -> 
                                     List.map (\cell -> 
                                         if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then 
-                                            { cell | controlledBy = Just winner.id, farms = 0, towers = 0} 
-                                            
+                                            let
+                                                conquered = cell.controlledBy /= Just winner.id
+                                            in
+                                                { cell 
+                                                | controlledBy = Just winner.id
+                                                , farms = if conquered then 0 else cell.farms
+                                                , towers = if conquered then 0 else cell.towers
+                                                , defBonus = if combat.defBonus < 0 then 0 else combat.defBonus
+                                                } 
                                         else cell
                                     ) row) model.grid
                             in
@@ -608,6 +678,9 @@ update msg model =
 
                 Juralen.Analysis.Research tech ->
                     update (ResearchTech tech) model
+
+                Juralen.Analysis.Upgrade upgradeType ->
+                    update (UpgradeCell upgradeType) { model | selectedCell = option.loc }
 
                 _ ->
                     (model, Cmd.none)
@@ -854,7 +927,13 @@ view model =
                                             ""
 
                                         Just selectedCell ->
-                                            Juralen.CellType.toString selectedCell.cellType
+                                            Juralen.CellType.toString selectedCell.cellType ++
+                                                case selectedCell.structure of
+                                                    Nothing ->
+                                                        ""
+                                                    
+                                                    Just structure ->
+                                                        " [" ++ Juralen.Structure.toString selectedCell.structure ++ "]"
                                     )
                                 ]
                             , div [ class "flex-1 italic" ]
@@ -875,6 +954,14 @@ view model =
                                                 ++ ")"
                                     )
                                 ]
+                            ]
+                        , div [ class "flex" ]
+                            [ div [ class "flex-1" ] 
+                                [ text ("Defense Bonus: " ++ String.fromInt (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .defBonus))  ]
+                            , div [ class "flex-1" ] 
+                                [ text ("Farms: " ++ String.fromInt (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .farms))  ]
+                            , div [ class "flex-1" ] 
+                                [ text ("Towers: " ++ String.fromInt (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .towers))  ]
                             ]
                         ]
                     ]
@@ -899,6 +986,27 @@ view model =
                     )
                 , div []
                     (Game.Core.getPlayerTechTree model.players model.activePlayer |> TechTree.nextAvailableTech |> List.map techTreeButton)
+                , div [ class "p-5" ]
+                    (if (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .controlledBy) /= Just model.activePlayer then [] else
+                    [ if 
+                        ((Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell) |> .defBonus) 
+                        < 
+                        Juralen.Structure.initDef ((Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell) |> .structure) 
+                        then 
+                            button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Juralen.Analysis.RepairDefense)] [ text "Repair Defense (1)"]
+                        else text ""
+                    , case getPlayerTechTree model.players model.activePlayer |> .levelOne of
+                        Nothing ->
+                            text ""
+
+                        Just tech ->
+                            let
+                                buttonText = if tech == TechTree.BuildFarms then "Build Farm (2)" else "Build Tower (2)"
+
+                                action = if tech == TechTree.BuildFarms then Juralen.Analysis.BuildFarm else Juralen.Analysis.BuildTower
+                            in
+                                button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell action)] [ text buttonText]
+                    ])
                 , div [ class "p-5" ]
                     (List.map
                         (\unit ->

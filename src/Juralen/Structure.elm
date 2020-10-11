@@ -22,10 +22,10 @@ initDef structure =
                     3
                 
                 Citadel ->
-                    7
+                    5
 
                 _ ->
-                    5
+                    0
 
 
 canBuild : Maybe Structure -> TechTree -> List UnitType

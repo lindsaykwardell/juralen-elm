@@ -13,7 +13,12 @@ type Action
     | BuildUnit UnitType
     | BuildStructure Structure
     | Research TechDescription
+    | Upgrade UpgradeType
 
+type UpgradeType
+    = BuildFarm
+    | BuildTower
+    | RepairDefense
 
 type alias Option =
     { loc : Loc
@@ -45,6 +50,22 @@ toString option =
 
         Research tech ->
             "Research " ++ tech.name
+
+        Upgrade upgrade ->
+            case upgrade of 
+                BuildFarm ->
+                    "Build farm in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+
+                BuildTower ->
+                    "Build tower in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+
+                RepairDefense ->
+                    "Repair structure in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+
+                
+
+                
+
 
         _ ->
             ""
