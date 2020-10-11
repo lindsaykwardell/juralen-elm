@@ -518,8 +518,6 @@ update msg model =
 
         ResearchTech tech ->
             let
-                _ = Debug.log  
-                _ = Debug.log ("Researching! " ++ ((Just model.activePlayer) |> Juralen.Player.getName model.players)) tech.name
                 stats = Game.Core.currentPlayerStats model
 
                 cost = tech.cost
@@ -537,7 +535,6 @@ update msg model =
                 
         UpgradeCell upgradeType ->
             let
-                _ = Debug.log ("Upgrading! " ++ ((Just model.activePlayer) |> Juralen.Player.getName model.players)) upgradeType
                 stats = Game.Core.currentPlayerStats model
             in
 
