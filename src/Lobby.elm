@@ -10,6 +10,7 @@ import Juralen.PlayerColor
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
 import Random
 import Array exposing (Array)
+import Juralen.AnalyzerMode
 
 
 type alias Model =
@@ -142,6 +143,8 @@ update msg model =
                             Juralen.AnalyzerMode.Defensive
                         "PASSIVE" ->
                             Juralen.AnalyzerMode.Passive
+                        "EXPANSIONIST" ->
+                            Juralen.AnalyzerMode.Expansionist
                         _ ->
                             Juralen.AnalyzerMode.Default
 
@@ -184,11 +187,18 @@ update msg model =
                 Just name ->
                     let
                         nameExists = List.length (List.filter (\player -> player.name == name) model.newPlayerList) > 0
+                        
+                        analyzerMode = 
+                            if (randomNumber) // 2 == 1 then Juralen.AnalyzerMode.Expansionist
+                            else if (randomNumber) // 3 == 1 then Juralen.AnalyzerMode.Passive
+                            else if (randomNumber) // 4 == 1 then Juralen.AnalyzerMode.Defensive
+                            else if (randomNumber) // 5 == 1 then Juralen.AnalyzerMode.Aggressive
+                            else Juralen.AnalyzerMode.Default
                     in
                         if nameExists then 
                             ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (Array.length nameList - 1)))
                         else
-                            ( { model | newPlayerList = List.map (\player -> if player.id == playerId then { player | name = name } else player) model.newPlayerList }, Cmd.none)
+                            ( { model | newPlayerList = List.map (\player -> if player.id == playerId then { player | name = name, analyzer = analyzerMode } else player) model.newPlayerList }, Cmd.none)
                 Nothing ->
                     ( model, Cmd.none)
 
@@ -252,6 +262,7 @@ newPlayerInput selectedColors player =
                 , option [ value "AGGRESSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Aggressive) ] [ text "Aggressive" ]
                 , option [ value "DEFENSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Defensive) ] [ text "Defensive" ]
                 , option [ value "PASSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Passive) ] [ text "Passive" ]
+                , option [ value "EXPANSIONIST", selected (player.analyzer == Juralen.AnalyzerMode.Expansionist )] [ text "Expansionist" ]
                 ]
             ]
         , div [ class "flex-1" ]

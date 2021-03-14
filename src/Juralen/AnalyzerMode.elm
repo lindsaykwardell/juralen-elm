@@ -5,3 +5,4 @@ type AnalyzerMode
   | Aggressive
   | Defensive
   | Passive
+  | Expansionist

@@ -13,6 +13,7 @@ import Juralen.TechTree as TechTree exposing (TechLevel(..))
 import Juralen.Analysis exposing (UpgradeType)
 import Juralen.Analysis
 import Juralen.Cell
+import Juralen.AnalyzerMode
 
 
 
@@ -358,7 +359,7 @@ scoreOption model option =
                     10
                         -- Subtract number of units to move * 2 (fewer units is better)
                         - List.length units * (
-                            if analyzer == Juralen.AnalyzerMode.Defensive then 3 else 2
+                            if analyzer == Defensive then 3 else 2
                         )
                         -- Don't move units without moves left
                         - (if List.any (\unit -> unit.movesLeft <= 0) units then
@@ -368,7 +369,7 @@ scoreOption model option =
                             0
                           )
                         -- Subtract distance (shorter is better)
-                        - Juralen.Cell.getDistance option.loc toLoc * (if analyzer == Juralen.AnalyzerMode.Defensive then 3 else 1)
+                        - Juralen.Cell.getDistance option.loc toLoc * (if analyzer == Defensive || analyzer == Expansionist then 3 else 1)
                         -- Add based on cell type (plains are better than forests)
                         -- Don't move to mountains
                         + (case targetCell.cellType of
@@ -393,20 +394,21 @@ scoreOption model option =
                                     then
                                         if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 120 else 0
                                     else  
-                                        if analyzer == Juralen.AnalyzerMode.Aggressive then 125 else 75
+                                        if analyzer == Aggressive then 125 else 75
 
                            else
-                            if analyzer == Juralen.AnalyzerMode.Aggressive then 100 else 0
+                            if analyzer == Aggressive then 100 else 0
                           )
                         -- Is it worth moving there?
                             -- No impact if cell is not controlled.
+                                -- If analyzer is expansionist, then prefer uncontrolled.
                             -- Negative if it is controller by active player
                             -- Add if controlled by someone else (capturing enemy territory is better)
                                 -- Analyze threat of enemy units before making a decision, attacking is less important than winning
                                 -- Include defensive bonus of cell before attacking
                         + (case targetCell.controlledBy of
                             Nothing ->
-                                0
+                                if analyzer == Expansionist then 300 else 0
 
                             Just playerId ->
                                 if playerId == model.activePlayer then
@@ -416,7 +418,7 @@ scoreOption model option =
                                     Core.getPlayerScore model playerId
                                     +
                                     if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                        if analyzer == Juralen.AnalyzerMode.Passive -- || isOnlyPriests
+                                        if analyzer == Passive -- || isOnlyPriests
                                         then -1000 else
 
                                         List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
@@ -428,7 +430,7 @@ scoreOption model option =
                                         
 
                                     else
-                                        if analyzer == Juralen.AnalyzerMode.Aggressive then 100 else 50
+                                        if analyzer == Aggressive then 100 else 50
                           )
                         -- Should we move everyone in this cell? Do we really need more farms?
                         -- Defending territory is preferable if we can get away with it
@@ -487,7 +489,7 @@ scoreOption model option =
                     LevelOne tech ->
                         case tech of
                             TechTree.BuildFarms ->
-                                { option | score = if analyzer == Aggressive then 1000 else 150 + (stats.units * 10) - (stats.farms * 10) }
+                                { option | score = if analyzer == Aggressive || analyzer == Expansionist then 1000 else 150 + (stats.units * 10) - (stats.farms * 10) }
                             
                             TechTree.BuildActions ->
                                 { option | score = if analyzer == Default then 1000 else 150 + (50 - (stats.towns * 10) - (stats.units * 10)) }
@@ -503,7 +505,7 @@ scoreOption model option =
                     LevelThree tech ->
                         case tech of
                             TechTree.BuildKnights ->
-                                { option | score = 200 + if analyzer == Aggressive then 1000 else 0 + if isTopHalf then 500 else 0}
+                                { option | score = 200 + if analyzer == Aggressive || analyzer == Expansionist then 1000 else 0 + if isTopHalf then 500 else 0}
 
                             TechTree.BuildRogues ->
                                 { option | score = 200 + if not isTopHalf then 300 else 0 + if analyzer == Defensive then 300 else 0}
@@ -511,7 +513,7 @@ scoreOption model option =
                     LevelFour tech ->
                         case tech of
                             TechTree.BuildWizards ->
-                                { option | score = 500 + if stats.gold > 25 then 1000 else 0 + if analyzer == Default then 1000 else 0 }
+                                { option | score = 500 + if analyzer == Expansionist || stats.gold > 25 then 1000 else 0 + if analyzer == Default then 1000 else 0 }
 
                             TechTree.BuildPriests ->
                                 { option | score = 500 + if stats.farms > 15 then 500 else 0 + if analyzer == Defensive then 1000 else 0 }
