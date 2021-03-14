@@ -2,7 +2,7 @@ import "./main.css"
 import { Elm } from "./Main.elm"
 import * as serviceWorker from "./serviceWorker"
 
-const netlifyIdentity = window.netlifyIdentity
+// const netlifyIdentity = window.netlifyIdentity
 
 // import audioControl from "./audio/audioControl"
 
@@ -18,8 +18,8 @@ const app = Elm.Main.init({
     node: document.getElementById("root")
 })
 
-// Initialize identity
-netlifyIdentity.init()
+// // Initialize identity
+// netlifyIdentity.init()
 
 // Validate existing user
 setTimeout(() => {
@@ -32,23 +32,24 @@ setTimeout(() => {
     }
 }, 2000);
 
-// Inform Elm when auth has taken place
-netlifyIdentity.on('login', user => {
-    console.log(user)
-    netlifyIdentity.close()
-    app.ports.authStatus.send(true)
-})
+// // Inform Elm when auth has taken place
+// netlifyIdentity.on('login', user => {
+//     console.log(user)
+//     netlifyIdentity.close()
+//     app.ports.authStatus.send(true)
+// })
 
 // Subscribe to Elm login
 app.ports.login.subscribe(() => {
-    netlifyIdentity.open()
+    // netlifyIdentity.open()
+    app.ports.authStatus.send(true)
 })
 
 // Subscribe to Elm logout
-app.ports.logout.subscribe(() => {
-    netlifyIdentity.logout()
-    app.ports.authStatus.send(false)
-})
+// app.ports.logout.subscribe(() => {
+//     netlifyIdentity.logout()
+//     app.ports.authStatus.send(false)
+// })
 
 
 // If you want your app to work offline and load faster, you can change
