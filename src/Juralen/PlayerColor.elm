@@ -110,6 +110,7 @@ toClass playerColor =
         None ->
             ""
 
+
 isDark : PlayerColor -> Bool
 isDark playerColor =
     case playerColor of

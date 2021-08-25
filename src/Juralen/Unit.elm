@@ -78,9 +78,11 @@ empty =
     , y = -1
     }
 
+
 takeDamage : Unit -> Int -> Unit
 takeDamage unit damage =
-    { unit | health = unit.health - damage}
+    { unit | health = unit.health - damage }
+
 
 isDead : Unit -> Bool
 isDead unit =

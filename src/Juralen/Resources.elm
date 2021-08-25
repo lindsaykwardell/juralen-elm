@@ -6,14 +6,17 @@ type alias Resources =
     , gold : Int
     }
 
+
 empty : Resources
 empty =
-    { actions = 0, gold = 0}
+    { actions = 0, gold = 0 }
+
 
 spend : Resources -> Int -> Resources
 spend resources cost =
-    { resources | gold = resources.gold - cost}
+    { resources | gold = resources.gold - cost }
+
 
 useActions : Resources -> Float -> Resources
 useActions resources cost =
-    { resources | actions = resources.actions - cost}
+    { resources | actions = resources.actions - cost }

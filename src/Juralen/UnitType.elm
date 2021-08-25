@@ -1,9 +1,7 @@
 module Juralen.UnitType exposing (..)
 
-import Juralen.TechTree exposing (TechTree)
-import Juralen.TechTree exposing (LevelTwo(..))
-import Juralen.TechTree exposing (LevelThree(..))
-import Juralen.TechTree exposing (LevelFour(..))
+import Juralen.TechTree exposing (LevelFour(..), LevelThree(..), LevelTwo(..), TechTree)
+
 
 type UnitType
     = Soldier
@@ -47,6 +45,7 @@ cost unitType =
         Priest ->
             6
 
+
 moveCost : UnitType -> Float
 moveCost unitType =
     case unitType of
@@ -55,7 +54,8 @@ moveCost unitType =
 
         _ ->
             1
-        
+
+
 threat : UnitType -> Int
 threat unitType =
     case unitType of
@@ -183,41 +183,44 @@ initialValues unitType =
             , range = 1
             }
 
+
 researchedUnits : TechTree -> List UnitType
 researchedUnits techTree =
     case techTree.levelTwo of
         Nothing ->
-            [Soldier]
+            [ Soldier ]
 
         Just levelTwo ->
             let
-                unitTwo = levelTwoUnit levelTwo
+                unitTwo =
+                    levelTwoUnit levelTwo
             in
-
             case techTree.levelThree of
                 Nothing ->
-                    [Soldier, unitTwo]
+                    [ Soldier, unitTwo ]
 
                 Just levelThree ->
                     let
-                        unitThree = levelThreeUnit levelThree
+                        unitThree =
+                            levelThreeUnit levelThree
                     in
-
                     case techTree.levelFour of
                         Nothing ->
-                            [Soldier, unitTwo, unitThree]
+                            [ Soldier, unitTwo, unitThree ]
 
                         Just levelFour ->
-                            [Soldier, unitTwo, unitThree, levelFourUnit levelFour]
+                            [ Soldier, unitTwo, unitThree, levelFourUnit levelFour ]
+
 
 levelTwoUnit : LevelTwo -> UnitType
 levelTwoUnit level =
-    case level of 
+    case level of
         BuildWarriors ->
             Warrior
 
         BuildArchers ->
             Archer
+
 
 levelThreeUnit : LevelThree -> UnitType
 levelThreeUnit level =
@@ -227,6 +230,7 @@ levelThreeUnit level =
 
         BuildRogues ->
             Rogue
+
 
 levelFourUnit : LevelFour -> UnitType
 levelFourUnit level =

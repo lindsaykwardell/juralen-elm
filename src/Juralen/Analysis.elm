@@ -2,9 +2,9 @@ module Juralen.Analysis exposing (..)
 
 import Juralen.Cell exposing (Loc)
 import Juralen.Structure exposing (Structure)
+import Juralen.TechTree exposing (TechDescription)
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
-import Juralen.TechTree exposing (TechDescription)
 
 
 type Action
@@ -15,16 +15,19 @@ type Action
     | Research TechDescription
     | Upgrade UpgradeType
 
+
 type UpgradeType
     = BuildFarm
     | BuildTower
     | RepairDefense
+
 
 type alias Option =
     { loc : Loc
     , action : Action
     , score : Int
     }
+
 
 toString : Option -> String
 toString option =
@@ -52,7 +55,7 @@ toString option =
             "Research " ++ tech.name
 
         Upgrade upgrade ->
-            case upgrade of 
+            case upgrade of
                 BuildFarm ->
                     "Build farm in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
 
@@ -61,11 +64,6 @@ toString option =
 
                 RepairDefense ->
                     "Repair structure in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
-
-                
-
-                
-
 
         _ ->
             ""

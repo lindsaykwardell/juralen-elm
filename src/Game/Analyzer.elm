@@ -1,19 +1,15 @@
 module Game.Analyzer exposing (..)
 
 import Game.Core as Core exposing (PlayerStats)
-import Juralen.Analysis exposing (Action(..), Option)
+import Juralen.Analysis exposing (Action(..), Option, UpgradeType)
+import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
 import Juralen.Cell exposing (Cell, Loc)
 import Juralen.CellType
 import Juralen.Grid
-import Juralen.Structure exposing (Structure)
+import Juralen.Structure
+import Juralen.TechTree as TechTree exposing (TechLevel(..))
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
-import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
-import Juralen.TechTree as TechTree exposing (TechLevel(..))
-import Juralen.Analysis exposing (UpgradeType)
-import Juralen.Analysis
-import Juralen.Cell
-import Juralen.AnalyzerMode
 
 
 
@@ -44,39 +40,48 @@ type alias UnitOption =
     , cell : Cell
     }
 
+
 analyzeUpgrades : Core.Model -> List Option
 analyzeUpgrades model =
     let
         targetCells : List Cell
-        targetCells = List.filter (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Nothing ) (toList model.grid)
+        targetCells =
+            List.filter (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Nothing) (toList model.grid)
 
         levelOneTech : Maybe TechTree.LevelOne
-        levelOneTech = Core.getPlayerTechTree model.players model.activePlayer |> .levelOne
+        levelOneTech =
+            Core.getPlayerTechTree model.players model.activePlayer |> .levelOne
     in
-        List.concat 
-            [   if levelOneTech == Just TechTree.BuildFarms then 
-                    checkCellForUpgrades Juralen.Analysis.BuildFarm targetCells []
-                else []
-            ,   if levelOneTech == Just TechTree.BuildActions then
-                    checkCellForUpgrades Juralen.Analysis.BuildTower targetCells []
-                else []
-            ,   checkCellForUpgrades Juralen.Analysis.RepairDefense targetCells []
-            ]
+    List.concat
+        [ if levelOneTech == Just TechTree.BuildFarms then
+            checkCellForUpgrades Juralen.Analysis.BuildFarm targetCells []
+
+          else
+            []
+        , if levelOneTech == Just TechTree.BuildActions then
+            checkCellForUpgrades Juralen.Analysis.BuildTower targetCells []
+
+          else
+            []
+        , checkCellForUpgrades Juralen.Analysis.RepairDefense targetCells []
+        ]
+
 
 checkCellForUpgrades : UpgradeType -> List Cell -> List Option -> List Option
 checkCellForUpgrades upgradeType cells options =
     case cells of
-        ( cell :: remainingCells ) ->
+        cell :: remainingCells ->
             case upgradeType of
                 Juralen.Analysis.BuildFarm ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildFarm, score = 0 } ]])
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildFarm, score = 0 } ] ])
 
                 Juralen.Analysis.BuildTower ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildTower, score = 0 } ]])
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildTower, score = 0 } ] ])
 
-                Juralen.Analysis.RepairDefense ->        
+                Juralen.Analysis.RepairDefense ->
                     if Juralen.Structure.initDef cell.structure > cell.defBonus then
-                        checkCellForUpgrades upgradeType remainingCells (List.concat [options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.RepairDefense, score = 0 } ]])
+                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.RepairDefense, score = 0 } ] ])
+
                     else
                         checkCellForUpgrades upgradeType remainingCells options
 
@@ -86,13 +91,16 @@ checkCellForUpgrades upgradeType cells options =
 
 analyzeResearchOptions : Core.Model -> List Option
 analyzeResearchOptions model =
-    Core.getPlayerTechTree model.players model.activePlayer 
-        |> TechTree.nextAvailableTech 
-        |> List.map (\tech -> 
-            { loc = { x = 0, y = 0 }
-            , action = Research tech
-            , score = 0
-            })
+    Core.getPlayerTechTree model.players model.activePlayer
+        |> TechTree.nextAvailableTech
+        |> List.map
+            (\tech ->
+                { loc = { x = 0, y = 0 }
+                , action = Research tech
+                , score = 0
+                }
+            )
+
 
 analyzeMoves : Core.Model -> List Option
 analyzeMoves model =
@@ -112,15 +120,16 @@ analyzeMoves model =
 
         unitCombinations : List UnitOption
         unitCombinations =
-            toList 
-                (List.map 
-                    (\cell -> 
-                        List.foldl 
-                            (\units combinations -> 
+            toList
+                (List.map
+                    (\cell ->
+                        List.foldl
+                            (\units combinations ->
                                 combinations ++ [ { unitOptions = units, cell = cell } ]
-                            ) [] 
+                            )
+                            []
                             (combineUnitWith [] [] (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }))
-                    ) 
+                    )
                     cellsWithUnits
                 )
     in
@@ -333,34 +342,37 @@ scoreOptions model options =
 scoreOption : Core.Model -> Option -> Option
 scoreOption model option =
     let
-        analyzer = Core.playerAnalyzer model.players model.activePlayer
+        analyzer =
+            Core.playerAnalyzer model.players model.activePlayer
 
-        stats = Core.currentPlayerStats model
+        stats =
+            Core.currentPlayerStats model
 
-        rank = Core.getPlayerRanking (Core.getPlayerRankings model) model.activePlayer 1
+        rank =
+            Core.getPlayerRanking (Core.getPlayerRankings model) model.activePlayer 1
 
-        isFirstPlace = rank == 1
-        isLastPlace = rank == List.length model.players
-        isTopHalf = round ((toFloat rank / toFloat (List.length model.players)) * 100) < 50
-        isBottomHalf = round ((toFloat rank / toFloat (List.length model.players)) * 100) >= 50
+        isTopHalf =
+            round ((toFloat rank / toFloat (List.length model.players)) * 100) < 50
+
+        isBottomHalf =
+            round ((toFloat rank / toFloat (List.length model.players)) * 100) >= 50
     in
-
     case option.action of
         Move units toLoc ->
             let
                 targetCell =
                     Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) toLoc
 
-                isOnlyPriests : Bool
-                isOnlyPriests = 
-                    List.foldl (\unit isPriests -> isPriests && unit.unitType == Juralen.UnitType.Priest) True units
-
                 score =
                     10
                         -- Subtract number of units to move * 2 (fewer units is better)
-                        - List.length units * (
-                            if analyzer == Defensive then 3 else 2
-                        )
+                        - List.length units
+                        * (if analyzer == Defensive then
+                            3
+
+                           else
+                            2
+                          )
                         -- Don't move units without moves left
                         - (if List.any (\unit -> unit.movesLeft <= 0) units then
                             1000
@@ -369,7 +381,13 @@ scoreOption model option =
                             0
                           )
                         -- Subtract distance (shorter is better)
-                        - Juralen.Cell.getDistance option.loc toLoc * (if analyzer == Defensive || analyzer == Expansionist then 3 else 1)
+                        - Juralen.Cell.getDistance option.loc toLoc
+                        * (if analyzer == Defensive || analyzer == Expansionist then
+                            3
+
+                           else
+                            1
+                          )
                         -- Add based on cell type (plains are better than forests)
                         -- Don't move to mountains
                         + (case targetCell.cellType of
@@ -387,50 +405,70 @@ scoreOption model option =
                             case targetCell.controlledBy of
                                 Nothing ->
                                     100
-                                
+
                                 Just playerId ->
-                                    if 
-                                        playerId == model.activePlayer 
-                                    then
-                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then 120 else 0
-                                    else  
-                                        if analyzer == Aggressive then 125 else 75
+                                    if playerId == model.activePlayer then
+                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then
+                                            120
+
+                                        else
+                                            0
+
+                                    else if analyzer == Aggressive then
+                                        125
+
+                                    else
+                                        75
+
+                           else if analyzer == Aggressive then
+                            100
 
                            else
-                            if analyzer == Aggressive then 100 else 0
+                            0
                           )
                         -- Is it worth moving there?
-                            -- No impact if cell is not controlled.
-                                -- If analyzer is expansionist, then prefer uncontrolled.
-                            -- Negative if it is controller by active player
-                            -- Add if controlled by someone else (capturing enemy territory is better)
-                                -- Analyze threat of enemy units before making a decision, attacking is less important than winning
-                                -- Include defensive bonus of cell before attacking
+                        -- No impact if cell is not controlled.
+                        -- If analyzer is expansionist, then prefer uncontrolled.
+                        -- Negative if it is controller by active player
+                        -- Add if controlled by someone else (capturing enemy territory is better)
+                        -- Analyze threat of enemy units before making a decision, attacking is less important than winning
+                        -- Include defensive bonus of cell before attacking
                         + (case targetCell.controlledBy of
                             Nothing ->
-                                if analyzer == Expansionist then 300 else 0
+                                if analyzer == Expansionist then
+                                    300
+
+                                else
+                                    0
 
                             Just playerId ->
                                 if playerId == model.activePlayer then
                                     -100
 
-                                else 
+                                else
                                     Core.getPlayerScore model playerId
-                                    +
-                                    if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                        if analyzer == Passive -- || isOnlyPriests
-                                        then -1000 else
+                                        + (if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
+                                            if
+                                                analyzer == Passive
+                                                -- || isOnlyPriests
+                                            then
+                                                -1000
 
-                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
-                                            (List.map (\unit -> unit.unitType) units)
-                                        - 
-                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit) 0 
-                                            (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
-                                        - targetCell.defBonus
-                                        
+                                            else
+                                                List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
+                                                    0
+                                                    (List.map (\unit -> unit.unitType) units)
+                                                    - List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
+                                                        0
+                                                        (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
+                                                    - targetCell.defBonus
 
-                                    else
-                                        if analyzer == Aggressive then 100 else 50
+                                           else if analyzer == Aggressive then
+                                            100
+
+                                           else
+                                            50
+                                          )
                           )
                         -- Should we move everyone in this cell? Do we really need more farms?
                         -- Defending territory is preferable if we can get away with it
@@ -444,40 +482,50 @@ scoreOption model option =
                            else
                             0
                           )
-                
-                isAttack = 
+
+                isAttack =
                     case targetCell.controlledBy of
                         Nothing ->
                             False
 
                         Just playerId ->
-                            if playerId == model.activePlayer then False
-                            else True
+                            if playerId == model.activePlayer then
+                                False
+
+                            else
+                                True
             in
-            { option | score = score, action = if isAttack then Attack units toLoc else Move units toLoc }
+            { option
+                | score = score
+                , action =
+                    if isAttack then
+                        Attack units toLoc
+
+                    else
+                        Move units toLoc
+            }
 
         BuildUnit unitType ->
             let
-                unitsInCell = List.length (Juralen.Unit.inCell model.units option.loc)
+                unitsInCell =
+                    List.length (Juralen.Unit.inCell model.units option.loc)
 
                 score =
                     -- Build based on priority (higher scores are better)
-                    1 
-                    + unitTypeScore unitType
-                    - round (toFloat (List.length (List.filter (\unit -> unit.unitType == unitType && unit.controlledBy == model.activePlayer) model.units)) / 2)
-                    -- Build based on current unit count in cell (lower pop of units is more important)
-                    +
-                        if unitsInCell <= 0
-                        then
+                    1
+                        + unitTypeScore unitType
+                        - round (toFloat (List.length (List.filter (\unit -> unit.unitType == unitType && unit.controlledBy == model.activePlayer) model.units)) / 2)
+                        -- Build based on current unit count in cell (lower pop of units is more important)
+                        + (if unitsInCell <= 0 then
                             1000
-                        else
+
+                           else
                             5 - unitsInCell
-
-
+                          )
             in
             { option | score = score }
 
-        BuildStructure structure ->
+        BuildStructure _ ->
             option
 
         Research research ->
@@ -489,56 +537,193 @@ scoreOption model option =
                     LevelOne tech ->
                         case tech of
                             TechTree.BuildFarms ->
-                                { option | score = if analyzer == Aggressive || analyzer == Expansionist then 1000 else 150 + (stats.units * 10) - (stats.farms * 10) }
-                            
+                                { option
+                                    | score =
+                                        if analyzer == Aggressive || analyzer == Expansionist then
+                                            1000
+
+                                        else
+                                            150 + (stats.units * 10) - (stats.farms * 10)
+                                }
+
                             TechTree.BuildActions ->
-                                { option | score = if analyzer == Default then 1000 else 150 + (50 - (stats.towns * 10) - (stats.units * 10)) }
+                                { option
+                                    | score =
+                                        if analyzer == Default then
+                                            1000
+
+                                        else
+                                            150 + (50 - (stats.towns * 10) - (stats.units * 10))
+                                }
 
                     LevelTwo tech ->
                         case tech of
                             TechTree.BuildArchers ->
-                                { option | score = 200 + if isBottomHalf then 200 else 0 + if analyzer == Aggressive then 200 else 0 }
-                            
+                                { option
+                                    | score =
+                                        200
+                                            + (if isBottomHalf then
+                                                200
+
+                                               else
+                                                0
+                                                    + (if analyzer == Aggressive then
+                                                        200
+
+                                                       else
+                                                        0
+                                                      )
+                                              )
+                                }
+
                             TechTree.BuildWarriors ->
-                                { option | score = 200 + if isTopHalf then 200 else 0 + if analyzer == Defensive then 200 else 0 }
+                                { option
+                                    | score =
+                                        200
+                                            + (if isTopHalf then
+                                                200
+
+                                               else
+                                                0
+                                                    + (if analyzer == Defensive then
+                                                        200
+
+                                                       else
+                                                        0
+                                                      )
+                                              )
+                                }
 
                     LevelThree tech ->
                         case tech of
                             TechTree.BuildKnights ->
-                                { option | score = 200 + if analyzer == Aggressive || analyzer == Expansionist then 1000 else 0 + if isTopHalf then 500 else 0}
+                                { option
+                                    | score =
+                                        200
+                                            + (if analyzer == Aggressive || analyzer == Expansionist then
+                                                1000
+
+                                               else
+                                                0
+                                                    + (if isTopHalf then
+                                                        500
+
+                                                       else
+                                                        0
+                                                      )
+                                              )
+                                }
 
                             TechTree.BuildRogues ->
-                                { option | score = 200 + if not isTopHalf then 300 else 0 + if analyzer == Defensive then 300 else 0}
+                                { option
+                                    | score =
+                                        200
+                                            + (if not isTopHalf then
+                                                300
+
+                                               else
+                                                0
+                                                    + (if analyzer == Defensive then
+                                                        300
+
+                                                       else
+                                                        0
+                                                      )
+                                              )
+                                }
 
                     LevelFour tech ->
                         case tech of
                             TechTree.BuildWizards ->
-                                { option | score = 500 + if analyzer == Expansionist || stats.gold > 25 then 1000 else 0 + if analyzer == Default then 1000 else 0 }
+                                { option
+                                    | score =
+                                        500
+                                            + (if analyzer == Expansionist || stats.gold > 25 then
+                                                1000
+
+                                               else
+                                                0
+                                                    + (if analyzer == Default then
+                                                        1000
+
+                                                       else
+                                                        0
+                                                      )
+                                              )
+                                }
 
                             TechTree.BuildPriests ->
-                                { option | score = 500 + if stats.farms > 15 then 500 else 0 + if analyzer == Defensive then 1000 else 0 }
+                                { option
+                                    | score =
+                                        500
+                                            + (if stats.farms > 15 then
+                                                500
+
+                                               else
+                                                0
+                                                    + (if analyzer == Defensive then
+                                                        1000
+
+                                                       else
+                                                        0
+                                                      )
+                                              )
+                                }
 
         Upgrade upgradeType ->
             let
-                cell = Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) option.loc
+                cell =
+                    Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) option.loc
             in
-
             case upgradeType of
                 Juralen.Analysis.RepairDefense ->
-                    { option 
-                    | score = 
-                        if stats.gold < 1 then -1000 else 
-                        0 
-                        + if stats.units < round (toFloat stats.farms / 2) then -100 else 0
-                        + if cell.defBonus <= 0 then 300 else 0
-                        + if analyzer /= Aggressive then 150 else 25 
-                        }
+                    { option
+                        | score =
+                            if stats.gold < 1 then
+                                -1000
+
+                            else
+                                0
+                                    + (if stats.units < round (toFloat stats.farms / 2) then
+                                        -100
+
+                                       else
+                                        0
+                                            + (if cell.defBonus <= 0 then
+                                                300
+
+                                               else
+                                                0
+                                                    + (if analyzer /= Aggressive then
+                                                        150
+
+                                                       else
+                                                        25
+                                                      )
+                                              )
+                                      )
+                    }
 
                 Juralen.Analysis.BuildFarm ->
-                    { option | score = if stats.gold < 2 || cell.farms >= 4 then -1000 else 1 }
+                    { option
+                        | score =
+                            if stats.gold < 2 || cell.farms >= 4 then
+                                -1000
+
+                            else
+                                1
+                    }
 
                 Juralen.Analysis.BuildTower ->
-                    { option | score = if stats.gold < 2 ||  cell.towers >= 4 then -1000 else 1 }
+                    { option
+                        | score =
+                            if stats.gold < 2 || cell.towers >= 4 then
+                                -1000
+
+                            else
+                                1
+                    }
+
         _ ->
             option
 

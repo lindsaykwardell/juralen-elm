@@ -1,9 +1,10 @@
 module Juralen.Player exposing (..)
 
+import Juralen.AnalyzerMode exposing (AnalyzerMode)
 import Juralen.PlayerColor exposing (PlayerColor)
 import Juralen.Resources exposing (Resources)
-import Juralen.AnalyzerMode exposing (AnalyzerMode)
 import Juralen.TechTree as TechTree exposing (TechTree)
+
 
 type alias Player =
     { id : Int
@@ -42,6 +43,7 @@ generate player id =
     , score = 2
     , techTree = TechTree.empty
     }
+
 
 revertToNewPlayer : Player -> NewPlayer
 revertToNewPlayer player =

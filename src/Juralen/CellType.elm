@@ -32,6 +32,7 @@ getColorClass cellType =
         Mountain ->
             "bg-terrain-mountain"
 
+
 isPassable : CellType -> Bool
 isPassable cellType =
     case cellType of

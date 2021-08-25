@@ -1,8 +1,8 @@
 module Juralen.Structure exposing (..)
 
-import Juralen.UnitType exposing (UnitType(..))
 import Juralen.TechTree exposing (TechTree)
-import Juralen.UnitType
+import Juralen.UnitType exposing (UnitType(..))
+
 
 type Structure
     = Town
@@ -11,7 +11,7 @@ type Structure
 
 
 initDef : Maybe Structure -> Int
-initDef structure = 
+initDef structure =
     case structure of
         Nothing ->
             0
@@ -20,7 +20,7 @@ initDef structure =
             case real of
                 Town ->
                     3
-                
+
                 Citadel ->
                     5
 
@@ -35,8 +35,9 @@ canBuild structure techTree =
             []
 
         Just real ->
-            if real == Town then 
-                [Soldier] 
+            if real == Town then
+                [ Soldier ]
+
             else
                 Juralen.UnitType.researchedUnits techTree
 
@@ -45,7 +46,7 @@ toString : Maybe Structure -> String
 toString structure =
     case structure of
         Nothing ->
-          ""
+            ""
 
         Just real ->
             case real of

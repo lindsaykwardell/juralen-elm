@@ -1,30 +1,23 @@
 port module Main exposing (main)
 
 import Browser exposing (Document)
-import Browser.Navigation as Nav
 import FontAwesome.Attributes as Icon
 import FontAwesome.Brands as Icon
-import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Icon as Icon
 import FontAwesome.Layering as Icon
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
-import FontAwesome.Svg as SvgIcon
 import FontAwesome.Transforms as Icon
 import Game
 import Game.Core as Core
 import Game.Settings as Settings exposing (Settings, settingsModal)
-import Html exposing (Attribute, button, div, form, h2, input, text, hr)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit, preventDefaultOn)
-import Http
-import Json.Decode as Decode exposing (Decoder, field, string)
-import Json.Encode as Encode
+import Html exposing (button, div, hr, text)
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Juralen.Player exposing (NewPlayer, revertToNewPlayer)
-import Juralen.Grid
 import Lobby
 import Process
 import Task
-import Url exposing (Url)
 
 
 
@@ -53,12 +46,6 @@ type alias Model =
     }
 
 
-type alias LoginPayload =
-    { email : String
-    , password : String
-    }
-
-
 defaultModel : Model
 defaultModel =
     { page = Splash
@@ -71,7 +58,7 @@ defaultModel =
 
 
 init : Init -> ( Model, Cmd Msg )
-init payload =
+init _ =
     ( defaultModel, Cmd.none )
 
 
@@ -83,11 +70,6 @@ delay : Float -> msg -> Cmd msg
 delay time msg =
     Process.sleep time
         |> Task.perform (\_ -> msg)
-
-
-preventDefaultOnSubmit : msg -> Attribute msg
-preventDefaultOnSubmit msg =
-    preventDefaultOn "submit" (Decode.succeed ( msg, True ))
 
 
 
@@ -109,17 +91,17 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Login ->
-            ( model, login ())
+            ( model, login () )
 
         UpdateAuthStatus currentAuthStatus ->
             if currentAuthStatus then
                 update (InitChangePage Home) model
 
+            else if model.page /= Splash then
+                update (InitChangePage Splash) model
+
             else
-                if model.page /= Splash then 
-                    update (InitChangePage Splash) model
-                else
-                    ( model, login ())
+                ( model, login () )
 
         InitChangePage page ->
             ( { model | inTransition = True }, delay 1000 (ChangePage page) )
@@ -127,7 +109,7 @@ update msg model =
         ChangePage page ->
             case page of
                 Splash ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, login ())
+                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, login () )
 
                 Home ->
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Home }, Cmd.none )
@@ -149,21 +131,26 @@ update msg model =
                 Settings.ExitGame ->
                     case model.page of
                         Game gameModel ->
-                            let 
-                            
+                            let
                                 lobbyModel : Lobby.Model
-                                lobbyModel = 
+                                lobbyModel =
                                     { newPlayerList = List.map revertToNewPlayer gameModel.players
-                                    , nextId = List.foldl (\player id ->
-                                            if player.id > id then player.id else id
-                                        )
-                                        1
-                                        gameModel.players + 1
+                                    , nextId =
+                                        List.foldl
+                                            (\player id ->
+                                                if player.id > id then
+                                                    player.id
+
+                                                else
+                                                    id
+                                            )
+                                            1
+                                            gameModel.players
+                                            + 1
                                     , aiSpeed = gameModel.aiSpeed
                                     }
-                            
                             in
-                                update (InitChangePage (Lobby lobbyModel)) model    
+                            update (InitChangePage (Lobby lobbyModel)) model
 
                         _ ->
                             update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
@@ -191,7 +178,6 @@ update msg model =
                         Game.EndGame ->
                             update ToggleSettings { model | gameStatus = Core.CompletedGame }
 
-                        
                         _ ->
                             toGame model (Game.update gameMsg gameModel)
 
@@ -227,7 +213,7 @@ port authStatus : (Bool -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.batch
         [ authStatus UpdateAuthStatus
         ]
@@ -256,8 +242,7 @@ view model =
             []
         , if model.showSettings then
             let
-
-                playerRanking = 
+                playerRanking =
                     case model.page of
                         Game gameModel ->
                             List.sortBy .score gameModel.players |> List.reverse
@@ -265,7 +250,6 @@ view model =
                         _ ->
                             []
             in
-
             { gameStatus = model.gameStatus, allowLogout = True, playerRanking = playerRanking } |> settingsModal |> Html.map GotSettingsMessage
 
           else
@@ -279,7 +263,7 @@ view model =
                     [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
             , case model.page of
                 Splash ->
-                    div [ onClick Login]
+                    div [ onClick Login ]
                         [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ], hr [] [] ]
                         , div [ class "splash" ] []
                         ]

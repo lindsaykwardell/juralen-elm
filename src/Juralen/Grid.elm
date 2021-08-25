@@ -8,10 +8,10 @@ type alias Grid =
     List (List Cell)
 
 
-
 toList : Grid -> List Cell
 toList grid =
     addNextRow grid []
+
 
 addNextRow : Grid -> List Cell -> List Cell
 addNextRow grid cellList =
@@ -61,20 +61,29 @@ replaceCell grid newCell =
         )
         grid
 
+
 distanceToEnemy : Grid -> Loc -> Int -> Int
 distanceToEnemy grid loc playerId =
-    List.foldl (\cell closest -> 
-        case cell.controlledBy of
-            Nothing -> 
-                closest
-            
-            Just controller ->
-                let
-                    distance = getDistance loc { x = cell.x, y = cell.y }
-                in
-                    if controller /= playerId && distance < closest then distance else closest
-    ) 100 (toList grid)
-    
+    List.foldl
+        (\cell closest ->
+            case cell.controlledBy of
+                Nothing ->
+                    closest
+
+                Just controller ->
+                    let
+                        distance =
+                            getDistance loc { x = cell.x, y = cell.y }
+                    in
+                    if controller /= playerId && distance < closest then
+                        distance
+
+                    else
+                        closest
+        )
+        100
+        (toList grid)
+
 
 farmCountControlledBy : Grid -> Int -> Int
 farmCountControlledBy grid playerId =
@@ -90,21 +99,23 @@ farmCountControlledBy grid playerId =
 
                                 Just controlledBy ->
                                     if controlledBy == playerId then
-                                        1 + cell.farms
-                                        + case cell.structure of
-                                            Nothing ->
-                                                0
+                                        1
+                                            + cell.farms
+                                            + (case cell.structure of
+                                                Nothing ->
+                                                    0
 
-                                            Just structure ->
-                                                case structure of
-                                                    Juralen.Structure.Town ->
-                                                        1
+                                                Just structure ->
+                                                    case structure of
+                                                        Juralen.Structure.Town ->
+                                                            1
 
-                                                    Juralen.Structure.Citadel ->
-                                                        2
+                                                        Juralen.Structure.Citadel ->
+                                                            2
 
-                                                    Juralen.Structure.None ->
-                                                        0
+                                                        Juralen.Structure.None ->
+                                                            0
+                                              )
 
                                     else
                                         0
