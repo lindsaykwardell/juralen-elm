@@ -25,8 +25,7 @@ import Task
 
 
 type alias Init =
-    { isProd : Bool
-    }
+    {}
 
 
 type Page
