@@ -43,7 +43,7 @@ body {
 .splash {
     @apply flex justify-center items-center;
     height: 100vh;
-    background: url("./img/map.png");
+    background: url("/img/map.png");
     background-repeat: no-repeat;
     background-size: cover;
     user-select: none;
