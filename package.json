@@ -1,21 +1,23 @@
 {
-    "name": "juralen-elm",
-    "author": "Lindsay Wardell",
-    "version": "0.0.1",
-    "devDependencies": {
-        "autoprefixer": "^10.0.1",
-        "concurrently": "^5.3.0",
-        "create-elm-app": "^5.2.1",
-        "cssnano": "^4.1.10",
-        "postcss": "^8.1.1",
-        "postcss-cli": "^8.0.0",
-        "postcss-nested": "^4.2.1",
-        "tailwindcss": "^1.8.10"
-    },
-    "scripts": {
-        "build": "elm-app build",
-        "build:css": "postcss index.postcss -o src/main.css",
-        "watch:css": "postcss index.postcss -o src/main.css -w",
-        "dev": "elm-app start"
-    }
+  "name": "juralen-elm",
+  "author": "Lindsay Wardell",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "elm-tooling install",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.3.3",
+    "cssnano": "^5.0.8",
+    "elm-tooling": "^1.0.2",
+    "postcss": "^8.3.6",
+    "postcss-nested": "^5.0.6",
+    "tailwindcss": "^2.2.9",
+    "vite": "^2.5.1",
+    "vite-plugin-elm": "^2.4.3"
+  },
+  "dependencies": {}
 }
