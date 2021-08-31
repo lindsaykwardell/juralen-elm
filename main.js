@@ -1,4 +1,5 @@
 import "./style.css";
+import './src/Components'
 import { Elm } from "./src/Main.elm";
 
 const root = document.querySelector("#app div");

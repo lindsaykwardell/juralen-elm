@@ -20,6 +20,7 @@ import Juralen.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (InitialValues, UnitType)
 import Random
+import Components.ZoomButtons.ZoomButtons exposing (zoomButtons)
 
 
 init : List NewPlayer -> Float -> ( Model, Cmd Msg )
@@ -954,7 +955,8 @@ shouldCombatStart units playerIdList =
 view : Model -> Html Msg
 view model =
     div [ class "flex flex-col lg:flex-row" ]
-        [ div [ class "w-full lg:w-3/5 p-3 max-h-[400px] lg:max-h-[900px] overflow-scroll" ]
+        [ div [ class "w-full lg:w-3/5 p-3" ] [
+            div [ class "max-h-[400px] lg:max-h-[765px] overflow-scroll" ]
             [ table [ class "w-full" ]
                 (List.map
                     (\row ->
@@ -1028,6 +1030,8 @@ view model =
             --         (List.sortBy .score model.players |> List.reverse)
             --     )
             ]
+            , zoomButtons [ class "block lg:hidden" ] []
+        ]
         , div [ class "w-full lg:relative lg:w-2/5 p-3" ]
             [ if model.activePlayer /= -1 then
                 div [ class "p-3" ]

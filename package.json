@@ -11,6 +11,8 @@
     "serve": "vite preview"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^1.6.0",
+    "@vue/compiler-sfc": "^3.0.5",
     "autoprefixer": "^10.3.3",
     "cssnano": "^5.0.8",
     "elm-tooling": "^1.0.2",
@@ -20,5 +22,7 @@
     "vite": "^2.5.1",
     "vite-plugin-elm": "^2.4.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "vue": "^3.2.6"
+  }
 }

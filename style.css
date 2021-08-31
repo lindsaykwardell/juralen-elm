@@ -30,6 +30,8 @@
     --terrain-mountain: rgb(170, 170, 170);
     --terrain-forest: rgb(72, 133, 79);
     --terrain-plains: rgb(155, 118, 83);
+
+    --cell-size: 85px;
 }
 
 body {
@@ -62,11 +64,11 @@ body {
 }
 
 .cell {
-    min-width: 85px;
-    min-height: 85px;
+    min-width: var(--cell-size);
+    min-height: var(--cell-size);
     user-select: none;
     cursor: pointer;
-    font-size: 12px;
+    font-size: calc(var(--cell-size) / 8);
 }
 
 .unit {
