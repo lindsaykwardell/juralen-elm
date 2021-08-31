@@ -94,7 +94,7 @@ update msg model =
 
         UpdateAuthStatus currentAuthStatus ->
             if currentAuthStatus then
-                update (InitChangePage Home) model
+                update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
 
             else if model.page /= Splash then
                 update (InitChangePage Splash) model
@@ -174,6 +174,9 @@ update msg model =
             case model.page of
                 Game gameModel ->
                     case gameMsg of
+                        Game.OpenSettings ->
+                            update ToggleSettings model
+
                         Game.EndGame ->
                             update ToggleSettings { model | gameStatus = Core.CompletedGame }
 
@@ -271,9 +274,10 @@ view model =
 
                 Game game ->
                     div [ class "flex-grow" ]
-                        [ div [ class "flex bg-gray-700 mb-3 z-10" ]
-                            [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
-                        , Game.view game |> Html.map GotGameMsg
+                        [ -- div [ class "flex bg-gray-700 mb-3 z-10" ]
+                          -- [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
+                          -- ,
+                          Game.view game |> Html.map GotGameMsg
                         ]
             ]
         ]

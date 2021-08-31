@@ -261,7 +261,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "m-auto w-3/4" ]
-        [ h1 [ class "text-white" ] [ text "Start New Game" ]
+        [ h1 [ class "text-white" ] [ text "Juralen" ]
         , div [ class "flex justify-end" ]
             [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
             ]

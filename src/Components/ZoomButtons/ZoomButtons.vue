@@ -1,9 +1,9 @@
 <template>
     <div>
-        <button class="w-8 h-8 rounded-full bg-gray-300" @click="zoomIn">
+        <button class="w-8 h-8 rounded-lg bg-gray-300 mr-2 text-xl" @click="zoomIn">
             +
         </button>
-        <button class="w-8 h-8 rounded-full bg-gray-300" @click="zoomOut">
+        <button class="w-8 h-8 rounded-lg bg-gray-300 ml-2 text-xl" @click="zoomOut">
             -
         </button>
     </div>
