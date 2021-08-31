@@ -24,6 +24,11 @@ type CombatStatus
     = NoCombat
     | Combat Game.Combat.Model
 
+type MobileTab
+    = UnitsTab
+    | TechTreeTab
+    | BuildOptionsTab
+    | DetailsTab
 
 type alias Model =
     { nextId : Int
@@ -44,6 +49,7 @@ type alias Model =
     , combat : CombatStatus
     , analysisResults : List Option
     , aiSpeed : Float
+    , mobileTab : MobileTab
     }
 
 

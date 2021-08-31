@@ -44,6 +44,7 @@ init newPlayerList aiSpeed =
         , combat = NoCombat
         , analysisResults = []
         , aiSpeed = aiSpeed
+        , mobileTab = DetailsTab
         }
 
 
@@ -127,6 +128,7 @@ type Msg
     | EndTurn
     | EndGame
     | OpenSettings
+    | UpdateMobileTab MobileTab
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -864,6 +866,9 @@ update msg model =
         OpenSettings ->
             ( model, Cmd.none )
 
+        UpdateMobileTab tab ->
+            ( { model | mobileTab = tab }, Cmd.none )
+
 
 captureUnit : Unit -> List Player -> Int -> Unit
 captureUnit unit deadPlayers playerId =
@@ -966,6 +971,7 @@ view model =
 
           else
             text ""
+        , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]
             [ div [ class "w-full lg:w-3/5 p-3" ]
                 [ div [ class "max-h-[350px] lg:max-h-[765px] overflow-scroll rounded-lg border-2 border-gray-100 shadow-inner" ]
@@ -985,7 +991,13 @@ view model =
                                                          else
                                                             ""
                                                         )
-                                                    , onClick (SelectCell { x = cell.x, y = cell.y })
+                                                    , onClick
+                                                        (if List.length model.selectedUnits > 0 then
+                                                            MoveSelectedUnits cell
+
+                                                         else
+                                                            SelectCell { x = cell.x, y = cell.y }
+                                                        )
                                                     , onContextMenu (MoveSelectedUnits cell)
                                                     ]
                                                     [ text
@@ -1024,33 +1036,44 @@ view model =
                             model.grid
                         )
                     ]
-                , zoomButtons [ class "mt-1 block lg:hidden flex justify-end" ] []
+                , zoomButtons [ class "mt-1 flex justify-end" ] []
                 ]
-            , div [ class "hidden lg:relative lg:w-2/5 p-3" ]
-                [ activePlayerCard model
-                , selectedCellCard model
+            , div [ class "hidden lg:block lg:w-2/5 p-3" ]
+                [ selectedCellCard model
                 , buildableUnitList model
                 , researchTechList model
                 , upgradeCellList model
                 , unitsInCellList model
                 ]
-            , div [ class "w-full text-sm lg:hidden px-3 flex flex-col" ]
-                [ div [ class "flex-grow" ]
-                    [ text "I'm here"
-                    ]
+            , div [ class "w-full text-sm lg:hidden px-3 flex flex-col pb-12" ]
+                [ case model.mobileTab of
+                    UnitsTab ->
+                        unitsInCellList model
+
+                    TechTreeTab ->
+                        researchTechList model
+
+                    BuildOptionsTab ->
+                        div []
+                            [ upgradeCellList model
+                            , buildableUnitList model
+                            ]
+
+                    DetailsTab ->
+                        selectedCellCard model
                 ]
-            , div [ class "flex bg-gray-700 text-white p-1 fixed bottom-0 w-full" ]
-                [ button [ class "flex-1" ]
+            , div [ class "lg:hidden flex bg-gray-700 text-white p-1 fixed bottom-0 w-full" ]
+                [ button [ class ("flex-1 p-1" ++ (if model.mobileTab == UnitsTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab UnitsTab) ]
                     [ text "Units"
                     ]
-                , button [ class "flex-1" ]
+                , button [ class ("flex-1 p-1" ++ (if model.mobileTab == TechTreeTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab TechTreeTab) ]
                     [ text "Research"
                     ]
-                , button [ class "flex-1" ]
-                    [ text "Upgrades"
+                , button [ class ("flex-1 p-1" ++ (if model.mobileTab == BuildOptionsTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab BuildOptionsTab) ]
+                    [ text "Build"
                     ]
-                , button [ class "flex-1" ]
-                    [ text "Cells"
+                , button [ class ("flex-1 p-1" ++ (if model.mobileTab == DetailsTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab DetailsTab) ]
+                    [ text "Details"
                     ]
                 ]
             ]
@@ -1060,7 +1083,7 @@ view model =
 activePlayerCard : Game.Core.Model -> Html Msg
 activePlayerCard model =
     if model.activePlayer /= -1 then
-        div [ class ("text-center p-3 " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
+        div [ class ("sticky top-0 text-center p-1 text-sm lg:text-base " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
             [ text (Juralen.Player.getName model.players (Just model.activePlayer))
             , div [ class "flex" ]
                 [ div [ class "flex-1 p-2" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
