@@ -30,7 +30,7 @@ settingsModal settings =
     div [ class "fixed flex justify-center items-center h-screen w-screen" ]
         [ div [ class "fixed bg-juralen-transparent z-30 h-screen w-screen", onClick CloseSettings ]
             []
-        , div [ class "bg-gray-600 z-40 w-1/3" ]
+        , div [ class "bg-gray-600 z-40 w-11/12 md:w-1/3" ]
             [ h1 [ class "text-white" ] [ text "Settings" ]
             , div [ class "flex flex-col p-2" ]
                 [ if settings.gameStatus /= Game.Core.NoGame then

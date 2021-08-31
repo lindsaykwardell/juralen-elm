@@ -253,14 +253,8 @@ view model =
 
           else
             div [] []
-        , div [ class "flex flex-col  h-screen" ]
-            [ if model.page == Splash then
-                div [] []
-
-              else
-                div [ class "flex bg-gray-700 mb-3 z-10" ]
-                    [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
-            , case model.page of
+        , div [ class "flex flex-col h-screen" ]
+            [ case model.page of
                 Splash ->
                     div [ onClick Login ]
                         [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ], hr [] [] ]
@@ -276,7 +270,11 @@ view model =
                     div [ class "flex-grow" ] [ Lobby.view lobby |> Html.map GotLobbyMsg ]
 
                 Game game ->
-                    div [ class "flex-grow" ] [ Game.view game |> Html.map GotGameMsg ]
+                    div [ class "flex-grow" ]
+                        [ div [ class "flex bg-gray-700 mb-3 z-10" ]
+                            [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
+                        , Game.view game |> Html.map GotGameMsg
+                        ]
             ]
         ]
     }

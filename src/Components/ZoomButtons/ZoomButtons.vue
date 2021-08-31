@@ -35,3 +35,9 @@ onMounted(() => {
     root.style.setProperty("--cell-size", "85px")
 })
 </script>
+
+<style lang="postcss">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</style>
