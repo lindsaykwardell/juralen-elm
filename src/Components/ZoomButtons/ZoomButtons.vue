@@ -13,26 +13,33 @@
 import { onMounted, computed } from "vue"
 const root = document.documentElement
 
+function getCurrentZoom() {
+    return parseInt(
+        root.style.getPropertyValue("--cell-size")?.replace("px", ""),
+        10
+    )
+}
+
 function zoomIn() {
-  const currentZoom = parseInt(
-            root.style.getPropertyValue("--cell-size")?.replace("px", ""),
-            10
-        )
-    console.log(root.style.getPropertyValue("--cell-size"), currentZoom)
-    root.style.setProperty("--cell-size", `${currentZoom + 15}px`)
+    const currentZoom = getCurrentZoom()
+
+    updateZoom(currentZoom + 15)
 }
 
 function zoomOut() {
-    const currentZoom = parseInt(
-            root.style.getPropertyValue("--cell-size")?.replace("px", ""),
-            10
-        )
-    console.log(root.style.getPropertyValue("--cell-size"), currentZoom)
-    root.style.setProperty("--cell-size", `${currentZoom - 15}px`)
+    const currentZoom = getCurrentZoom()
+
+    updateZoom(currentZoom - 15)
+}
+
+function updateZoom(zoom) {
+    localStorage.setItem("zoom", zoom)
+    root.style.setProperty("--cell-size", `${zoom}px`)
 }
 
 onMounted(() => {
-    root.style.setProperty("--cell-size", "85px")
+    const zoom = localStorage.getItem("zoom") || 85
+    updateZoom(zoom)
 })
 </script>
 
