@@ -953,8 +953,8 @@ shouldCombatStart units playerIdList =
 
 view : Model -> Html Msg
 view model =
-    div [ class "flex" ]
-        [ div [ class "w-3/5 p-3" ]
+    div [ class "flex flex-col lg:flex-row" ]
+        [ div [ class "w-full lg:w-3/5 p-3 max-h-[400px] lg:max-h-[900px] overflow-scroll" ]
             [ table [ class "w-full" ]
                 (List.map
                     (\row ->
@@ -1009,26 +1009,26 @@ view model =
                     )
                     model.grid
                 )
-            , div [ class "p-3 w-64" ]
-                (List.map
-                    (\player ->
-                        div
-                            [ class
-                                (Juralen.PlayerColor.toClass player.color
-                                    ++ (if Juralen.PlayerColor.isDark player.color then
-                                            " text-white"
 
-                                        else
-                                            " text-black"
-                                       )
-                                )
-                            ]
-                            [ text (player.name ++ " - " ++ String.fromInt player.score) ]
-                    )
-                    (List.sortBy .score model.players |> List.reverse)
-                )
+            -- , div [ class "p-3 w-64" ]
+            --     (List.map
+            --         (\player ->
+            --             div
+            --                 [ class
+            --                     (Juralen.PlayerColor.toClass player.color
+            --                         ++ (if Juralen.PlayerColor.isDark player.color then
+            --                                 " text-white"
+            --                             else
+            --                                 " text-black"
+            --                            )
+            --                     )
+            --                 ]
+            --                 [ text (player.name ++ " - " ++ String.fromInt player.score) ]
+            --         )
+            --         (List.sortBy .score model.players |> List.reverse)
+            --     )
             ]
-        , div [ class "w-2/5 p-3" ]
+        , div [ class "w-full lg:relative lg:w-2/5 p-3" ]
             [ if model.activePlayer /= -1 then
                 div [ class "p-3" ]
                     [ button [ class "py-2 w-full bg-green-500 hover:bg-green-400", onClick EndTurn ] [ text "End Turn" ]
@@ -1198,21 +1198,22 @@ view model =
                     )
                     (Juralen.Unit.inCell model.units model.selectedCell)
                 )
-            , div [ class "p-5" ]
-                [ h3 [ class "text-white" ] [ text "Recommended Actions" ] ]
-            , div []
-                (List.map
-                    (\option ->
-                        div
-                            [ class "flex p-2 my-2 rounded text-white pointe text-white p-2 bg-gray-700 hover:bg-gray-600 pointer"
-                            , onClick (PerformAction option)
-                            ]
-                            [ div [ class "flex-grow" ] [ text (Juralen.Analysis.toString option) ]
-                            , div [ class "flex-shrink" ] [ text (String.fromInt option.score) ]
-                            ]
-                    )
-                    (List.take 5 model.analysisResults)
-                )
+
+            -- , div [ class "p-5" ]
+            --     [ h3 [ class "text-white" ] [ text "Recommended Actions" ] ]
+            -- , div []
+            --     (List.map
+            --         (\option ->
+            --             div
+            --                 [ class "flex p-2 my-2 rounded text-white pointe text-white p-2 bg-gray-700 hover:bg-gray-600 pointer"
+            --                 , onClick (PerformAction option)
+            --                 ]
+            --                 [ div [ class "flex-grow" ] [ text (Juralen.Analysis.toString option) ]
+            --                 , div [ class "flex-shrink" ] [ text (String.fromInt option.score) ]
+            --                 ]
+            --         )
+            --         (List.take 5 model.analysisResults)
+            --     )
             ]
         ]
 

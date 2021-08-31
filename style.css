@@ -62,8 +62,8 @@ body {
 }
 
 .cell {
-    min-width: 100px;
-    min-height: 100px;
+    min-width: 85px;
+    min-height: 85px;
     user-select: none;
     cursor: pointer;
     font-size: 12px;

@@ -38,11 +38,6 @@ settingsModal settings =
 
                   else
                     text ""
-                , if settings.allowLogout then
-                    button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick Logout ] [ text "Log Out" ]
-
-                  else
-                    text ""
                 ]
             , div [ class "flex flex-col p-5" ]
                 (List.concat

@@ -263,7 +263,7 @@ view model =
     div [ class "m-auto w-3/4" ]
         [ h1 [ class "text-white" ] [ text "Start New Game" ]
         , div [ class "flex justify-end" ]
-            [ div [ class "w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
+            [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
             ]
         , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ]
             (List.concat
@@ -295,17 +295,17 @@ view model =
 
 newPlayerInput : List PlayerColor -> NewPlayer -> Html Msg
 newPlayerInput selectedColors player =
-    div [ class "flex py-2 items-center" ]
-        [ div [ class "flex-grow" ] [ input [ class "p-2 rounded w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
+    div [ class "flex flex-col lg:flex-row py-2 items-center" ]
+        [ div [ class "flex-grow w-full lg:w-auto" ] [ input [ class "p-2 rounded w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
         , div [ class "flex-1" ]
             [ label [ class "text-white" ]
                 [ text "Is Human"
                 , input [ class "ml-3", type_ "checkbox", checked player.isHuman, onClick (UpdateHumanity player.id (not player.isHuman)) ] []
                 ]
             ]
-        , div [ class "flex-1" ]
+        , div [ class "flex-1 flex flex-col lg:flex-row items-center mx-1 w-full lg:w-auto" ]
             [ label [ class "text-white" ] [ text "Analyzer" ]
-            , select [ class "p-2 ml-3 rounded", onInput (UpdateAnalyzer player.id) ]
+            , select [ class "p-2 lg:ml-3 rounded w-full lg:w-auto", onInput (UpdateAnalyzer player.id) ]
                 [ option [ value "DEFAULT", selected (player.analyzer == Juralen.AnalyzerMode.Default) ] [ text "Default" ]
                 , option [ value "AGGRESSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Aggressive) ] [ text "Aggressive" ]
                 , option [ value "DEFENSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Defensive) ] [ text "Defensive" ]
@@ -313,44 +313,43 @@ newPlayerInput selectedColors player =
                 , option [ value "EXPANSIONIST", selected (player.analyzer == Juralen.AnalyzerMode.Expansionist) ] [ text "Expansionist" ]
                 ]
             ]
-        , div [ class "flex-1" ]
-            [ label [ class "text-white" ]
-                [ text "Color"
-                , select
-                    [ class
-                        ("p-2 ml-3 rounded w-32 "
-                            ++ Juralen.PlayerColor.toClass player.color
-                            ++ (if Juralen.PlayerColor.isDark player.color then
-                                    ""
+        , div [ class "flex-1 flex flex-col lg:flex-row items-center mx-1 w-full lg:w-auto m-2 lg:m-0" ]
+            [ label [ class "text-white " ]
+                [ text "Color" ]
+            , select
+                [ class
+                    ("p-2 lg:ml-3 rounded w-32 w-full lg:w-auto "
+                        ++ Juralen.PlayerColor.toClass player.color
+                        ++ (if Juralen.PlayerColor.isDark player.color then
+                                ""
 
-                                else
-                                    " text-black"
-                               )
-                        )
-                    , onInput (UpdateColor player.id)
-                    ]
-                    (List.map
-                        (\playerColor ->
-                            option
-                                [ value (Juralen.PlayerColor.toString playerColor)
-                                , selected (playerColor == player.color)
-                                , class (Juralen.PlayerColor.toClass playerColor)
-                                ]
-                                [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]
-                        )
-                        (List.filter
-                            (\color ->
-                                color
-                                    == player.color
-                                    || not (List.foldl (\selectedColor found -> found || selectedColor == color) False selectedColors)
-                            )
-                            Juralen.PlayerColor.toList
-                        )
+                            else
+                                " text-black"
+                           )
                     )
+                , onInput (UpdateColor player.id)
                 ]
+                (List.map
+                    (\playerColor ->
+                        option
+                            [ value (Juralen.PlayerColor.toString playerColor)
+                            , selected (playerColor == player.color)
+                            , class (Juralen.PlayerColor.toClass playerColor)
+                            ]
+                            [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]
+                    )
+                    (List.filter
+                        (\color ->
+                            color
+                                == player.color
+                                || not (List.foldl (\selectedColor found -> found || selectedColor == color) False selectedColors)
+                        )
+                        Juralen.PlayerColor.toList
+                    )
+                )
             ]
         , div [ class "flex-shrink" ]
-            [ button [ class "w-32 bg-gray-700 border-red-500 border-2 py-1 px-1 rounded hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
+            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 rounded hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
                 [ text "Remove Player" ]
             ]
         ]
