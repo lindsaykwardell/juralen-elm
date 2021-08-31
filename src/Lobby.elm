@@ -14,6 +14,8 @@ type alias Model =
     { newPlayerList : List NewPlayer
     , nextId : Int
     , aiSpeed : Float
+    , maxX : Int
+    , maxY : Int
     }
 
 
@@ -23,6 +25,8 @@ type Msg
     | UpdateColor Int String
     | UpdateAnalyzer Int String
     | UpdateAiSpeed String
+    | UpdateMaxX String
+    | UpdateMaxY String
     | AddPlayer
     | AddPlayerName Int Int
     | RemovePlayer Int
@@ -61,6 +65,8 @@ init =
             ]
       , nextId = 2
       , aiSpeed = 250
+      , maxX = 8
+      , maxY = 8
       }
     , Cmd.none
     )
@@ -181,6 +187,32 @@ update msg model =
             , Cmd.none
             )
 
+        UpdateMaxX maxX ->
+            ( { model
+                | maxX =
+                    case String.toInt maxX of
+                        Just maxXFloat ->
+                            maxXFloat - 1
+
+                        _ ->
+                            8
+              }
+            , Cmd.none
+            )
+
+        UpdateMaxY maxY ->
+            ( { model
+                | maxY =
+                    case String.toInt maxY of
+                        Just maxYFloat ->
+                            maxYFloat - 1
+
+                        _ ->
+                            8
+              }
+            , Cmd.none
+            )
+
         AddPlayer ->
             if List.length model.newPlayerList < 8 then
                 let
@@ -274,6 +306,26 @@ view model =
                     model.newPlayerList
                 , [ div [ class "p-3 flex justify-end" ]
                         [ label [ class "text-white" ]
+                            [ text "Width"
+                            , input
+                                [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1 mr-3"
+                                , type_ "number"
+                                , value (String.fromInt (model.maxX + 1))
+                                , onInput UpdateMaxX
+                                ]
+                                []
+                            ]
+                        , label [ class "text-white" ]
+                            [ text "Height"
+                            , input
+                                [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1 mr-3"
+                                , type_ "number"
+                                , value (String.fromInt (model.maxY + 1))
+                                , onInput UpdateMaxY
+                                ]
+                                []
+                            ]
+                        , label [ class "text-white" ]
                             [ text "AI Speed"
                             , input
                                 [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1"

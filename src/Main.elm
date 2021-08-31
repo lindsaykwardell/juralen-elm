@@ -117,7 +117,21 @@ update msg model =
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
 
                 Game game ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.ActiveGame, page = Game (Tuple.first (Game.init model.newPlayers game.aiSpeed)) }, Cmd.map GotGameMsg (Tuple.second (Game.init model.newPlayers game.aiSpeed)) )
+                    ( { model
+                        | inTransition = False
+                        , showSettings = False
+                        , gameStatus = Core.ActiveGame
+                        , page =
+                            Game
+                                (Tuple.first
+                                    (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
+                                )
+                      }
+                    , Cmd.map GotGameMsg
+                        (Tuple.second
+                            (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
+                        )
+                    )
 
         ToggleSettings ->
             ( { model | showSettings = not model.showSettings }, Cmd.none )
@@ -147,6 +161,8 @@ update msg model =
                                             gameModel.players
                                             + 1
                                     , aiSpeed = gameModel.aiSpeed
+                                    , maxX = gameModel.init.maxX
+                                    , maxY = gameModel.init.maxY
                                     }
                             in
                             update (InitChangePage (Lobby lobbyModel)) model
@@ -162,7 +178,15 @@ update msg model =
                 Lobby lobbyModel ->
                     case lobbyMsg of
                         Lobby.StartGame ->
-                            update (InitChangePage (Game (Tuple.first (Game.init lobbyModel.newPlayerList lobbyModel.aiSpeed)))) { model | newPlayers = lobbyModel.newPlayerList }
+                            update
+                                (InitChangePage
+                                    (Game
+                                        (Tuple.first
+                                            (Game.init lobbyModel.newPlayerList lobbyModel.aiSpeed { x = lobbyModel.maxX, y = lobbyModel.maxY })
+                                        )
+                                    )
+                                )
+                                { model | newPlayers = lobbyModel.newPlayerList }
 
                         _ ->
                             toLobby model (Lobby.update lobbyMsg lobbyModel)
@@ -274,10 +298,7 @@ view model =
 
                 Game game ->
                     div [ class "flex-grow" ]
-                        [ -- div [ class "flex bg-gray-700 mb-3 z-10" ]
-                          -- [ div [ class "flex-grow text-right text-xl" ] [ button [ class "p-2 hover:bg-gray-600 text-white", onClick ToggleSettings ] [ Html.span [ class "mr-3" ] [ text "Settings" ], Icon.viewIcon Icon.cog ] ] ]
-                          -- ,
-                          Game.view game |> Html.map GotGameMsg
+                        [ Game.view game |> Html.map GotGameMsg
                         ]
             ]
         ]

@@ -58,3 +58,21 @@ toString structure =
 
                 None ->
                     ""
+
+
+getCellClass : Maybe Structure -> String
+getCellClass structure =
+    case structure of
+        Nothing ->
+            ""
+
+        Just real ->
+            case real of
+                Town ->
+                    "town"
+
+                Citadel ->
+                    "citadel"
+
+                None ->
+                    ""

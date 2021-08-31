@@ -5,8 +5,8 @@ import Components.ZoomButtons.ZoomButtons exposing (zoomButtons)
 import Game.Analyzer exposing (analyze)
 import Game.Combat
 import Game.Core exposing (..)
-import Html exposing (Attribute, Html, br, button, div, h3, span, table, td, text, tr)
-import Html.Attributes exposing (class, style)
+import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
+import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
 import Juralen.Analysis
@@ -23,8 +23,8 @@ import Juralen.UnitType exposing (InitialValues, UnitType)
 import Random
 
 
-init : List NewPlayer -> Float -> ( Model, Cmd Msg )
-init newPlayerList aiSpeed =
+init : List NewPlayer -> Float -> Loc -> ( Model, Cmd Msg )
+init newPlayerList aiSpeed loc =
     update (RollNextCell { x = 0, y = 0 })
         { nextId = 1
         , grid = []
@@ -34,8 +34,8 @@ init newPlayerList aiSpeed =
         , units = []
         , selectedUnits = []
         , init =
-            { maxX = 8
-            , maxY = 8
+            { maxX = loc.x
+            , maxY = loc.y
             , currentX = 0
             , currentY = 0
             , finished = False
@@ -51,6 +51,11 @@ init newPlayerList aiSpeed =
 randomDefinedMax : Int -> Random.Generator Int
 randomDefinedMax max =
     Random.int 0 max
+
+
+winningScore : Model -> Int
+winningScore model =
+    round (toFloat ((model.init.maxX + 1) * (model.init.maxY + 1)) / 2.2)
 
 
 getNextActivePlayer : List Player -> List Player -> Int -> Player
@@ -298,10 +303,10 @@ update msg model =
                                 update (RollStartingLocX theNextPlayer remainingPlayers) nextModel
 
         RollStartingLocX player nextPlayers ->
-            ( model, Random.generate (RollStartingLocY player nextPlayers) (randomDefinedMax 9) )
+            ( model, Random.generate (RollStartingLocY player nextPlayers) (randomDefinedMax (model.init.maxX + 1)) )
 
         RollStartingLocY player nextPlayers xVal ->
-            ( model, Random.generate (MakeLocFromRolls player nextPlayers xVal) (randomDefinedMax 9) )
+            ( model, Random.generate (MakeLocFromRolls player nextPlayers xVal) (randomDefinedMax (model.init.maxY + 1)) )
 
         MakeLocFromRolls player nextPlayers xVal yVal ->
             update (GenerateStartingLoc player nextPlayers { x = xVal, y = yVal }) model
@@ -322,7 +327,7 @@ update msg model =
         StartTurn nextActivePlayer ->
             if
                 Game.Core.getPlayerScore model nextActivePlayer.id
-                    >= 50
+                    >= winningScore model
                     || List.length
                         (List.filter
                             (\player ->
@@ -974,8 +979,8 @@ view model =
         , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]
             [ div [ class "w-full lg:w-3/5 p-3" ]
-                [ div [ class "max-h-[350px] lg:max-h-[765px] overflow-scroll rounded-lg border-2 border-gray-100 shadow-inner" ]
-                    [ table [ class "w-full" ]
+                [ div [ class "max-h-[350px] lg:max-h-[800px] overflow-scroll shadow-inner rounded-lg border-2 border-gray-100 shadow-inner" ]
+                    [ table [ class "m-auto" ]
                         (List.map
                             (\row ->
                                 tr []
@@ -983,7 +988,18 @@ view model =
                                         (\cell ->
                                             td []
                                                 [ div
-                                                    [ class ("cell " ++ Juralen.Cell.getColorClass cell model.players)
+                                                    [ class
+                                                        ("cell "
+                                                            ++ (if isInRange model cell then
+                                                                    "in-range "
+
+                                                                else
+                                                                    ""
+                                                               )
+                                                            ++ Juralen.Structure.getCellClass cell.structure
+                                                            ++ " "
+                                                            ++ Juralen.Cell.getColorClass cell model.players
+                                                        )
                                                     , style "border"
                                                         (if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then
                                                             "2px solid yellow"
@@ -1000,29 +1016,19 @@ view model =
                                                         )
                                                     , onContextMenu (MoveSelectedUnits cell)
                                                     ]
-                                                    [ text
-                                                        (if isInRange model cell then
-                                                            "## " ++ Juralen.CellType.toString cell.cellType ++ " ##"
-
-                                                         else
-                                                            Juralen.CellType.toString cell.cellType
-                                                        )
-                                                    , br [] []
-                                                    , text (Juralen.Structure.toString cell.structure)
-                                                    , br [] []
-                                                    , div []
+                                                    [ div []
                                                         (List.map
                                                             (\unit ->
                                                                 span [ class "unit" ]
                                                                     [ if Juralen.Unit.isSelected model.selectedUnits unit.id then
                                                                         span []
                                                                             [ text "[ "
-                                                                            , text (Juralen.UnitType.short unit.unitType)
+                                                                            , img [ src (Juralen.UnitType.icon unit.unitType), class "unit" ] []
                                                                             , text " ]"
                                                                             ]
 
                                                                       else
-                                                                        span [] [ text (Juralen.UnitType.short unit.unitType) ]
+                                                                        span [] [ img [ src (Juralen.UnitType.icon unit.unitType), class "unit" ] [] ]
                                                                     ]
                                                             )
                                                             (Juralen.Unit.inCell model.units { x = cell.x, y = cell.y })
@@ -1063,16 +1069,60 @@ view model =
                         selectedCellCard model
                 ]
             , div [ class "lg:hidden flex bg-gray-700 text-white p-1 fixed bottom-0 w-full" ]
-                [ button [ class ("flex-1 p-1" ++ (if model.mobileTab == UnitsTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab UnitsTab) ]
+                [ button
+                    [ class
+                        ("flex-1 p-1"
+                            ++ (if model.mobileTab == UnitsTab then
+                                    " bg-gray-500 "
+
+                                else
+                                    ""
+                               )
+                        )
+                    , onClick (UpdateMobileTab UnitsTab)
+                    ]
                     [ text "Units"
                     ]
-                , button [ class ("flex-1 p-1" ++ (if model.mobileTab == TechTreeTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab TechTreeTab) ]
+                , button
+                    [ class
+                        ("flex-1 p-1"
+                            ++ (if model.mobileTab == TechTreeTab then
+                                    " bg-gray-500 "
+
+                                else
+                                    ""
+                               )
+                        )
+                    , onClick (UpdateMobileTab TechTreeTab)
+                    ]
                     [ text "Research"
                     ]
-                , button [ class ("flex-1 p-1" ++ (if model.mobileTab == BuildOptionsTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab BuildOptionsTab) ]
+                , button
+                    [ class
+                        ("flex-1 p-1"
+                            ++ (if model.mobileTab == BuildOptionsTab then
+                                    " bg-gray-500 "
+
+                                else
+                                    ""
+                               )
+                        )
+                    , onClick (UpdateMobileTab BuildOptionsTab)
+                    ]
                     [ text "Build"
                     ]
-                , button [ class ("flex-1 p-1" ++ (if model.mobileTab == DetailsTab then " bg-gray-500 " else "")), onClick (UpdateMobileTab DetailsTab) ]
+                , button
+                    [ class
+                        ("flex-1 p-1"
+                            ++ (if model.mobileTab == DetailsTab then
+                                    " bg-gray-500 "
+
+                                else
+                                    ""
+                               )
+                        )
+                    , onClick (UpdateMobileTab DetailsTab)
+                    ]
                     [ text "Details"
                     ]
                 ]
@@ -1084,7 +1134,7 @@ activePlayerCard : Game.Core.Model -> Html Msg
 activePlayerCard model =
     if model.activePlayer /= -1 then
         div [ class ("sticky top-0 text-center p-1 text-lg lg:text-xl " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
-            [ text (Juralen.Player.getName model.players (Just model.activePlayer))
+            [ text (Juralen.Player.getName model.players (Just model.activePlayer) ++ "'s turn (" ++ String.fromInt (Game.Core.getPlayerScore model model.activePlayer) ++ "/" ++ String.fromInt (winningScore model) ++ " points)")
             , div [ class "flex w-full lg:w-2/3 m-auto" ]
                 [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
                 , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]

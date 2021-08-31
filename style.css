@@ -27,9 +27,21 @@
     --player-purple: rgb(151, 0, 255);
     --player-gray: rgb(88, 88, 88);
 
+    --player-red-inrange: rgb(240, 93, 109);
+    --player-blue-inrange: rgb(80, 183, 255);
+    --player-orange-inrange: rgb(255, 160, 40);
+    --player-yellow-inrange: rgb(255, 255, 150);
+    --player-green-inrange: rgb(100, 255, 148);
+    --player-teal-inrange: rgb(200, 255, 255);
+    --player-purple-inrange: rgb(211, 80, 255);
+    --player-gray-inrange: rgb(128, 128, 128);
+
     --terrain-mountain: rgb(170, 170, 170);
     --terrain-forest: rgb(72, 133, 79);
     --terrain-plains: rgb(155, 118, 83);
+
+    --terrain-forest-inrange: rgb(112, 173, 119);
+    --terrain-plains-inrange: rgb(195, 158, 123);
 
     --cell-size: 85px;
 }
@@ -55,7 +67,8 @@ body {
     background: var(--bg) none repeat scroll 0% 0%;
 }
 
-.bg-juralen-transparent, .bg-black-50 {
+.bg-juralen-transparent,
+.bg-black-50 {
     background: rgba(0, 0, 0, 0.5) none repeat scroll 0% 0%;
 }
 
@@ -63,12 +76,87 @@ body {
     background: rgba(0, 0, 0, 0.75) none repeat scroll 0% 0%;
 }
 
+.in-range {
+    &.bg-player-red {
+        background-color: var(--player-red-inrange);
+    }
+    &.bg-player-blue {
+        background-color: var(--player-blue-inrange);
+    }
+    &.bg-player-orange {
+        background-color: var(--player-orange-inrange);
+    }
+    &.bg-player-yellow {
+        background-color: var(--player-yellow-inrange);
+    }
+    &.bg-player-green {
+        background-color: var(--player-green-inrange);
+    }
+    &.bg-player-teal {
+        background-color: var(--player-teal-inrange);
+    }
+    &.bg-player-purple {
+        background-color: var(--player-purple-inrange);
+    }
+    &.bg-player-gray {
+        background-color: var(--player-gray-inrange);
+    }
+}
+
 .cell {
+    @apply flex flex-col justify-end p-1;
     min-width: var(--cell-size);
     min-height: var(--cell-size);
     user-select: none;
     cursor: pointer;
     font-size: calc(var(--cell-size) / 8);
+
+    & .unit {
+        @apply inline;
+        width: calc(var(--cell-size) / 8);
+        height: calc(var(--cell-size) / 8);
+    }
+
+    &.town {
+        background-image: url("/img/town.jpg");
+        background-repeat: no-repeat;
+        background-position: top;
+        background-size: calc(var(--cell-size) / 1.8)
+            calc(var(--cell-size) / 1.8);
+    }
+
+    &.citadel {
+        background-image: url("/img/castle.png");
+        background-repeat: no-repeat;
+        background-position: top;
+        background-size: calc(var(--cell-size) / 1.8)
+            calc(var(--cell-size) / 1.8);
+    }
+
+    &.bg-terrain-mountain {
+        background-image: url("/img/mountain.png");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+    }
+
+    &.bg-terrain-forest {
+        background-image: url("/img/forest.png");
+        background-repeat: no-repeat;
+        background-position: top;
+        background-size: calc(var(--cell-size) / 1.2)
+            calc(var(--cell-size) / 1.2);
+
+        &.in-range {
+            background-color: var(--terrain-forest-inrange);
+        }
+    }
+
+    &.bg-terrain-plains {
+        &.in-range {
+            background-color: var(--terrain-plains-inrange);
+        }
+    }
 }
 
 .unit {

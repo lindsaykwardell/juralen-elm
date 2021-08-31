@@ -131,6 +131,31 @@ short unitType =
             "Pr"
 
 
+icon : UnitType -> String
+icon unitType =
+    case unitType of
+        Soldier ->
+            "/img/soldier.png"
+
+        Warrior ->
+            "/img/warrior.png"
+
+        Archer ->
+            "/img/archer.jpg"
+
+        Knight ->
+            "/img/knight.png"
+
+        Rogue ->
+            "/img/rogue.jpg"
+
+        Wizard ->
+            "/img/wizard.png"
+
+        Priest ->
+            "/img/priest.jpg"
+
+
 initialValues : UnitType -> InitialValues
 initialValues unitType =
     case unitType of
