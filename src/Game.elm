@@ -1083,14 +1083,14 @@ view model =
 activePlayerCard : Game.Core.Model -> Html Msg
 activePlayerCard model =
     if model.activePlayer /= -1 then
-        div [ class ("sticky top-0 text-center p-1 text-sm lg:text-base " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
+        div [ class ("sticky top-0 text-center p-1 text-lg lg:text-xl " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
             [ text (Juralen.Player.getName model.players (Just model.activePlayer))
-            , div [ class "flex" ]
-                [ div [ class "flex-1 p-2" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
-                , div [ class "flex-1 p-2" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]
-                , div [ class "flex-1 p-2" ] [ text "Farms: ", text (String.fromInt (currentPlayerStats model).farms) ]
-                , div [ class "flex-1 p-2" ] [ text "Towns: ", text (String.fromInt (currentPlayerStats model).towns) ]
-                , div [ class "flex-1 p-2" ] [ text "Units: ", text (String.fromInt (currentPlayerStats model).units) ]
+            , div [ class "flex w-full lg:w-2/3 m-auto" ]
+                [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
+                , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]
+                , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Farms: ", text (String.fromInt (currentPlayerStats model).farms) ]
+                , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Towns: ", text (String.fromInt (currentPlayerStats model).towns) ]
+                , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Units: ", text (String.fromInt (currentPlayerStats model).units) ]
                 ]
             ]
 
