@@ -292,7 +292,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "m-auto w-3/4" ]
+    div [ class "m-auto w-11/12" ]
         [ h1 [ class "text-white" ] [ text "Juralen" ]
         , div [ class "flex justify-end" ]
             [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
@@ -348,7 +348,11 @@ view model =
 newPlayerInput : List PlayerColor -> NewPlayer -> Html Msg
 newPlayerInput selectedColors player =
     div [ class "flex flex-col lg:flex-row py-2 items-center" ]
-        [ div [ class "flex-grow w-full lg:w-auto" ] [ input [ class "p-2 rounded w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
+        [ div [ class "flex-shrink mr-3" ]
+            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 rounded hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
+                [ text "Remove Player" ]
+            ]
+        , div [ class "flex-grow w-full lg:w-auto" ] [ input [ class "p-2 rounded w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
         , div [ class "flex-1" ]
             [ label [ class "text-white" ]
                 [ text "Is Human"
@@ -370,7 +374,7 @@ newPlayerInput selectedColors player =
                 [ text "Color" ]
             , select
                 [ class
-                    ("p-2 lg:ml-3 rounded w-32 w-full lg:w-auto "
+                    ("p-2 lg:mx-3 rounded w-32 w-full "
                         ++ Juralen.PlayerColor.toClass player.color
                         ++ (if Juralen.PlayerColor.isDark player.color then
                                 ""
@@ -399,9 +403,5 @@ newPlayerInput selectedColors player =
                         Juralen.PlayerColor.toList
                     )
                 )
-            ]
-        , div [ class "flex-shrink" ]
-            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 rounded hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
-                [ text "Remove Player" ]
             ]
         ]
