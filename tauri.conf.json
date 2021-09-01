@@ -1,5 +1,9 @@
 {
   "build": {
-    "devPath": "./dist"
+    "devPath": "http://localhost:3000",
+    "distDir": "./dist",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "withGlobalTauri": false
   }
 }
