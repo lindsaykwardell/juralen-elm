@@ -8,7 +8,8 @@
     "dev": "vite",
     "prebuild": "elm-tooling install",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "vite-tauri": "vite-tauri"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.6.0",
@@ -21,7 +22,8 @@
     "tailwindcss": "^2.2.9",
     "vite": "^2.5.1",
     "vite-plugin-elm": "^2.4.3",
-    "vite-plugin-pwa": "^0.11.2"
+    "vite-plugin-pwa": "^0.11.2",
+    "vite-plugin-tauri": "^0.1.2"
   },
   "dependencies": {
     "vue": "^3.2.6"
