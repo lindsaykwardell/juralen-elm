@@ -1,11 +1,6 @@
 import "./style.css";
 import './src/Components'
-import { Elm } from "./src/Main.elm";
-
-const root = document.querySelector("#app div");
-const app = Elm.Main.init({ 
-  node: root
-});
+import app from './src/app'
 
 setTimeout(() => {
   app.ports.authStatus.send(true);
