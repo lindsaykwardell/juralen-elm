@@ -3,7 +3,7 @@ module Game.Analyzer exposing (..)
 import Game.Core as Core exposing (PlayerStats)
 import Juralen.Analysis exposing (Action(..), Option, UpgradeType)
 import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
-import Juralen.Cell exposing (Cell, Loc)
+import Juralen.Cell exposing (Cell, Loc, getBorderingPlayers)
 import Juralen.CellType
 import Juralen.Grid
 import Juralen.Structure
@@ -252,17 +252,6 @@ getMoveOptions actions fromLoc cellsInRange units options =
             getMoveOptions actions fromLoc cellsList units newOptions
 
 
-isInRange : Float -> List Unit -> Loc -> Cell -> Bool
-isInRange actions units selectedCell cell =
-    List.length units
-        > 0
-        && selectedCell
-        /= { x = cell.x, y = cell.y }
-        && Juralen.CellType.isPassable cell.cellType
-        && actions
-        >= (Basics.toFloat (Juralen.Cell.getDistance selectedCell { x = cell.x, y = cell.y }) * getMoveCost units)
-
-
 getMoveCost : List Unit -> Float
 getMoveCost units =
     List.foldl
@@ -363,6 +352,22 @@ scoreOption model option =
                 targetCell =
                     Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) toLoc
 
+                borderingPlayers =
+                    getBorderingPlayers model.grid { x = targetCell.x, y = targetCell.y }
+
+                targetCellIsBoardering =
+                    List.filter
+                        (\player ->
+                            case player of
+                                Nothing ->
+                                    True
+
+                                Just p ->
+                                    p == model.activePlayer
+                        )
+                        borderingPlayers
+                        /= []
+
                 score =
                     10
                         -- Subtract number of units to move * 2 (fewer units is better)
@@ -372,6 +377,13 @@ scoreOption model option =
 
                            else
                             2
+                          )
+                        -- Don't move if it's not boardering
+                        - (if targetCellIsBoardering then
+                            0
+
+                           else
+                            1000
                           )
                         -- Don't move units without moves left
                         - (if List.any (\unit -> unit.movesLeft <= 0) units then

@@ -12,6 +12,7 @@ import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Process
 import Task
+import Juralen.Cell exposing (getBorderingPlayers)
 
 
 type GameStatus
@@ -24,11 +25,13 @@ type CombatStatus
     = NoCombat
     | Combat Game.Combat.Model
 
+
 type MobileTab
     = UnitsTab
     | TechTreeTab
     | BuildOptionsTab
     | DetailsTab
+
 
 type alias Model =
     { nextId : Int
@@ -166,10 +169,28 @@ canAfford model unitType =
 
 isInRange : Model -> Cell -> Bool
 isInRange model cell =
+    let
+        borderingPlayers =
+            getBorderingPlayers model.grid { x = cell.x, y = cell.y }
+
+        targetCellIsBoardering =
+            List.filter
+                (\player ->
+                    case player of
+                        Nothing ->
+                            True
+
+                        Just p ->
+                            p == model.activePlayer
+                )
+                borderingPlayers
+                /= []
+    in
     List.length model.selectedUnits
         > 0
         && model.selectedCell
         /= { x = cell.x, y = cell.y }
+        && targetCellIsBoardering
         && Juralen.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)

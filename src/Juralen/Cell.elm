@@ -171,3 +171,49 @@ getDistance from to =
                 from.y - to.y
     in
     x + y
+
+
+getBorderCells : List (List Cell) -> Loc -> List (Maybe Cell)
+getBorderCells grid loc =
+    let
+        north =
+            { loc | y = loc.y - 1 }
+
+        south =
+            { loc | y = loc.y + 1 }
+
+        east =
+            { loc | x = loc.x + 1 }
+
+        west =
+            { loc | x = loc.x - 1 }
+    in
+    [ find grid north
+    , find grid south
+    , find grid east
+    , find grid west
+    ]
+
+
+getBorderingPlayers : List (List Cell) -> Loc -> List (Maybe Int)
+getBorderingPlayers grid loc =
+    let
+        borderingCells =
+            getBorderCells grid loc
+    in
+    getBorderingPlayer borderingCells []
+
+
+getBorderingPlayer : List (Maybe Cell) -> List (Maybe Int) -> List (Maybe Int)
+getBorderingPlayer cells players =
+    case cells of
+        [] ->
+            players
+
+        maybeCell :: remainingCells ->
+            case maybeCell of
+                Nothing ->
+                    getBorderingPlayer remainingCells players
+
+                Just cell ->
+                    getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
