@@ -107,6 +107,9 @@ body {
     @apply flex flex-col justify-end p-1;
     min-width: var(--cell-size);
     min-height: var(--cell-size);
+    max-width: var(--cell-size);
+    max-height: var(--cell-size);
+    overflow: hidden;
     user-select: none;
     cursor: pointer;
     font-size: calc(var(--cell-size) / 8);

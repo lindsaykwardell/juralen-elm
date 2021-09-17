@@ -447,11 +447,17 @@ scoreOption model option =
                         -- Include defensive bonus of cell before attacking
                         + (case targetCell.controlledBy of
                             Nothing ->
-                                if analyzer == Expansionist then
-                                    300
+                                let
+                                    isForest = targetCell.cellType == Juralen.CellType.Forest
+                                in
+                                if isForest then
+                                    0
+                                
+                                else if analyzer == Expansionist then
+                                    600
 
                                 else
-                                    0
+                                    300
 
                             Just playerId ->
                                 if playerId == model.activePlayer then

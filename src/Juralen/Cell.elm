@@ -216,4 +216,8 @@ getBorderingPlayer cells players =
                     getBorderingPlayer remainingCells players
 
                 Just cell ->
-                    getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
+                    if cell.cellType == Juralen.CellType.Mountain then
+                        getBorderingPlayer remainingCells players
+
+                    else
+                        getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
