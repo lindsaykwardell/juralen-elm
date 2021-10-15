@@ -286,41 +286,26 @@ analyzeBuildUnits model =
 
 getUnitOptions : PlayerStats -> List Cell -> List Option -> List Option
 getUnitOptions stats cells options =
-    let
-        cell =
-            case List.head cells of
-                Nothing ->
-                    Juralen.Cell.empty
-
-                Just thisCell ->
-                    thisCell
-
-        remainingCells =
-            case List.tail cells of
-                Nothing ->
-                    []
-
-                Just remainder ->
-                    remainder
-
-        newOptions =
+    case cells of
+        [] ->
             options
-                ++ List.map
-                    (\unitType ->
-                        { loc = { x = cell.x, y = cell.y }, action = BuildUnit unitType, score = 0 }
-                    )
-                    (List.filter
-                        (\unitType ->
-                            Juralen.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
-                        )
-                        (Juralen.Structure.canBuild cell.structure stats.techTree)
-                    )
-    in
-    if List.length remainingCells <= 0 then
-        newOptions
 
-    else
-        getUnitOptions stats remainingCells newOptions
+        cell :: remainingCells ->
+            let
+                newOptions =
+                    options
+                        ++ List.map
+                            (\unitType ->
+                                { loc = { x = cell.x, y = cell.y }, action = BuildUnit unitType, score = 0 }
+                            )
+                            (List.filter
+                                (\unitType ->
+                                    Juralen.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
+                                )
+                                (Juralen.Structure.canBuild cell.structure stats.techTree)
+                            )
+            in
+            getUnitOptions stats remainingCells newOptions
 
 
 scoreOptions : Core.Model -> List Option -> List Option
@@ -448,11 +433,12 @@ scoreOption model option =
                         + (case targetCell.controlledBy of
                             Nothing ->
                                 let
-                                    isForest = targetCell.cellType == Juralen.CellType.Forest
+                                    isForest =
+                                        targetCell.cellType == Juralen.CellType.Forest
                                 in
                                 if isForest then
                                     0
-                                
+
                                 else if analyzer == Expansionist then
                                     600
 
@@ -461,7 +447,7 @@ scoreOption model option =
 
                             Just playerId ->
                                 if playerId == model.activePlayer then
-                                    -100
+                                    -10 --100
 
                                 else
                                     Core.getPlayerScore model playerId

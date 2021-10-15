@@ -85,28 +85,36 @@ empty =
 
 find : List (List Cell) -> Loc -> Maybe Cell
 find grid loc =
-    Maybe.andThen (\row -> List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)) (List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row) > 0) grid))
+    Maybe.andThen
+        (\row ->
+            List.head
+                (List.filter
+                    (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y)
+                    row
+                )
+        )
+        (List.head
+            (List.filter
+                (\row ->
+                    List.length
+                        (List.filter
+                            (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y)
+                            row
+                        )
+                        > 0
+                )
+                grid
+            )
+        )
 
 
 atLoc : List Cell -> Loc -> Cell
 atLoc cellList loc =
-    let
-        nextCell =
-            List.head cellList
-
-        remainingCells =
-            case List.tail cellList of
-                Nothing ->
-                    []
-
-                Just nextCellList ->
-                    nextCellList
-    in
-    case nextCell of
-        Nothing ->
+    case cellList of
+        [] ->
             empty
 
-        Just cell ->
+        cell :: remainingCells ->
             if cell.x == loc.x && cell.y == loc.y then
                 cell
 
@@ -116,17 +124,26 @@ atLoc cellList loc =
 
 validStartingCell : List (List Cell) -> Loc -> Maybe Cell
 validStartingCell grid loc =
-    Maybe.andThen (\row -> List.head (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)) (List.head (List.filter (\row -> List.length (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y && hasStructure innerCell == False) row) > 0) grid))
+    Maybe.andThen
+        (\row ->
+            List.head
+                (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)
+        )
+        (List.head
+            (List.filter
+                (\row ->
+                    List.length
+                        (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y && hasStructure innerCell == False) row)
+                        > 0
+                )
+                grid
+            )
+        )
 
 
 hasStructure : Cell -> Bool
 hasStructure cell =
-    case cell.structure of
-        Nothing ->
-            False
-
-        _ ->
-            True
+    cell.structure /= Nothing
 
 
 buildStructure : Cell -> Structure -> Cell

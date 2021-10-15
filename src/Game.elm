@@ -55,13 +55,15 @@ randomDefinedMax max =
 
 winningScore : Model -> Int
 winningScore model =
-    let 
-        cellCount = toFloat ((model.init.maxX + 1) * (model.init.maxY + 1))
+    let
+        cellCount =
+            toFloat ((model.init.maxX + 1) * (model.init.maxY + 1))
     in
-        if cellCount < 100 then
-            round (cellCount / 1.625)
-        else
-            round (cellCount / 2.225)
+    if cellCount < 100 then
+        round (cellCount / 1.625)
+
+    else
+        round (cellCount / 2.225)
 
 
 getNextActivePlayer : List Player -> List Player -> Int -> Player
@@ -591,13 +593,18 @@ update msg model =
                                     )
                                     model.players
 
-                            cell : Cell
+                            cell : Maybe Cell
                             cell =
-                                Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell
+                                Juralen.Cell.find model.grid model.selectedCell
 
                             grid : Grid
                             grid =
-                                Juralen.Grid.replaceCell model.grid { cell | farms = cell.farms + 1 }
+                                case cell of
+                                    Nothing ->
+                                        model.grid
+
+                                    Just aCell ->
+                                        Juralen.Grid.replaceCell model.grid { aCell | farms = aCell.farms + 1 }
                         in
                         update Analyze { model | players = players, grid = grid }
 
@@ -618,13 +625,18 @@ update msg model =
                                     )
                                     model.players
 
-                            cell : Cell
+                            cell : Maybe Cell
                             cell =
-                                Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell
+                                Juralen.Cell.find model.grid model.selectedCell
 
                             grid : Grid
                             grid =
-                                Juralen.Grid.replaceCell model.grid { cell | towers = cell.towers + 1 }
+                                case cell of
+                                    Nothing ->
+                                        model.grid
+
+                                    Just aCell ->
+                                        Juralen.Grid.replaceCell model.grid { aCell | towers = aCell.towers + 1 }
                         in
                         update Analyze { model | players = players, grid = grid }
 
@@ -645,21 +657,26 @@ update msg model =
                                     )
                                     model.players
 
-                            cell : Cell
+                            cell : Maybe Cell
                             cell =
-                                Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell
+                                Juralen.Cell.find model.grid model.selectedCell
 
                             grid : Grid
                             grid =
-                                Juralen.Grid.replaceCell model.grid
-                                    { cell
-                                        | defBonus =
-                                            if Juralen.Structure.initDef cell.structure > cell.defBonus then
-                                                cell.defBonus + 1
+                                case cell of
+                                    Nothing ->
+                                        model.grid
 
-                                            else
-                                                cell.defBonus
-                                    }
+                                    Just aCell ->
+                                        Juralen.Grid.replaceCell model.grid
+                                            { aCell
+                                                | defBonus =
+                                                    if Juralen.Structure.initDef aCell.structure > aCell.defBonus then
+                                                        aCell.defBonus + 1
+
+                                                    else
+                                                        aCell.defBonus
+                                            }
                         in
                         update Analyze { model | players = players, grid = grid }
 
@@ -756,14 +773,14 @@ update msg model =
                             List.map (\unit -> unit.id) units
 
                         toCell =
-                            case Juralen.Cell.find model.grid toLoc of
-                                Nothing ->
-                                    Juralen.Cell.empty
-
-                                Just cell ->
-                                    cell
+                            Juralen.Cell.find model.grid toLoc
                     in
-                    update (MoveSelectedUnits toCell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
+                    case toCell of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just cell ->
+                            update (MoveSelectedUnits cell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
 
                 Juralen.Analysis.Attack units toLoc ->
                     let
@@ -771,14 +788,14 @@ update msg model =
                             List.map (\unit -> unit.id) units
 
                         toCell =
-                            case Juralen.Cell.find model.grid toLoc of
-                                Nothing ->
-                                    Juralen.Cell.empty
-
-                                Just cell ->
-                                    cell
+                            Juralen.Cell.find model.grid toLoc
                     in
-                    update (MoveSelectedUnits toCell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
+                    case toCell of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just cell ->
+                            update (MoveSelectedUnits cell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
 
                 Juralen.Analysis.BuildUnit unitType ->
                     update (BuildUnit unitType) { model | selectedCell = option.loc }
