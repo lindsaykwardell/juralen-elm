@@ -8,7 +8,7 @@ export default defineConfig({
         elmPlugin(),
         vue({ customElement: true }),
         VitePWA({
-            includeAssets: ["/img/**"],
+            includeAssets: ["/img/**", 'favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
             manifest: {
                 name: "Juralen",
                 short_name: "Juralen",
@@ -16,7 +16,17 @@ export default defineConfig({
                 theme_color: "#333",
                 icons: [
                     {
-                        src: "img/castle.png",
+                        src: "pwa-192x192.png",
+                        sizes: "192x192",
+                        type: "image/png",
+                    },
+                    {
+                        src: "pwa-512x512.png",
+                        sizes: "512x512",
+                        type: "image/png",
+                    },
+                    {
+                        src: "pwa-512x512.png",
                         sizes: "512x512",
                         type: "image/png",
                         purpose: "any maskable",
