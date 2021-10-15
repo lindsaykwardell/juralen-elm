@@ -4,13 +4,25 @@ import vue from "@vitejs/plugin-vue"
 import { VitePWA } from "vite-plugin-pwa"
 
 export default defineConfig({
-    plugins: [elmPlugin(), vue({ customElement: true }), VitePWA({
-        includeAssets: ['/img/**'],
-        manifest: {
-            name: 'Juralen',
-            short_name: 'Juralen',
-            description: 'Turn-Based Strategy Game',
-            theme_color: '#333'
-          }
-    })],
+    plugins: [
+        elmPlugin(),
+        vue({ customElement: true }),
+        VitePWA({
+            includeAssets: ["/img/**"],
+            manifest: {
+                name: "Juralen",
+                short_name: "Juralen",
+                description: "Turn-Based Strategy Game",
+                theme_color: "#333",
+                icons: [
+                    {
+                        src: "img/castle.png",
+                        sizes: "512x512",
+                        type: "image/png",
+                        purpose: "any maskable",
+                    },
+                ],
+            },
+        }),
+    ],
 })
