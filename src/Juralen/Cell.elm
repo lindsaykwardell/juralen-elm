@@ -108,18 +108,9 @@ find grid loc =
         )
 
 
-atLoc : List Cell -> Loc -> Cell
+atLoc : List (List Cell) -> Loc -> Cell
 atLoc cellList loc =
-    case cellList of
-        [] ->
-            empty
-
-        cell :: remainingCells ->
-            if cell.x == loc.x && cell.y == loc.y then
-                cell
-
-            else
-                atLoc remainingCells loc
+    Maybe.withDefault empty (find cellList loc)
 
 
 validStartingCell : List (List Cell) -> Loc -> Maybe Cell

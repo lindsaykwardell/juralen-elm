@@ -1229,11 +1229,11 @@ selectedCellCard model =
                 ]
             , div [ class "flex" ]
                 [ div [ class "flex-1" ]
-                    [ text ("Defense Bonus: " ++ String.fromInt (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .defBonus)) ]
+                    [ text ("Defense Bonus: " ++ String.fromInt (Juralen.Cell.atLoc model.grid model.selectedCell |> .defBonus)) ]
                 , div [ class "flex-1" ]
-                    [ text ("Farms: " ++ String.fromInt (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .farms)) ]
+                    [ text ("Farms: " ++ String.fromInt (Juralen.Cell.atLoc model.grid model.selectedCell |> .farms)) ]
                 , div [ class "flex-1" ]
-                    [ text ("Towers: " ++ String.fromInt (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .towers)) ]
+                    [ text ("Towers: " ++ String.fromInt (Juralen.Cell.atLoc model.grid model.selectedCell |> .towers)) ]
                 ]
             ]
         ]
@@ -1271,13 +1271,13 @@ researchTechList model =
 upgradeCellList : Game.Core.Model -> Html Msg
 upgradeCellList model =
     div [ class "p-5" ]
-        (if (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .controlledBy) /= Just model.activePlayer then
+        (if (Juralen.Cell.atLoc model.grid model.selectedCell |> .controlledBy) /= Just model.activePlayer then
             []
 
          else
             [ if
-                (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .defBonus)
-                    < Juralen.Structure.initDef (Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) model.selectedCell |> .structure)
+                (Juralen.Cell.atLoc model.grid model.selectedCell |> .defBonus)
+                    < Juralen.Structure.initDef (Juralen.Cell.atLoc model.grid model.selectedCell |> .structure)
               then
                 button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Juralen.Analysis.RepairDefense) ] [ text "Repair Defense (1)" ]
 

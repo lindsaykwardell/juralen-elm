@@ -65,24 +65,29 @@ replaceCell grid newCell =
 distanceToEnemy : Grid -> Loc -> Int -> Int
 distanceToEnemy grid loc playerId =
     List.foldl
-        (\cell closest ->
-            case cell.controlledBy of
-                Nothing ->
-                    closest
+        (\row distance ->
+            List.foldl
+                (\cell closest ->
+                    case cell.controlledBy of
+                        Nothing ->
+                            closest
 
-                Just controller ->
-                    let
-                        distance =
-                            getDistance loc { x = cell.x, y = cell.y }
-                    in
-                    if controller /= playerId && distance < closest then
-                        distance
+                        Just controller ->
+                            let
+                                distanceToCell =
+                                    getDistance loc { x = cell.x, y = cell.y }
+                            in
+                            if controller /= playerId && distanceToCell < closest then
+                                distanceToCell
 
-                    else
-                        closest
+                            else
+                                closest
+                )
+                distance
+                row
         )
         100
-        (toList grid)
+        grid
 
 
 farmCountControlledBy : Grid -> Int -> Int

@@ -1,6 +1,6 @@
 module Game.Analyzer exposing (..)
 
-import Game.Core as Core exposing (PlayerStats)
+import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Juralen.Analysis exposing (Action(..), Option, UpgradeType)
 import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
 import Juralen.Cell exposing (Cell, Loc, getBorderingPlayers)
@@ -112,11 +112,23 @@ analyzeMoves model =
         myUnits =
             Juralen.Unit.controlledBy model.units model.activePlayer
 
-        cellsList =
-            model.grid |> Juralen.Grid.toList
-
+        cellsWithUnits : List Cell
         cellsWithUnits =
-            cellsList |> List.filter (\cell -> List.length (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }) > 0)
+            model.grid
+                |> List.foldl
+                    (\row collection ->
+                        List.foldl
+                            (\cell cells ->
+                                if Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y } /= [] then
+                                    cell :: cells
+
+                                else
+                                    cells
+                            )
+                            collection
+                            row
+                    )
+                    []
 
         unitCombinations : List UnitOption
         unitCombinations =
@@ -133,7 +145,13 @@ analyzeMoves model =
                     cellsWithUnits
                 )
     in
-    toList (List.map (\combination -> getMoveOptions actions { x = combination.cell.x, y = combination.cell.y } cellsList combination.unitOptions []) unitCombinations)
+    toList
+        (List.map
+            (\combination ->
+                getMoveOptions model { x = combination.cell.x, y = combination.cell.y } combination.unitOptions
+            )
+            unitCombinations
+        )
 
 
 toList : List (List a) -> List a
@@ -211,45 +229,24 @@ combineUnitWith unitCombinations selectedUnits unusedUnits =
         combineUnitWith newCombinations newCombination remainingUnusedUnits
 
 
-getMoveOptions : Float -> Loc -> List Cell -> List Unit -> List Option -> List Option
-getMoveOptions actions fromLoc cellsInRange units options =
+getMoveOptions : Model -> Loc -> List Unit -> List Option
+getMoveOptions model fromLoc units =
     let
-        toLoc : Loc
-        toLoc =
-            case List.head cellsInRange of
-                Nothing ->
-                    { x = -1, y = -1 }
-
-                Just cell ->
-                    { x = cell.x, y = cell.y }
-
-        remainingCells =
-            List.tail cellsInRange
-
-        distance : Int
-        distance =
-            Juralen.Cell.getDistance fromLoc toLoc
-
-        moveCost : Float
-        moveCost =
-            getMoveCost units
-
-        thisActionCost =
-            Basics.toFloat distance * moveCost
-
-        newOptions =
-            if thisActionCost <= actions && distance /= 0 then
-                options ++ [ { loc = fromLoc, action = Move units toLoc, score = 0 } ]
-
-            else
-                options
+        cellsInRange =
+            allCellsInRange
+                { model
+                    | selectedCell = fromLoc
+                    , selectedUnits = List.map (\unit -> unit.id) units
+                }
     in
-    case remainingCells of
-        Nothing ->
-            newOptions
-
-        Just cellsList ->
-            getMoveOptions actions fromLoc cellsList units newOptions
+    List.map
+        (\cell ->
+            { loc = fromLoc
+            , action = Move units { x = cell.x, y = cell.y }
+            , score = 0
+            }
+        )
+        cellsInRange
 
 
 getMoveCost : List Unit -> Float
@@ -335,7 +332,7 @@ scoreOption model option =
         Move units toLoc ->
             let
                 targetCell =
-                    Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) toLoc
+                    Juralen.Cell.atLoc model.grid toLoc
 
                 borderingPlayers =
                     getBorderingPlayers model.grid { x = targetCell.x, y = targetCell.y }
@@ -447,7 +444,8 @@ scoreOption model option =
 
                             Just playerId ->
                                 if playerId == model.activePlayer then
-                                    -10 --100
+                                    -10
+                                    --100
 
                                 else
                                     Core.getPlayerScore model playerId
@@ -677,7 +675,7 @@ scoreOption model option =
         Upgrade upgradeType ->
             let
                 cell =
-                    Juralen.Cell.atLoc (Juralen.Grid.toList model.grid) option.loc
+                    Juralen.Cell.atLoc model.grid option.loc
             in
             case upgradeType of
                 Juralen.Analysis.RepairDefense ->

@@ -3,7 +3,7 @@ module Game.Core exposing (..)
 import Game.Combat
 import Juralen.Analysis exposing (Option)
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
-import Juralen.Cell exposing (Cell, Loc)
+import Juralen.Cell exposing (Cell, Loc, getBorderingPlayers)
 import Juralen.CellType
 import Juralen.Grid exposing (Grid)
 import Juralen.Player exposing (NewPlayer, Player)
@@ -12,7 +12,6 @@ import Juralen.Unit exposing (Unit)
 import Juralen.UnitType exposing (UnitType)
 import Process
 import Task
-import Juralen.Cell exposing (getBorderingPlayers)
 
 
 type GameStatus
@@ -194,6 +193,25 @@ isInRange model cell =
         && Juralen.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+
+
+allCellsInRange : Model -> List Cell
+allCellsInRange model =
+    List.foldl
+        (\row collection ->
+            List.foldl
+                (\cell cells ->
+                    if isInRange model cell then
+                        cell :: cells
+
+                    else
+                        cells
+                )
+                collection
+                row
+        )
+        []
+        model.grid
 
 
 delay : Float -> msg -> Cmd msg
