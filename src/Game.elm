@@ -140,6 +140,8 @@ type Msg
     | PerformAiTurn
     | EndTurn
     | EndGame
+    | SaveGame
+    | LoadGame
     | OpenSettings
     | UpdateMobileTab MobileTab
 
@@ -892,6 +894,12 @@ update msg model =
             ( model, Game.Core.delay 0 EndGame )
 
         OpenSettings ->
+            ( model, Cmd.none )
+
+        SaveGame ->
+            ( model, Cmd.none )
+
+        LoadGame ->
             ( model, Cmd.none )
 
         UpdateMobileTab tab ->
