@@ -102,7 +102,7 @@ getPlayerScore model playerId =
         stats =
             playerStats model playerId
     in
-    stats.farms + stats.towns + stats.units
+    stats.farms + stats.towns
 
 
 type alias PlayerScore =

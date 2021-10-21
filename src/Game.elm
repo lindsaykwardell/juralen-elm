@@ -59,11 +59,7 @@ winningScore model =
         cellCount =
             toFloat ((model.init.maxX + 1) * (model.init.maxY + 1))
     in
-    if cellCount < 100 then
-        round (cellCount / 1.625)
-
-    else
-        round (cellCount / 2.225)
+    round (cellCount / 1.625)
 
 
 getNextActivePlayer : List Player -> List Player -> Int -> Player
