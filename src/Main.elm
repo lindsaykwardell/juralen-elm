@@ -108,13 +108,13 @@ update msg model =
         ChangePage page ->
             case page of
                 Splash ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, login () )
+                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, Cmd.none )
 
                 Home ->
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Home }, Cmd.none )
 
                 Lobby lobby ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Lobby lobby }, Cmd.map GotLobbyMsg (Tuple.second Lobby.init) )
+                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Lobby lobby }, Cmd.batch [ Cmd.map GotLobbyMsg (Tuple.second Lobby.init), playThemeMusic () ] )
 
                 Game game ->
                     ( { model
@@ -127,10 +127,13 @@ update msg model =
                                     (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
                                 )
                       }
-                    , Cmd.map GotGameMsg
-                        (Tuple.second
-                            (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
-                        )
+                    , Cmd.batch
+                        [ Cmd.map GotGameMsg
+                            (Tuple.second
+                                (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
+                            )
+                        , playGameMusic ()
+                        ]
                     )
 
         ToggleSettings ->
@@ -229,6 +232,12 @@ port login : () -> Cmd msg
 
 
 port logout : () -> Cmd msg
+
+
+port playGameMusic : () -> Cmd msg
+
+
+port playThemeMusic : () -> Cmd msg
 
 
 port authStatus : (Bool -> msg) -> Sub msg

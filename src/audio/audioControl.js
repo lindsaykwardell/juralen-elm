@@ -6,6 +6,8 @@ import landOfAFolkDivided from "./land-of-a-folk-divided.mp3"
 import rememberTheWay from "./remember-the-way.mp3"
 import streetsOfSantIvo from "./streets-of-santivo.mp3"
 
+let sub = () => null
+
 class AudioControl {
     constructor(audio, music) {
         this.audio = audio
@@ -25,6 +27,7 @@ class AudioControl {
     }
 
     stop() {
+        this.audio.removeEventListener("ended", sub)
         return new Promise(resolve => {
             this.fadeOut().then(() => {
                 this.audio.pause()
@@ -42,20 +45,17 @@ class AudioControl {
     shuffleAlbum(album) {
         this.shuffle = album
         this.nextShuffle()
-        this.audio.addEventListener("ended", this.nextShuffle)
+        sub = this.nextShuffle.bind(this)
+        this.audio.addEventListener("ended", sub)
     }
 
     nextShuffle() {
         let track = -1
-        while (!this.music[this.shuffle][track]) {
-            track = Math.floor(Math.random() * this.music[this.shuffle].length)
+        while (!this.music?.[this.shuffle]?.[track]) {
+            track = Math.floor(Math.random() * this.music?.[this.shuffle]?.length)
         }
         this.audio.src = this.music[this.shuffle][track]
         this.fadeIn()
-    }
-
-    stopShuffle() {
-        this.audio.removeEventListener("ended", this.nextShuffle)
     }
 
     setMaxVolume(maxVol) {
