@@ -10,12 +10,18 @@ let sub = () => null
 
 class AudioControl {
     constructor(audio, music) {
+        const muted = localStorage.getItem("muted") === "true"
+
         this.audio = audio
         this.audio.volume = 0
         this.music = music
-        this.maxVol = 1
+        this.maxVol = muted ? 0 : 1
         this.nextAction = null
         this.shuffle = null
+    }
+
+    get muted() {
+        return this.maxVol === 0
     }
 
     play() {
@@ -72,6 +78,7 @@ class AudioControl {
                 if (this.audio.volume !== 0 && this.audio.volume - 0.1 >= 0) {
                     this.audio.volume -= 0.1
                 } else {
+                    this.audio.volume = 0
                     clearInterval(fadeAudio)
                     resolve()
                 }
@@ -92,6 +99,18 @@ class AudioControl {
                 clearInterval(fadeAudio)
             }
         }, 200)
+    }
+
+    toggleMute() {
+        if (this.muted) {
+            localStorage.setItem("muted", false)
+            this.setMaxVolume(1)
+            this.fadeIn()
+        } else {
+            localStorage.setItem("muted", true)
+            this.setMaxVolume(0)
+            this.fadeOut()
+        }
     }
 }
 

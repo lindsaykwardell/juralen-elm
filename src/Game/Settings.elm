@@ -21,6 +21,7 @@ type alias DisplaySettings =
 
 type Msg
     = Logout
+    | ToggleMute
     | CloseSettings
     | ExitGame
 
@@ -38,6 +39,7 @@ settingsModal settings =
 
                   else
                     text ""
+                , button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick ToggleMute ] [ text "Mute/Unmute Audio" ]
                 ]
             , div [ class "flex flex-col p-5" ]
                 (List.concat

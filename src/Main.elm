@@ -144,6 +144,9 @@ update msg model =
                 Settings.Logout ->
                     ( model, logout () )
 
+                Settings.ToggleMute ->
+                    ( model, toggleMute () )
+
                 Settings.ExitGame ->
                     case model.page of
                         Game gameModel ->
@@ -238,6 +241,9 @@ port playGameMusic : () -> Cmd msg
 
 
 port playThemeMusic : () -> Cmd msg
+
+
+port toggleMute : () -> Cmd msg
 
 
 port authStatus : (Bool -> msg) -> Sub msg

@@ -997,8 +997,9 @@ view : Model -> Html Msg
 view model =
     div []
         [ if model.activePlayer /= -1 then
-            div [ class "p-3 lg:fixed bottom-0 left-0" ]
-                [ button [ class "py-1 lg:p-4 w-full lg:w-[200px] bg-green-500 hover:bg-green-400", onClick EndTurn ] [ text "End Turn" ]
+            div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
+                [ button [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200", onClick EndTurn ] [ text "End Turn" ]
+                , button [ class "py-1 w-1/3 mx-2 lg:p-2 w-full lg:w-[150px] text-white bg-transparent border-2 border-green-500 hover:border-green-200 hover:bg-[rgba(255,255,255,0.1)]", onClick OpenSettings ] [ text "Settings" ]
                 ]
 
           else

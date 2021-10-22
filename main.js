@@ -13,6 +13,8 @@ setTimeout(() => {
     app.ports.authStatus.send(true)
 }, 2000)
 
+app.ports.toggleMute.subscribe(() => audioControl.toggleMute())
+
 app.ports.playThemeMusic.subscribe(async () => {
     await audioControl.stop()
     audioControl.selectSong("theme:0")
