@@ -298,3 +298,23 @@ groupNeighbors cells =
         )
         []
         cells
+
+
+getGroupBorderingPlayers : List (List Cell) -> List (List Cell) -> Loc -> List (Maybe Int)
+getGroupBorderingPlayers grid groups loc =
+    let
+        group : Maybe (List Cell)
+        group =
+            List.Extra.find (\g -> List.Extra.find (\cell -> cell.x == loc.x && cell.y == loc.y) g /= Nothing) groups
+    in
+    case group of
+        Nothing ->
+            []
+
+        Just cells ->
+            List.foldl
+                (\cell players ->
+                    getBorderingPlayers grid { x = cell.x, y = cell.y } ++ players
+                )
+                []
+                cells

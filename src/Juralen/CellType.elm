@@ -35,4 +35,4 @@ getColorClass cellType =
 
 isPassable : CellType -> Bool
 isPassable cellType =
-    cellType == Plains
+    cellType /= Mountain
