@@ -3,6 +3,7 @@ module Juralen.Cell exposing (..)
 import Juralen.CellType exposing (CellType)
 import Juralen.Player exposing (Player)
 import Juralen.Structure exposing (Structure)
+import List.Extra
 
 
 type alias Loc =
@@ -111,6 +112,13 @@ find grid loc =
 atLoc : List (List Cell) -> Loc -> Cell
 atLoc cellList loc =
     Maybe.withDefault empty (find cellList loc)
+
+
+ofType : CellType -> List (List Cell) -> List Cell
+ofType cellType grid =
+    List.filter
+        (\cell -> cell.cellType == cellType)
+        (List.concat grid)
 
 
 validStartingCell : List (List Cell) -> Loc -> Maybe Cell
@@ -229,3 +237,64 @@ getBorderingPlayer cells players =
 
                     else
                         getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
+
+
+groupNeighbors : List Cell -> List (List Cell)
+groupNeighbors cells =
+    List.foldl
+        (\cell groups ->
+            case groups of
+                [] ->
+                    [ [ cell ] ]
+
+                _ ->
+                    let
+                        groupIndex : Maybe Int
+                        groupIndex =
+                            List.Extra.findIndex
+                                (\group ->
+                                    List.Extra.find
+                                        (\cellInGroup ->
+                                            let
+                                                loc =
+                                                    { x = cell.x
+                                                    , y = cell.y
+                                                    }
+
+                                                groupLoc =
+                                                    { x = cellInGroup.x
+                                                    , y = cellInGroup.y
+                                                    }
+
+                                                north =
+                                                    { loc | y = loc.y - 1 }
+
+                                                south =
+                                                    { loc | y = loc.y + 1 }
+
+                                                east =
+                                                    { loc | x = loc.x + 1 }
+
+                                                west =
+                                                    { loc | x = loc.x - 1 }
+                                            in
+                                            (loc == groupLoc) || (north == groupLoc) || (south == groupLoc) || (east == groupLoc) || (west == groupLoc)
+                                        )
+                                        group
+                                        /= Nothing
+                                )
+                                groups
+                    in
+                    case groupIndex of
+                        Nothing ->
+                            groups ++ [ [ cell ] ]
+
+                        Just id ->
+                            let
+                                group =
+                                    List.Extra.getAt id groups
+                            in
+                            List.Extra.setAt id (Maybe.withDefault [] group ++ [ cell ]) groups
+        )
+        []
+        cells

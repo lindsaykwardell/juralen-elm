@@ -10,7 +10,7 @@ import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
 import Juralen.Analysis
-import Juralen.Cell exposing (Cell, Loc)
+import Juralen.Cell exposing (Cell, Loc, groupNeighbors, ofType)
 import Juralen.CellType
 import Juralen.Grid exposing (Grid)
 import Juralen.Player exposing (NewPlayer, Player)
