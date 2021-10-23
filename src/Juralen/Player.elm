@@ -130,3 +130,13 @@ getColorClass players controlledBy =
 
                 Just player ->
                     Juralen.PlayerColor.toClass player.color
+
+
+isHuman : List Player -> Int -> Bool
+isHuman players playerId =
+    case List.head (List.filter (\p -> p.id == playerId) players) of
+        Nothing ->
+            False
+
+        Just player ->
+            player.isHuman
