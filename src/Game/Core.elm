@@ -3,7 +3,7 @@ module Game.Core exposing (..)
 import Game.Combat
 import Juralen.Analysis exposing (Option)
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
-import Juralen.Cell exposing (Cell, Loc, getBorderingPlayers)
+import Juralen.Cell exposing (Cell, Loc, getBorderCells, getBorderingPlayers, getGroupBorderingPlayers, groupNeighbors, ofType)
 import Juralen.CellType
 import Juralen.Grid exposing (Grid)
 import Juralen.Player exposing (NewPlayer, Player)
@@ -168,28 +168,11 @@ canAfford model unitType =
 
 isInRange : Model -> Cell -> Bool
 isInRange model cell =
-    let
-        borderingPlayers =
-            getBorderingPlayers model.grid { x = cell.x, y = cell.y }
-
-        targetCellIsBoardering =
-            List.filter
-                (\player ->
-                    case player of
-                        Nothing ->
-                            True
-
-                        Just p ->
-                            p == model.activePlayer
-                )
-                borderingPlayers
-                /= []
-    in
     List.length model.selectedUnits
         > 0
         && model.selectedCell
         /= { x = cell.x, y = cell.y }
-        && targetCellIsBoardering
+        && targetCellIsBordering model cell
         && Juralen.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
@@ -218,3 +201,49 @@ delay : Float -> msg -> Cmd msg
 delay time msg =
     Process.sleep time
         |> Task.perform (\_ -> msg)
+
+
+targetCellIsBordering : Model -> Cell -> Bool
+targetCellIsBordering model cell =
+    let
+        borderingCells : List (Maybe Cell)
+        borderingCells =
+            getBorderCells model.grid { x = cell.x, y = cell.y }
+    in
+    List.filter
+        (\borderCell ->
+            case borderCell of
+                Nothing ->
+                    False
+
+                Just c ->
+                    case c.controlledBy of
+                        Just playerId ->
+                            playerId == model.activePlayer
+
+                        Nothing ->
+                            case c.cellType of
+                                Juralen.CellType.Mountain ->
+                                    False
+
+                                _ ->
+                                    let
+                                        borderingPlayers =
+                                            model.grid
+                                                |> ofType c.cellType
+                                                |> groupNeighbors
+                                                |> getGroupBorderingPlayers model.grid { x = cell.x, y = cell.y }
+                                    in
+                                    List.any
+                                        (\player ->
+                                            case player of
+                                                Just playerId ->
+                                                    playerId == model.activePlayer
+
+                                                Nothing ->
+                                                    False
+                                        )
+                                        borderingPlayers
+        )
+        borderingCells
+        /= []

@@ -300,8 +300,8 @@ groupNeighbors cells =
         cells
 
 
-getGroupBorderingPlayers : List (List Cell) -> List (List Cell) -> Loc -> List (Maybe Int)
-getGroupBorderingPlayers grid groups loc =
+getGroupBorderingPlayers : List (List Cell) -> Loc -> List (List Cell) -> List (Maybe Int)
+getGroupBorderingPlayers grid loc groups =
     let
         group : Maybe (List Cell)
         group =
