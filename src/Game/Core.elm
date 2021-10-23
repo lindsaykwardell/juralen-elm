@@ -172,10 +172,10 @@ isInRange model cell =
         > 0
         && model.selectedCell
         /= { x = cell.x, y = cell.y }
-        && targetCellIsBordering model cell
         && Juralen.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+        && targetCellIsBordering model cell
 
 
 allCellsInRange : Model -> List Cell
@@ -219,13 +219,58 @@ targetCellIsBordering model cell =
                 Just c ->
                     case c.controlledBy of
                         Just playerId ->
-                            playerId == model.activePlayer
+                            let
+                                borderingForests : List (Maybe Cell)
+                                borderingForests =
+                                    getBorderCells model.grid { x = cell.x, y = cell.y }
+                                        |> List.filter
+                                            (\maybeCell ->
+                                                case maybeCell of
+                                                    Nothing ->
+                                                        False
+
+                                                    Just f ->
+                                                        f.cellType == Juralen.CellType.Forest
+                                            )
+
+                                borderingPlayers =
+                                    List.foldl
+                                        (\maybeCell players ->
+                                            case maybeCell of
+                                                Nothing ->
+                                                    players
+
+                                                Just f ->
+                                                    (model.grid
+                                                        |> ofType Juralen.CellType.Forest
+                                                        |> groupNeighbors
+                                                        |> getGroupBorderingPlayers model.grid { x = f.x, y = f.y }
+                                                    )
+                                                        ++ players
+                                        )
+                                        []
+                                        borderingForests
+                            in
+                            playerId
+                                == model.activePlayer
+                                || List.any
+                                    (\player ->
+                                        case player of
+                                            Just pid ->
+                                                pid == model.activePlayer
+
+                                            Nothing ->
+                                                False
+                                    )
+                                    borderingPlayers
 
                         Nothing ->
                             case c.cellType of
                                 Juralen.CellType.Mountain ->
                                     False
 
+                                Juralen.CellType.Plains ->
+                                    True
                                 _ ->
                                     let
                                         borderingPlayers =

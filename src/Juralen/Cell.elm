@@ -300,14 +300,14 @@ groupNeighbors cells =
         cells
 
 
+getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
+getGroup groups loc =
+    List.Extra.find (\g -> List.Extra.find (\cell -> cell.x == loc.x && cell.y == loc.y) g /= Nothing) groups
+
+
 getGroupBorderingPlayers : List (List Cell) -> Loc -> List (List Cell) -> List (Maybe Int)
 getGroupBorderingPlayers grid loc groups =
-    let
-        group : Maybe (List Cell)
-        group =
-            List.Extra.find (\g -> List.Extra.find (\cell -> cell.x == loc.x && cell.y == loc.y) g /= Nothing) groups
-    in
-    case group of
+    case getGroup groups loc of
         Nothing ->
             []
 
