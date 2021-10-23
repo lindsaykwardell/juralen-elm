@@ -28,7 +28,7 @@ type Msg
 
 settingsModal : DisplaySettings -> Html Msg
 settingsModal settings =
-    div [ class "fixed flex justify-center items-center h-screen w-screen" ]
+    div [ class "fixed flex justify-center items-center h-screen w-screen z-20" ]
         [ div [ class "fixed bg-juralen-transparent z-30 h-screen w-screen", onClick CloseSettings ]
             []
         , div [ class "bg-gray-600 z-40 w-11/12 md:w-1/3" ]
@@ -43,7 +43,7 @@ settingsModal settings =
                 ]
             , div [ class "flex flex-col p-5" ]
                 (List.concat
-                    [ [ div [ class "text-xl text-center" ]
+                    [ [ div [ class "text-xl text-center text-white" ]
                             [ text
                                 (if settings.gameStatus == Game.Core.CompletedGame then
                                     "Game over!"
