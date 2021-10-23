@@ -278,7 +278,7 @@ groupNeighbors cells =
                                                 west =
                                                     { loc | x = loc.x - 1 }
                                             in
-                                            (loc == groupLoc) || (north == groupLoc) || (south == groupLoc) || (east == groupLoc) || (west == groupLoc)
+                                            cell.controlledBy == cellInGroup.controlledBy && ((loc == groupLoc) || (north == groupLoc) || (south == groupLoc) || (east == groupLoc) || (west == groupLoc))
                                         )
                                         group
                                         /= Nothing
