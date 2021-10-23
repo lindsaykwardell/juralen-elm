@@ -105,10 +105,6 @@ analyzeResearchOptions model =
 analyzeMoves : Core.Model -> List Option
 analyzeMoves model =
     let
-        actions : Float
-        actions =
-            (Core.currentPlayerStats model).actions
-
         myUnits =
             Juralen.Unit.controlledBy model.units model.activePlayer
 
