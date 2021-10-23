@@ -271,7 +271,7 @@ view model =
         [ Icon.css
         , div
             [ class
-                ("fixed h-screen w-screen pointer-events-none z-20 bg-juralen transition-opacity ease-in-out duration-150"
+                ("fixed h-screen w-screen pointer-events-none z-50 bg-juralen transition-opacity ease-in-out duration-150"
                     ++ (if not model.inTransition then
                             " opacity-0"
 

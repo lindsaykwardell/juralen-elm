@@ -168,6 +168,10 @@ canAfford model unitType =
 
 isInRange : Model -> Cell -> Bool
 isInRange model cell =
+    let
+        isWizardSelected =
+            List.any (\unitId -> (Juralen.Unit.fromId model.units unitId).unitType == Juralen.UnitType.Wizard) model.selectedUnits
+    in
     List.length model.selectedUnits
         > 0
         && model.selectedCell
@@ -175,7 +179,7 @@ isInRange model cell =
         && Juralen.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
-        && targetCellIsBordering model cell
+        && (isWizardSelected || targetCellIsBordering model cell)
 
 
 allCellsInRange : Model -> List Cell
@@ -271,6 +275,7 @@ targetCellIsBordering model cell =
 
                                 Juralen.CellType.Plains ->
                                     True
+
                                 _ ->
                                     let
                                         borderingPlayers =
