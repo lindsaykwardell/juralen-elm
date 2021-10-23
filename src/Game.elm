@@ -6,14 +6,14 @@ import Game.Analyzer exposing (analyze)
 import Game.Combat
 import Game.Core exposing (..)
 import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
-import Html.Attributes exposing (class, src, style)
+import Html.Attributes exposing (class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
 import Juralen.Analysis
 import Juralen.Cell exposing (Cell, Loc, groupNeighbors, ofType)
 import Juralen.CellType
 import Juralen.Grid exposing (Grid)
-import Juralen.Player exposing (NewPlayer, Player)
+import Juralen.Player exposing (NewPlayer, Player, isHuman)
 import Juralen.PlayerColor
 import Juralen.Resources exposing (Resources)
 import Juralen.Structure
@@ -995,15 +995,20 @@ shouldCombatStart units playerIdList =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ if model.activePlayer /= -1 then
-            div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
-                [ button [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200", onClick EndTurn ] [ text "End Turn" ]
-                , button [ class "py-1 w-1/3 mx-2 lg:p-2 w-full lg:w-[150px] text-white bg-transparent border-2 border-green-500 hover:border-green-200 hover:bg-[rgba(255,255,255,0.1)]", onClick OpenSettings ] [ text "Settings" ]
+    div [ class "" ]
+        [ div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
+            [ button
+                [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200 disabled:bg-green-300 disabled:hover:bg-green-300 disabled:cursor-default"
+                , disabled (not (isHuman model.players model.activePlayer))
+                , onClick EndTurn
                 ]
-
-          else
-            text ""
+                [ text "End Turn" ]
+            , button
+                [ class "py-1 w-1/3 mx-2 lg:p-2 w-full lg:w-[150px] text-white bg-transparent border-2 border-green-500 hover:border-green-200 hover:bg-[rgba(255,255,255,0.1)]"
+                , onClick OpenSettings
+                ]
+                [ text "Settings" ]
+            ]
         , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]
             [ div [ class "w-full lg:w-3/5 p-3" ]
