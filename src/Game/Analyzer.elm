@@ -432,7 +432,7 @@ scoreOption model option =
                                     -100
 
                                 else
-                                    100 - Core.getPlayerScore model playerId
+                                    150 - Core.getPlayerScore model playerId
                                         + (if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
                                             if
                                                 analyzer == Passive
