@@ -49,9 +49,8 @@ cost unitType =
 moveCost : UnitType -> Float
 moveCost unitType =
     case unitType of
-        Wizard ->
-            0.25
-
+        -- Wizard ->
+        --     0.25
         _ ->
             1
 

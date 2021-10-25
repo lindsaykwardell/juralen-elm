@@ -94,7 +94,7 @@ update msg model =
 
         UpdateAuthStatus currentAuthStatus ->
             if currentAuthStatus then
-                update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
+                update (InitChangePage Home) model
 
             else if model.page /= Splash then
                 update (InitChangePage Splash) model

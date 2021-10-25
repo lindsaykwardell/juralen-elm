@@ -1293,27 +1293,8 @@ upgradeCellList model =
 
               else
                 text ""
-            , case getPlayerTechTree model.players model.activePlayer |> .levelOne of
-                Nothing ->
-                    text ""
-
-                Just tech ->
-                    let
-                        buttonText =
-                            if tech == TechTree.BuildFarms then
-                                "Build Farm (2)"
-
-                            else
-                                "Build Tower (2)"
-
-                        action =
-                            if tech == TechTree.BuildFarms then
-                                Juralen.Analysis.BuildFarm
-
-                            else
-                                Juralen.Analysis.BuildTower
-                    in
-                    button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell action) ] [ text buttonText ]
+            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Juralen.Analysis.BuildFarm) ] [ text "Build Farm (2)" ]
+            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Juralen.Analysis.BuildTower) ] [ text "Build Tower (2)" ]
             ]
         )
 

@@ -48,21 +48,21 @@ analyzeUpgrades model =
         targetCells =
             List.filter (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Nothing) (toList model.grid)
 
-        levelOneTech : Maybe TechTree.LevelOne
-        levelOneTech =
-            Core.getPlayerTechTree model.players model.activePlayer |> .levelOne
+        -- levelOneTech : Maybe TechTree.LevelOne
+        -- levelOneTech =
+        --     Core.getPlayerTechTree model.players model.activePlayer |> .levelOne
     in
     List.concat
-        [ if levelOneTech == Just TechTree.BuildFarms then
-            checkCellForUpgrades Juralen.Analysis.BuildFarm targetCells []
+        [ -- if levelOneTech == Just TechTree.BuildFarms then
+          checkCellForUpgrades Juralen.Analysis.BuildFarm targetCells []
 
-          else
-            []
-        , if levelOneTech == Just TechTree.BuildActions then
-            checkCellForUpgrades Juralen.Analysis.BuildTower targetCells []
+        --   else
+        --     []
+        -- , if levelOneTech == Just TechTree.BuildActions then
+        , checkCellForUpgrades Juralen.Analysis.BuildTower targetCells []
 
-          else
-            []
+        --   else
+        --     []
         , checkCellForUpgrades Juralen.Analysis.RepairDefense targetCells []
         ]
 
@@ -330,21 +330,13 @@ scoreOption model option =
                 targetCell =
                     Juralen.Cell.atLoc model.grid toLoc
 
-                borderingPlayers =
-                    getBorderingPlayers model.grid { x = targetCell.x, y = targetCell.y }
+                isAttack =
+                    case targetCell.controlledBy of
+                        Nothing ->
+                            False
 
-                targetCellIsBoardering =
-                    List.filter
-                        (\player ->
-                            case player of
-                                Nothing ->
-                                    True
-
-                                Just p ->
-                                    p == model.activePlayer
-                        )
-                        borderingPlayers
-                        /= []
+                        Just playerId ->
+                            playerId /= model.activePlayer
 
                 score =
                     10
@@ -355,13 +347,6 @@ scoreOption model option =
 
                            else
                             2
-                          )
-                        -- Don't move if it's not boardering
-                        - (if targetCellIsBoardering then
-                            0
-
-                           else
-                            1000
                           )
                         -- Don't move units without moves left
                         - (if List.any (\unit -> unit.movesLeft <= 0) units then
@@ -374,6 +359,9 @@ scoreOption model option =
                         - Juralen.Cell.getDistance option.loc toLoc
                         * (if analyzer == Defensive || analyzer == Expansionist then
                             3
+
+                           else if isAttack then
+                            2
 
                            else
                             1
@@ -480,18 +468,6 @@ scoreOption model option =
                            else
                             0
                           )
-
-                isAttack =
-                    case targetCell.controlledBy of
-                        Nothing ->
-                            False
-
-                        Just playerId ->
-                            if playerId == model.activePlayer then
-                                False
-
-                            else
-                                True
             in
             { option
                 | score = score
@@ -532,28 +508,24 @@ scoreOption model option =
 
             else
                 case research.tech of
-                    LevelOne tech ->
-                        case tech of
-                            TechTree.BuildFarms ->
-                                { option
-                                    | score =
-                                        if analyzer == Aggressive || analyzer == Expansionist then
-                                            1000
-
-                                        else
-                                            150 + (stats.units * 10) - (stats.farms * 10)
-                                }
-
-                            TechTree.BuildActions ->
-                                { option
-                                    | score =
-                                        if analyzer == Default then
-                                            1000
-
-                                        else
-                                            150 + (50 - (stats.towns * 10) - (stats.units * 10))
-                                }
-
+                    -- LevelOne tech ->
+                    -- case tech of
+                    --     TechTree.BuildFarms ->
+                    --         { option
+                    --             | score =
+                    --                 if analyzer == Aggressive || analyzer == Expansionist then
+                    --                     1000
+                    --                 else
+                    --                     150 + (stats.units * 10) - (stats.farms * 10)
+                    --         }
+                    --     TechTree.BuildActions ->
+                    --         { option
+                    --             | score =
+                    --                 if analyzer == Default then
+                    --                     1000
+                    --                 else
+                    --                     150 + (50 - (stats.towns * 10) - (stats.units * 10))
+                    --         }
                     LevelTwo tech ->
                         case tech of
                             TechTree.BuildArchers ->

@@ -10,8 +10,8 @@ type alias TechTree =
 
 
 type TechLevel
-    = LevelOne LevelOne
-    | LevelTwo LevelTwo
+    -- = LevelOne LevelOne
+    = LevelTwo LevelTwo
     | LevelThree LevelThree
     | LevelFour LevelFour
 
@@ -55,10 +55,10 @@ empty =
 
 nextAvailableTech : TechTree -> List TechDescription
 nextAvailableTech techTree =
-    if techTree.levelOne == Nothing then
-        [ techDescription (LevelOne BuildFarms), techDescription (LevelOne BuildActions) ]
+    -- if techTree.levelOne == Nothing then
+    --     [ techDescription (LevelOne BuildFarms), techDescription (LevelOne BuildActions) ]
 
-    else if techTree.levelTwo == Nothing then
+    if techTree.levelTwo == Nothing then
         [ techDescription (LevelTwo BuildWarriors), techDescription (LevelTwo BuildArchers) ]
 
     else if techTree.levelThree == Nothing then
@@ -74,8 +74,8 @@ nextAvailableTech techTree =
 research : TechTree -> TechLevel -> TechTree
 research techTree level =
     case level of
-        LevelOne tech ->
-            { techTree | levelOne = Just tech }
+        -- LevelOne tech ->
+        --     { techTree | levelOne = Just tech }
 
         LevelTwo tech ->
             { techTree | levelTwo = Just tech }
@@ -90,8 +90,8 @@ research techTree level =
 techCost : TechLevel -> Int
 techCost level =
     case level of
-        LevelOne _ ->
-            3
+        -- LevelOne _ ->
+        --     3
 
         LevelTwo _ ->
             5
@@ -106,13 +106,13 @@ techCost level =
 techDescription : TechLevel -> TechDescription
 techDescription level =
     case level of
-        LevelOne levelOne ->
-            case levelOne of
-                BuildFarms ->
-                    { name = "Build Farms", description = "Build more farms in your towns and citadel.", cost = techCost level, tech = level }
+        -- LevelOne levelOne ->
+        --     case levelOne of
+        --         BuildFarms ->
+        --             { name = "Build Farms", description = "Build more farms in your towns and citadel.", cost = techCost level, tech = level }
 
-                BuildActions ->
-                    { name = "Build Towers", description = "Build towers to generate more actions.", cost = techCost level, tech = level }
+        --         BuildActions ->
+        --             { name = "Build Towers", description = "Build towers to generate more actions.", cost = techCost level, tech = level }
 
         LevelTwo levelTwo ->
             case levelTwo of
