@@ -386,7 +386,7 @@ scoreOption model option =
 
                                 Just playerId ->
                                     if playerId == model.activePlayer then
-                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 0 then
+                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 1 then
                                             120
 
                                         else
@@ -458,16 +458,16 @@ scoreOption model option =
                           )
                         -- Should we move everyone in this cell? Do we really need more farms?
                         -- Defending territory is preferable if we can get away with it
-                        + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
-                            if stats.farms == stats.units then
-                                10
+                        -- + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
+                        --     if stats.farms == stats.units then
+                        --         10
 
-                            else
-                                -1000
+                        --     else
+                        --         -1000
 
-                           else
-                            0
-                          )
+                        --    else
+                        --     0
+                        --   )
             in
             { option
                 | score = score
@@ -677,7 +677,7 @@ scoreOption model option =
                 Juralen.Analysis.BuildFarm ->
                     { option
                         | score =
-                            if stats.gold < 2 || cell.farms >= 4 then
+                            if stats.gold < 2 then
                                 -1000
 
                             else
@@ -687,7 +687,7 @@ scoreOption model option =
                 Juralen.Analysis.BuildTower ->
                     { option
                         | score =
-                            if stats.gold < 2 || cell.towers >= 4 then
+                            if stats.gold < 2 then
                                 -1000
 
                             else

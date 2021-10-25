@@ -55,11 +55,12 @@ randomDefinedMax max =
 
 winningScore : Model -> Int
 winningScore model =
-    let
-        cellCount =
-            toFloat ((model.init.maxX + 1) * (model.init.maxY + 1))
-    in
-    round (cellCount / 1.625)
+    -- let
+    --     cellCount =
+    --         toFloat ((model.init.maxX + 1) * (model.init.maxY + 1))
+    -- in
+    -- round (cellCount / 1.625)
+    999999999
 
 
 getNextActivePlayer : List Player -> List Player -> Int -> Player
@@ -1167,7 +1168,7 @@ activePlayerCard : Game.Core.Model -> Html Msg
 activePlayerCard model =
     if model.activePlayer /= -1 then
         div [ class ("sticky top-0 text-center p-1 text-lg lg:text-xl " ++ Juralen.Player.getColorClass model.players (Just model.activePlayer)) ]
-            [ text (Juralen.Player.getName model.players (Just model.activePlayer) ++ "'s turn (" ++ String.fromInt (Game.Core.getPlayerScore model model.activePlayer) ++ "/" ++ String.fromInt (winningScore model) ++ " points)")
+            [ text (Juralen.Player.getName model.players (Just model.activePlayer) ++ "'s turn (" ++ String.fromInt (Game.Core.getPlayerScore model model.activePlayer) ++ " points)")
             , div [ class "flex w-full lg:w-2/3 m-auto" ]
                 [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
                 , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]
