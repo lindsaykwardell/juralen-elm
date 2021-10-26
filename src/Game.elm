@@ -5,6 +5,7 @@ import Components.ZoomButtons.ZoomButtons exposing (zoomButtons)
 import Game.Analyzer exposing (analyze)
 import Game.Combat
 import Game.Core exposing (..)
+import Game.Scoreboard as Scoreboard
 import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
 import Html.Attributes exposing (class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
@@ -1076,7 +1077,11 @@ view model =
                             model.grid
                         )
                     ]
-                , zoomButtons [ class "mt-1 flex justify-end" ] []
+                , --zoomButtons [ class "mt-1 flex justify-end" ] []
+                  div [ class "flex" ]
+                    [ Scoreboard.view model
+                    , zoomButtons [ class "mt-1 flex justify-end" ] []
+                    ]
                 ]
             , div [ class "hidden lg:block lg:w-2/5 p-3" ]
                 [ selectedCellCard model
