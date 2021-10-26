@@ -432,7 +432,7 @@ scoreOption model option =
                                     -100
 
                                 else
-                                    150 - Core.getPlayerScore model playerId
+                                    abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
                                         + (if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
                                             if
                                                 analyzer == Passive
@@ -456,18 +456,17 @@ scoreOption model option =
                                             50
                                           )
                           )
-                        -- Should we move everyone in this cell? Do we really need more farms?
-                        -- Defending territory is preferable if we can get away with it
-                        -- + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
-                        --     if stats.farms == stats.units then
-                        --         10
 
-                        --     else
-                        --         -1000
-
-                        --    else
-                        --     0
-                        --   )
+                -- Should we move everyone in this cell? Do we really need more farms?
+                -- Defending territory is preferable if we can get away with it
+                -- + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
+                --     if stats.farms == stats.units then
+                --         10
+                --     else
+                --         -1000
+                --    else
+                --     0
+                --   )
             in
             { option
                 | score = score
