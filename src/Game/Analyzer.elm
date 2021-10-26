@@ -434,20 +434,31 @@ scoreOption model option =
                                 else
                                     abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
                                         + (if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
-                                            if
-                                                analyzer == Passive
-                                                -- || isOnlyPriests
-                                            then
+                                            if analyzer == Passive then
                                                 -1000
 
                                             else
-                                                List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
-                                                    0
-                                                    (List.map (\unit -> unit.unitType) units)
-                                                    - List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
-                                                        0
-                                                        (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
-                                                    - targetCell.defBonus
+                                                let
+                                                    attackerThreat =
+                                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
+                                                            0
+                                                            (List.map (\unit -> unit.unitType) units)
+
+                                                    defenderThreat =
+                                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
+                                                            0
+                                                            (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
+
+                                                    defBonus =
+                                                        targetCell.defBonus
+                                                in
+                                                -- Don't attack if you're weaker than the enemy
+                                                -- Doesn't account for everything, but that's intentional
+                                                if attackerThreat < defenderThreat then
+                                                    -1000
+
+                                                else
+                                                    attackerThreat - defenderThreat - defBonus
 
                                            else if analyzer == Aggressive then
                                             100
