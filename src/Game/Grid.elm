@@ -1,7 +1,7 @@
-module Juralen.Grid exposing (..)
+module Game.Grid exposing (..)
 
-import Juralen.Cell exposing (Cell, Loc, getDistance)
-import Juralen.Structure
+import Game.Cell exposing (Cell, Loc, getDistance)
+import Game.Structure
 
 
 type alias Grid =
@@ -112,13 +112,13 @@ farmCountControlledBy grid playerId =
 
                                                 Just structure ->
                                                     case structure of
-                                                        Juralen.Structure.Town ->
+                                                        Game.Structure.Town ->
                                                             1
 
-                                                        Juralen.Structure.Citadel ->
+                                                        Game.Structure.Citadel ->
                                                             2
 
-                                                        Juralen.Structure.None ->
+                                                        Game.Structure.None ->
                                                             0
                                               )
 

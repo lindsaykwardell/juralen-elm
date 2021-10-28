@@ -4,9 +4,9 @@ import Array
 import Html exposing (Html, button, div, h1, input, label, option, select, text)
 import Html.Attributes exposing (checked, class, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
-import Juralen.AnalyzerMode exposing (AnalyzerMode)
-import Juralen.Player exposing (NewPlayer)
-import Juralen.PlayerColor exposing (PlayerColor)
+import Game.AnalyzerMode exposing (AnalyzerMode)
+import Game.Player exposing (NewPlayer)
+import Game.PlayerColor exposing (PlayerColor)
 import Random
 
 
@@ -61,7 +61,7 @@ randomDefinedMax max =
 init : ( Model, Cmd Msg )
 init =
     ( { newPlayerList =
-            [ { id = 1, name = "Player 1", isHuman = True, color = Juralen.PlayerColor.Red, analyzer = Juralen.AnalyzerMode.Default }
+            [ { id = 1, name = "Player 1", isHuman = True, color = Game.PlayerColor.Red, analyzer = Game.AnalyzerMode.Default }
             ]
       , nextId = 2
       , aiSpeed = 250
@@ -83,7 +83,7 @@ firstAvailableColor colorList selectedColors =
                 color
 
         _ ->
-            Juralen.PlayerColor.None
+            Game.PlayerColor.None
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -127,7 +127,7 @@ update msg model =
                     List.map
                         (\newPlayer ->
                             if newPlayer.id == id then
-                                { newPlayer | color = Juralen.PlayerColor.fromString color }
+                                { newPlayer | color = Game.PlayerColor.fromString color }
 
                             else
                                 newPlayer
@@ -143,22 +143,22 @@ update msg model =
                 analyzer =
                     case analyzerName of
                         "DEFAULT" ->
-                            Juralen.AnalyzerMode.Default
+                            Game.AnalyzerMode.Default
 
                         "AGGRESSIVE" ->
-                            Juralen.AnalyzerMode.Aggressive
+                            Game.AnalyzerMode.Aggressive
 
                         "DEFENSIVE" ->
-                            Juralen.AnalyzerMode.Defensive
+                            Game.AnalyzerMode.Defensive
 
                         "PASSIVE" ->
-                            Juralen.AnalyzerMode.Passive
+                            Game.AnalyzerMode.Passive
 
                         "EXPANSIONIST" ->
-                            Juralen.AnalyzerMode.Expansionist
+                            Game.AnalyzerMode.Expansionist
 
                         _ ->
-                            Juralen.AnalyzerMode.Default
+                            Game.AnalyzerMode.Default
 
                 newPlayerList : List NewPlayer
                 newPlayerList =
@@ -221,10 +221,10 @@ update msg model =
 
                     color : PlayerColor
                     color =
-                        firstAvailableColor Juralen.PlayerColor.toList (List.map (\player -> player.color) model.newPlayerList)
+                        firstAvailableColor Game.PlayerColor.toList (List.map (\player -> player.color) model.newPlayerList)
 
                     newPlayer =
-                        { id = model.nextId, name = "Player " ++ String.fromInt model.nextId, isHuman = False, color = color, analyzer = Juralen.AnalyzerMode.Default }
+                        { id = model.nextId, name = "Player " ++ String.fromInt model.nextId, isHuman = False, color = color, analyzer = Game.AnalyzerMode.Default }
 
                     newPlayerList =
                         model.newPlayerList ++ [ newPlayer ]
@@ -243,19 +243,19 @@ update msg model =
 
                         analyzerMode =
                             if randomNumber // 2 == 1 then
-                                Juralen.AnalyzerMode.Expansionist
+                                Game.AnalyzerMode.Expansionist
 
                             else if randomNumber // 3 == 1 then
-                                Juralen.AnalyzerMode.Passive
+                                Game.AnalyzerMode.Passive
 
                             else if randomNumber // 4 == 1 then
-                                Juralen.AnalyzerMode.Defensive
+                                Game.AnalyzerMode.Defensive
 
                             else if randomNumber // 5 == 1 then
-                                Juralen.AnalyzerMode.Aggressive
+                                Game.AnalyzerMode.Aggressive
 
                             else
-                                Juralen.AnalyzerMode.Default
+                                Game.AnalyzerMode.Default
                     in
                     if nameExists then
                         ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (Array.length nameList - 1)) )
@@ -362,11 +362,11 @@ newPlayerInput selectedColors player =
         , div [ class "flex-1 flex flex-col lg:flex-row items-center mx-1 w-full lg:w-auto" ]
             [ label [ class "text-white" ] [ text "Analyzer" ]
             , select [ class "p-2 lg:ml-3 rounded w-full lg:w-auto", onInput (UpdateAnalyzer player.id) ]
-                [ option [ value "DEFAULT", selected (player.analyzer == Juralen.AnalyzerMode.Default) ] [ text "Default" ]
-                , option [ value "AGGRESSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Aggressive) ] [ text "Aggressive" ]
-                , option [ value "DEFENSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Defensive) ] [ text "Defensive" ]
-                , option [ value "PASSIVE", selected (player.analyzer == Juralen.AnalyzerMode.Passive) ] [ text "Passive" ]
-                , option [ value "EXPANSIONIST", selected (player.analyzer == Juralen.AnalyzerMode.Expansionist) ] [ text "Expansionist" ]
+                [ option [ value "DEFAULT", selected (player.analyzer == Game.AnalyzerMode.Default) ] [ text "Default" ]
+                , option [ value "AGGRESSIVE", selected (player.analyzer == Game.AnalyzerMode.Aggressive) ] [ text "Aggressive" ]
+                , option [ value "DEFENSIVE", selected (player.analyzer == Game.AnalyzerMode.Defensive) ] [ text "Defensive" ]
+                , option [ value "PASSIVE", selected (player.analyzer == Game.AnalyzerMode.Passive) ] [ text "Passive" ]
+                , option [ value "EXPANSIONIST", selected (player.analyzer == Game.AnalyzerMode.Expansionist) ] [ text "Expansionist" ]
                 ]
             ]
         , div [ class "flex-1 flex flex-col lg:flex-row items-center mx-1 w-full lg:w-auto m-2 lg:m-0" ]
@@ -375,8 +375,8 @@ newPlayerInput selectedColors player =
             , select
                 [ class
                     ("p-2 lg:mx-3 rounded w-32 w-full "
-                        ++ Juralen.PlayerColor.toClass player.color
-                        ++ (if Juralen.PlayerColor.isDark player.color then
+                        ++ Game.PlayerColor.toClass player.color
+                        ++ (if Game.PlayerColor.isDark player.color then
                                 ""
 
                             else
@@ -388,11 +388,11 @@ newPlayerInput selectedColors player =
                 (List.map
                     (\playerColor ->
                         option
-                            [ value (Juralen.PlayerColor.toString playerColor)
+                            [ value (Game.PlayerColor.toString playerColor)
                             , selected (playerColor == player.color)
-                            , class (Juralen.PlayerColor.toClass playerColor)
+                            , class (Game.PlayerColor.toClass playerColor)
                             ]
-                            [ text (playerColor |> Juralen.PlayerColor.toString |> String.toUpper) ]
+                            [ text (playerColor |> Game.PlayerColor.toString |> String.toUpper) ]
                     )
                     (List.filter
                         (\color ->
@@ -400,7 +400,7 @@ newPlayerInput selectedColors player =
                                 == player.color
                                 || not (List.foldl (\selectedColor found -> found || selectedColor == color) False selectedColors)
                         )
-                        Juralen.PlayerColor.toList
+                        Game.PlayerColor.toList
                     )
                 )
             ]

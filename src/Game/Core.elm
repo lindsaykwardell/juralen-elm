@@ -1,15 +1,15 @@
 module Game.Core exposing (..)
 
 import Game.Combat
-import Juralen.Analysis exposing (Option)
-import Juralen.AnalyzerMode exposing (AnalyzerMode)
-import Juralen.Cell exposing (Cell, Loc, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
-import Juralen.CellType
-import Juralen.Grid exposing (Grid)
-import Juralen.Player exposing (NewPlayer, Player)
-import Juralen.TechTree exposing (TechTree)
-import Juralen.Unit exposing (Unit)
-import Juralen.UnitType exposing (UnitType)
+import Game.Analysis exposing (Option)
+import Game.AnalyzerMode exposing (AnalyzerMode)
+import Game.Cell exposing (Cell, Loc, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
+import Game.CellType
+import Game.Grid exposing (Grid)
+import Game.Player exposing (NewPlayer, Player)
+import Game.TechTree exposing (TechTree)
+import Game.Unit exposing (Unit)
+import Game.UnitType exposing (UnitType)
 import Process
 import Task
 
@@ -72,10 +72,10 @@ currentPlayerStats model =
 
 playerStats : Model -> Int -> PlayerStats
 playerStats model playerId =
-    { gold = (Juralen.Player.getResources model.players playerId).gold
-    , actions = (Juralen.Player.getResources model.players playerId).actions
-    , farms = Juralen.Grid.farmCountControlledBy model.grid playerId
-    , towns = Juralen.Grid.townCountControlledBy model.grid playerId
+    { gold = (Game.Player.getResources model.players playerId).gold
+    , actions = (Game.Player.getResources model.players playerId).actions
+    , farms = Game.Grid.farmCountControlledBy model.grid playerId
+    , towns = Game.Grid.townCountControlledBy model.grid playerId
     , units = List.length (List.filter (\unit -> unit.controlledBy == playerId) model.units)
     , techTree = getPlayerTechTree model.players playerId
     }
@@ -92,7 +92,7 @@ playerAnalyzer players playerId =
                 playerAnalyzer remainingPlayers playerId
 
         [] ->
-            Juralen.AnalyzerMode.Default
+            Game.AnalyzerMode.Default
 
 
 getPlayerScore : Model -> Int -> Int
@@ -141,14 +141,14 @@ getPlayerTechTree players playerId =
                 getPlayerTechTree remainingPlayers playerId
 
         [] ->
-            Juralen.TechTree.empty
+            Game.TechTree.empty
 
 
 getMoveCost : Model -> Float
 getMoveCost model =
     List.foldl
         (\id cost ->
-            cost + Juralen.UnitType.moveCost (Juralen.Unit.fromId model.units id).unitType
+            cost + Game.UnitType.moveCost (Game.Unit.fromId model.units id).unitType
         )
         0
         model.selectedUnits
@@ -161,7 +161,7 @@ canAfford model unitType =
             currentPlayerStats model
 
         unitCost =
-            Juralen.UnitType.cost unitType
+            Game.UnitType.cost unitType
     in
     stats.units < stats.farms && unitCost <= stats.gold
 
@@ -170,15 +170,15 @@ isInRange : Model -> Cell -> Bool
 isInRange model cell =
     -- let
     --     isWizardSelected =
-    --         List.any (\unitId -> (Juralen.Unit.fromId model.units unitId).unitType == Juralen.UnitType.Wizard) model.selectedUnits
+    --         List.any (\unitId -> (Game.Unit.fromId model.units unitId).unitType == Game.UnitType.Wizard) model.selectedUnits
     -- in
     List.length model.selectedUnits
         > 0
         && model.selectedCell
         /= { x = cell.x, y = cell.y }
-        && Juralen.CellType.isPassable cell.cellType
+        && Game.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
-        >= (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+        >= (Basics.toFloat (Game.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
         && (targetCellIsBordering model cell)
 
 
@@ -234,7 +234,7 @@ targetCellIsBordering model cell =
                                                         False
 
                                                     Just f ->
-                                                        f.cellType == Juralen.CellType.Forest
+                                                        f.cellType == Game.CellType.Forest
                                             )
 
                                 borderingPlayers =
@@ -246,7 +246,7 @@ targetCellIsBordering model cell =
 
                                                 Just f ->
                                                     (model.grid
-                                                        |> ofType Juralen.CellType.Forest
+                                                        |> ofType Game.CellType.Forest
                                                         |> groupNeighbors
                                                         |> getGroupBorderingPlayers model.grid { x = f.x, y = f.y }
                                                     )
@@ -270,10 +270,10 @@ targetCellIsBordering model cell =
 
                         Nothing ->
                             case c.cellType of
-                                Juralen.CellType.Mountain ->
+                                Game.CellType.Mountain ->
                                     False
 
-                                Juralen.CellType.Plains ->
+                                Game.CellType.Plains ->
                                     True
 
                                 _ ->

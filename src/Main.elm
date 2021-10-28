@@ -10,12 +10,12 @@ import FontAwesome.Styles as Icon
 import FontAwesome.Transforms as Icon
 import Game
 import Game.Core as Core
+import Game.Player exposing (NewPlayer, revertToNewPlayer)
 import Game.Settings as Settings exposing (Settings, settingsModal)
 import Game.Update
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Juralen.Player exposing (NewPlayer, revertToNewPlayer)
 import Lobby
 import Process
 import Task

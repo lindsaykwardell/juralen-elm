@@ -4,16 +4,16 @@ import Array
 import Game.Analyzer exposing (analyze)
 import Game.Combat
 import Game.Core exposing (..)
-import Juralen.Analysis
-import Juralen.Cell exposing (Cell, Loc)
-import Juralen.CellType
-import Juralen.Grid exposing (Grid)
-import Juralen.Player exposing (NewPlayer, Player)
-import Juralen.Resources exposing (Resources)
-import Juralen.Structure
-import Juralen.TechTree as TechTree exposing (TechDescription, TechLevel(..))
-import Juralen.Unit exposing (Unit)
-import Juralen.UnitType exposing (InitialValues, UnitType)
+import Game.Analysis
+import Game.Cell exposing (Cell, Loc)
+import Game.CellType
+import Game.Grid exposing (Grid)
+import Game.Player exposing (NewPlayer, Player)
+import Game.Resources exposing (Resources)
+import Game.Structure
+import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
+import Game.Unit exposing (Unit)
+import Game.UnitType exposing (InitialValues, UnitType)
 import Random
 
 
@@ -33,9 +33,9 @@ type Msg
     | SelectUnit Int
     | MoveSelectedUnits Cell
     | ResearchTech TechDescription
-    | UpgradeCell Juralen.Analysis.UpgradeType
+    | UpgradeCell Game.Analysis.UpgradeType
     | GotCombatMsg Game.Combat.Msg
-    | PerformAction Juralen.Analysis.Option
+    | PerformAction Game.Analysis.Option
     | PerformAiTurn
     | EndTurn
     | EndGame
@@ -82,7 +82,7 @@ update msg model =
                         model.grid
 
                     else if model.init.currentY == 0 then
-                        model.grid ++ [ [ Juralen.Cell.generate loc roll ] ]
+                        model.grid ++ [ [ Game.Cell.generate loc roll ] ]
 
                     else
                         List.map
@@ -91,7 +91,7 @@ update msg model =
                                     row
 
                                 else
-                                    row ++ [ Juralen.Cell.generate loc roll ]
+                                    row ++ [ Game.Cell.generate loc roll ]
                             )
                             model.grid
 
@@ -121,7 +121,7 @@ update msg model =
                             model.nextId + 1
 
                         player =
-                            Juralen.Player.generate newPlayer model.nextId
+                            Game.Player.generate newPlayer model.nextId
 
                         players =
                             model.players ++ [ player ]
@@ -171,20 +171,20 @@ update msg model =
             let
                 cell : Maybe Cell
                 cell =
-                    Juralen.Cell.validStartingCell model.grid loc
+                    Game.Cell.validStartingCell model.grid loc
             in
             case cell of
                 Nothing ->
                     update (RollStartingLocX player nextPlayers) model
 
                 Just realCell ->
-                    if Juralen.Grid.distanceToEnemy model.grid { x = realCell.x, y = realCell.y } player.id <= 2 then
+                    if Game.Grid.distanceToEnemy model.grid { x = realCell.x, y = realCell.y } player.id <= 2 then
                         update (RollStartingLocX player nextPlayers) model
 
                     else
                         let
                             newGrid =
-                                Juralen.Grid.replaceCell model.grid (Juralen.Cell.updateControl (Juralen.Cell.buildStructure realCell Juralen.Structure.Citadel) player.id)
+                                Game.Grid.replaceCell model.grid (Game.Cell.updateControl (Game.Cell.buildStructure realCell Game.Structure.Citadel) player.id)
 
                             nextPlayer =
                                 List.head nextPlayers
@@ -199,7 +199,7 @@ update msg model =
 
                             newUnits : List Unit
                             newUnits =
-                                [ Juralen.Unit.buildUnit Juralen.UnitType.Soldier player.id loc model.nextId, Juralen.Unit.buildUnit Juralen.UnitType.Soldier player.id loc (model.nextId + 1), Juralen.Unit.buildUnit Juralen.UnitType.Soldier player.id loc (model.nextId + 2) ]
+                                [ Game.Unit.buildUnit Game.UnitType.Soldier player.id loc model.nextId, Game.Unit.buildUnit Game.UnitType.Soldier player.id loc (model.nextId + 1), Game.Unit.buildUnit Game.UnitType.Soldier player.id loc (model.nextId + 2) ]
 
                             nextModel =
                                 { model | grid = newGrid, units = model.units ++ newUnits, nextId = model.nextId + 3 }
@@ -266,9 +266,9 @@ update msg model =
                                 { unit
                                     | movesLeft =
                                         let
-                                            initialValues : Juralen.UnitType.InitialValues
+                                            initialValues : Game.UnitType.InitialValues
                                             initialValues =
-                                                Juralen.UnitType.initialValues unit.unitType
+                                                Game.UnitType.initialValues unit.unitType
                                         in
                                         initialValues.movesLeft
                                 }
@@ -283,7 +283,7 @@ update msg model =
 
         Analyze ->
             ( { model | analysisResults = analyze model }
-            , if (Juralen.Player.get model.players model.activePlayer).isHuman then
+            , if (Game.Player.get model.players model.activePlayer).isHuman then
                 Cmd.none
 
               else
@@ -297,11 +297,11 @@ update msg model =
             let
                 newResources : Resources
                 newResources =
-                    Juralen.Resources.spend (Juralen.Player.getResources model.players model.activePlayer) (Juralen.UnitType.cost unitType)
+                    Game.Resources.spend (Game.Player.getResources model.players model.activePlayer) (Game.UnitType.cost unitType)
 
                 newUnit : Unit
                 newUnit =
-                    Juralen.Unit.buildUnit unitType model.activePlayer model.selectedCell model.nextId
+                    Game.Unit.buildUnit unitType model.activePlayer model.selectedCell model.nextId
 
                 nextId : Int
                 nextId =
@@ -328,7 +328,7 @@ update msg model =
                 ( model, Cmd.none )
 
         SelectUnit unitId ->
-            if (Juralen.Unit.fromId model.units unitId).controlledBy /= model.activePlayer || (Juralen.Unit.fromId model.units unitId).movesLeft <= 0 then
+            if (Game.Unit.fromId model.units unitId).controlledBy /= model.activePlayer || (Game.Unit.fromId model.units unitId).movesLeft <= 0 then
                 ( model, Cmd.none )
 
             else
@@ -355,7 +355,7 @@ update msg model =
                 let
                     newResources : Resources
                     newResources =
-                        Juralen.Resources.useActions (Juralen.Player.getResources model.players model.activePlayer) (Basics.toFloat (Juralen.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+                        Game.Resources.useActions (Game.Player.getResources model.players model.activePlayer) (Basics.toFloat (Game.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
 
                     newPlayerList =
                         List.map
@@ -372,7 +372,7 @@ update msg model =
                         List.map
                             (\unit ->
                                 if
-                                    Juralen.Unit.isSelected model.selectedUnits unit.id
+                                    Game.Unit.isSelected model.selectedUnits unit.id
                                         && unit.x
                                         == model.selectedCell.x
                                         && unit.y
@@ -391,42 +391,42 @@ update msg model =
                     newCell =
                         if
                             cell.cellType
-                                == Juralen.CellType.Plains
-                                && List.length (Juralen.Unit.inCell model.units { x = cell.x, y = cell.y })
+                                == Game.CellType.Plains
+                                && List.length (Game.Unit.inCell model.units { x = cell.x, y = cell.y })
                                 <= 0
                         then
-                            Juralen.Cell.updateControl cell model.activePlayer
+                            Game.Cell.updateControl cell model.activePlayer
 
                         else
                             cell
 
                     newGrid =
-                        Juralen.Grid.replaceCell model.grid newCell
+                        Game.Grid.replaceCell model.grid newCell
 
                     newModel =
                         { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = [] }
                 in
-                if shouldCombatStart (Juralen.Unit.inCell newModel.units newModel.selectedCell) [] then
+                if shouldCombatStart (Game.Unit.inCell newModel.units newModel.selectedCell) [] then
                     let
                         combatModel : Game.Combat.Model
                         combatModel =
-                            { units = Juralen.Unit.inCell newModel.units newModel.selectedCell
+                            { units = Game.Unit.inCell newModel.units newModel.selectedCell
                             , deadUnits = []
-                            , attacker = Juralen.Unit.empty
-                            , defender = Juralen.Unit.empty
-                            , attackingPlayer = Juralen.Player.get newModel.players newModel.activePlayer
+                            , attacker = Game.Unit.empty
+                            , defender = Game.Unit.empty
+                            , attackingPlayer = Game.Player.get newModel.players newModel.activePlayer
                             , defendingPlayer =
-                                case Juralen.Cell.find newModel.grid newModel.selectedCell of
+                                case Game.Cell.find newModel.grid newModel.selectedCell of
                                     Nothing ->
-                                        Juralen.Player.empty
+                                        Game.Player.empty
 
                                     Just selectedCell ->
                                         case selectedCell.controlledBy of
                                             Nothing ->
-                                                Juralen.Player.empty
+                                                Game.Player.empty
 
                                             Just defendingPlayerId ->
-                                                Juralen.Player.get newModel.players defendingPlayerId
+                                                Game.Player.get newModel.players defendingPlayerId
                             , whoGoesFirst = Game.Combat.Attacker
                             , defBonus = 0
                             }
@@ -460,7 +460,7 @@ update msg model =
                         List.map
                             (\player ->
                                 if player.id == model.activePlayer then
-                                    { player | techTree = techTree, resources = Juralen.Resources.spend player.resources tech.cost }
+                                    { player | techTree = techTree, resources = Game.Resources.spend player.resources tech.cost }
 
                                 else
                                     player
@@ -475,7 +475,7 @@ update msg model =
                     Game.Core.currentPlayerStats model
             in
             case upgradeType of
-                Juralen.Analysis.BuildFarm ->
+                Game.Analysis.BuildFarm ->
                     if stats.gold < 2 then
                         ( model, Cmd.none )
 
@@ -485,7 +485,7 @@ update msg model =
                                 List.map
                                     (\player ->
                                         if player.id == model.activePlayer then
-                                            { player | resources = Juralen.Resources.spend player.resources 2 }
+                                            { player | resources = Game.Resources.spend player.resources 2 }
 
                                         else
                                             player
@@ -494,7 +494,7 @@ update msg model =
 
                             cell : Maybe Cell
                             cell =
-                                Juralen.Cell.find model.grid model.selectedCell
+                                Game.Cell.find model.grid model.selectedCell
 
                             grid : Grid
                             grid =
@@ -503,11 +503,11 @@ update msg model =
                                         model.grid
 
                                     Just aCell ->
-                                        Juralen.Grid.replaceCell model.grid { aCell | farms = aCell.farms + 1 }
+                                        Game.Grid.replaceCell model.grid { aCell | farms = aCell.farms + 1 }
                         in
                         update Analyze { model | players = players, grid = grid }
 
-                Juralen.Analysis.BuildTower ->
+                Game.Analysis.BuildTower ->
                     if stats.gold < 2 then
                         ( model, Cmd.none )
 
@@ -517,7 +517,7 @@ update msg model =
                                 List.map
                                     (\player ->
                                         if player.id == model.activePlayer then
-                                            { player | resources = Juralen.Resources.spend player.resources 2 }
+                                            { player | resources = Game.Resources.spend player.resources 2 }
 
                                         else
                                             player
@@ -526,7 +526,7 @@ update msg model =
 
                             cell : Maybe Cell
                             cell =
-                                Juralen.Cell.find model.grid model.selectedCell
+                                Game.Cell.find model.grid model.selectedCell
 
                             grid : Grid
                             grid =
@@ -535,11 +535,11 @@ update msg model =
                                         model.grid
 
                                     Just aCell ->
-                                        Juralen.Grid.replaceCell model.grid { aCell | towers = aCell.towers + 1 }
+                                        Game.Grid.replaceCell model.grid { aCell | towers = aCell.towers + 1 }
                         in
                         update Analyze { model | players = players, grid = grid }
 
-                Juralen.Analysis.RepairDefense ->
+                Game.Analysis.RepairDefense ->
                     if stats.gold < 1 then
                         ( model, Cmd.none )
 
@@ -549,7 +549,7 @@ update msg model =
                                 List.map
                                     (\player ->
                                         if player.id == model.activePlayer then
-                                            { player | resources = Juralen.Resources.spend player.resources 1 }
+                                            { player | resources = Game.Resources.spend player.resources 1 }
 
                                         else
                                             player
@@ -558,7 +558,7 @@ update msg model =
 
                             cell : Maybe Cell
                             cell =
-                                Juralen.Cell.find model.grid model.selectedCell
+                                Game.Cell.find model.grid model.selectedCell
 
                             grid : Grid
                             grid =
@@ -567,10 +567,10 @@ update msg model =
                                         model.grid
 
                                     Just aCell ->
-                                        Juralen.Grid.replaceCell model.grid
+                                        Game.Grid.replaceCell model.grid
                                             { aCell
                                                 | defBonus =
-                                                    if Juralen.Structure.initDef aCell.structure > aCell.defBonus then
+                                                    if Game.Structure.initDef aCell.structure > aCell.defBonus then
                                                         aCell.defBonus + 1
 
                                                     else
@@ -613,7 +613,7 @@ update msg model =
                                         )
 
                                 winner =
-                                    if List.length (Juralen.Unit.controlledBy combat.units combat.attackingPlayer.id) > 0 then
+                                    if List.length (Game.Unit.controlledBy combat.units combat.attackingPlayer.id) > 0 then
                                         combat.attackingPlayer
 
                                     else
@@ -666,13 +666,13 @@ update msg model =
 
         PerformAction option ->
             case option.action of
-                Juralen.Analysis.Move units toLoc ->
+                Game.Analysis.Move units toLoc ->
                     let
                         selectedUnits =
                             List.map (\unit -> unit.id) units
 
                         toCell =
-                            Juralen.Cell.find model.grid toLoc
+                            Game.Cell.find model.grid toLoc
                     in
                     case toCell of
                         Nothing ->
@@ -681,13 +681,13 @@ update msg model =
                         Just cell ->
                             update (MoveSelectedUnits cell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
 
-                Juralen.Analysis.Attack units toLoc ->
+                Game.Analysis.Attack units toLoc ->
                     let
                         selectedUnits =
                             List.map (\unit -> unit.id) units
 
                         toCell =
-                            Juralen.Cell.find model.grid toLoc
+                            Game.Cell.find model.grid toLoc
                     in
                     case toCell of
                         Nothing ->
@@ -696,13 +696,13 @@ update msg model =
                         Just cell ->
                             update (MoveSelectedUnits cell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
 
-                Juralen.Analysis.BuildUnit unitType ->
+                Game.Analysis.BuildUnit unitType ->
                     update (BuildUnit unitType) { model | selectedCell = option.loc }
 
-                Juralen.Analysis.Research tech ->
+                Game.Analysis.Research tech ->
                     update (ResearchTech tech) model
 
-                Juralen.Analysis.Upgrade upgradeType ->
+                Game.Analysis.Upgrade upgradeType ->
                     update (UpgradeCell upgradeType) { model | selectedCell = option.loc }
 
                 _ ->
@@ -727,7 +727,7 @@ update msg model =
                                     getPlayerScore model player.id
 
                                 hasLost =
-                                    Juralen.Grid.townCountControlledBy model.grid player.id <= 0
+                                    Game.Grid.townCountControlledBy model.grid player.id <= 0
                             in
                             { player | hasLost = hasLost, score = score }
                         )
@@ -747,7 +747,7 @@ update msg model =
 
                 priests : List Unit
                 priests =
-                    List.filter (\unit -> unit.unitType == Juralen.UnitType.Priest) model.units
+                    List.filter (\unit -> unit.unitType == Game.UnitType.Priest) model.units
 
                 priestLocs : List Loc
                 priestLocs =
@@ -876,7 +876,7 @@ getNextActivePlayer initialList players playerId =
                     [] ->
                         case List.head initialList of
                             Nothing ->
-                                Juralen.Player.empty
+                                Game.Player.empty
 
                             Just aPlayer ->
                                 aPlayer
@@ -887,7 +887,7 @@ getNextActivePlayer initialList players playerId =
         [] ->
             case List.head initialList of
                 Nothing ->
-                    Juralen.Player.empty
+                    Game.Player.empty
 
                 Just aPlayer ->
                     aPlayer
@@ -920,7 +920,7 @@ healUnits units inLocs =
                                 let
                                     initialValues : InitialValues
                                     initialValues =
-                                        Juralen.UnitType.initialValues unit.unitType
+                                        Game.UnitType.initialValues unit.unitType
 
                                     maxHealth : Int
                                     maxHealth =

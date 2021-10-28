@@ -1,9 +1,9 @@
 module Game.Combat exposing (..)
 
 import Array exposing (Array)
-import Juralen.Player exposing (Player)
-import Juralen.Unit exposing (Unit)
-import Juralen.UnitType
+import Game.Player exposing (Player)
+import Game.Unit exposing (Unit)
+import Game.UnitType
 import Process
 import Random
 import Task
@@ -61,10 +61,10 @@ update msg model =
             let
                 units =
                     if unitRole == Attacker then
-                        Juralen.Unit.controlledBy model.units model.attackingPlayer.id
+                        Game.Unit.controlledBy model.units model.attackingPlayer.id
 
                     else
-                        Juralen.Unit.controlledBy model.units model.defendingPlayer.id
+                        Game.Unit.controlledBy model.units model.defendingPlayer.id
 
                 nextCmd =
                     (if unitRole == Attacker then
@@ -87,7 +87,7 @@ update msg model =
                 unit =
                     case Array.get roll unitArray of
                         Nothing ->
-                            Juralen.Unit.empty
+                            Game.Unit.empty
 
                         Just thisUnit ->
                             thisUnit
@@ -104,7 +104,7 @@ update msg model =
                 unit =
                     case Array.get roll unitArray of
                         Nothing ->
-                            Juralen.Unit.empty
+                            Game.Unit.empty
 
                         Just thisUnit ->
                             thisUnit
@@ -134,11 +134,11 @@ update msg model =
 
                 attackerHasUnits : Bool
                 attackerHasUnits =
-                    List.length (Juralen.Unit.controlledBy newModel.units newModel.attackingPlayer.id) > 0
+                    List.length (Game.Unit.controlledBy newModel.units newModel.attackingPlayer.id) > 0
 
                 defenderHasUnits : Bool
                 defenderHasUnits =
-                    List.length (Juralen.Unit.controlledBy newModel.units newModel.defendingPlayer.id) > 0
+                    List.length (Game.Unit.controlledBy newModel.units newModel.defendingPlayer.id) > 0
             in
             if attackerHasUnits && defenderHasUnits then
                 update (GetRandomUnit Attacker) newModel
@@ -152,7 +152,7 @@ update msg model =
 
 attackerAction : Model -> Model
 attackerAction model =
-    if Juralen.Unit.isDead model.attacker then
+    if Game.Unit.isDead model.attacker then
         model
 
     else if model.defBonus > 0 then
@@ -161,20 +161,20 @@ attackerAction model =
     else
         let
             defender =
-                Juralen.Unit.takeDamage model.defender model.attacker.attack
+                Game.Unit.takeDamage model.defender model.attacker.attack
         in
         { model | defender = defender }
 
 
 defenderAction : Model -> Model
 defenderAction model =
-    if Juralen.Unit.isDead model.defender then
+    if Game.Unit.isDead model.defender then
         model
 
     else
         let
             attacker =
-                Juralen.Unit.takeDamage model.attacker model.defender.attack
+                Game.Unit.takeDamage model.attacker model.defender.attack
         in
         { model | attacker = attacker }
 
@@ -183,7 +183,7 @@ healUnits : CombatRole -> Model -> Model
 healUnits role model =
     case role of
         Attacker ->
-            if model.attacker.unitType == Juralen.UnitType.Priest then
+            if model.attacker.unitType == Game.UnitType.Priest then
                 let
                     healedUnits : List Unit
                     healedUnits =
@@ -191,9 +191,9 @@ healUnits role model =
                             (\unit ->
                                 if unit.controlledBy == model.attackingPlayer.id && unit.id /= model.attacker.id then
                                     let
-                                        initialValues : Juralen.UnitType.InitialValues
+                                        initialValues : Game.UnitType.InitialValues
                                         initialValues =
-                                            Juralen.UnitType.initialValues unit.unitType
+                                            Game.UnitType.initialValues unit.unitType
 
                                         maxHealth : Int
                                         maxHealth =
@@ -219,7 +219,7 @@ healUnits role model =
                 model
 
         Defender ->
-            if model.defender.unitType == Juralen.UnitType.Priest then
+            if model.defender.unitType == Game.UnitType.Priest then
                 let
                     healedUnits : List Unit
                     healedUnits =
@@ -227,9 +227,9 @@ healUnits role model =
                             (\unit ->
                                 if unit.controlledBy == model.defendingPlayer.id && unit.id /= model.defender.id then
                                     let
-                                        initialValues : Juralen.UnitType.InitialValues
+                                        initialValues : Game.UnitType.InitialValues
                                         initialValues =
-                                            Juralen.UnitType.initialValues unit.unitType
+                                            Game.UnitType.initialValues unit.unitType
 
                                         maxHealth : Int
                                         maxHealth =
@@ -303,9 +303,9 @@ applyCombatToUnits units attacker defender =
 
 removeDeadUnits : List Unit -> List Unit
 removeDeadUnits units =
-    List.filter (\unit -> not (Juralen.Unit.isDead unit)) units
+    List.filter (\unit -> not (Game.Unit.isDead unit)) units
 
 
 moveUnitsToGraveyard : List Unit -> List Unit -> List Unit
 moveUnitsToGraveyard deadUnits units =
-    deadUnits ++ List.filter (\unit -> Juralen.Unit.isDead unit) units
+    deadUnits ++ List.filter (\unit -> Game.Unit.isDead unit) units

@@ -4,8 +4,8 @@ import Game.Core exposing (GameStatus)
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Juralen.Player exposing (Player)
-import Juralen.PlayerColor
+import Game.Player exposing (Player)
+import Game.PlayerColor
 
 
 type alias Settings =
@@ -58,8 +58,8 @@ settingsModal settings =
                             div
                                 [ class
                                     ("py-1 "
-                                        ++ Juralen.PlayerColor.toClass player.color
-                                        ++ (if Juralen.PlayerColor.isDark player.color then
+                                        ++ Game.PlayerColor.toClass player.color
+                                        ++ (if Game.PlayerColor.isDark player.color then
                                                 " text-white"
 
                                             else

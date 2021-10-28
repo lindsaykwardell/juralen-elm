@@ -1,4 +1,4 @@
-module Juralen.AnalyzerMode exposing (..)
+module Game.AnalyzerMode exposing (..)
 
 
 type AnalyzerMode

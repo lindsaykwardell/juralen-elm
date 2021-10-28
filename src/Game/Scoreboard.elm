@@ -3,7 +3,7 @@ module Game.Scoreboard exposing (..)
 import Game.Core exposing (Model, getPlayerScore)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
-import Juralen.PlayerColor exposing (toClass)
+import Game.PlayerColor exposing (toClass)
 
 
 view : Model -> Html msg

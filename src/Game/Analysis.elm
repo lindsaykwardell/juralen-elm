@@ -1,10 +1,10 @@
-module Juralen.Analysis exposing (..)
+module Game.Analysis exposing (..)
 
-import Juralen.Cell exposing (Loc)
-import Juralen.Structure exposing (Structure)
-import Juralen.TechTree exposing (TechDescription)
-import Juralen.Unit exposing (Unit)
-import Juralen.UnitType exposing (UnitType)
+import Game.Cell exposing (Loc)
+import Game.Structure exposing (Structure)
+import Game.TechTree exposing (TechDescription)
+import Game.Unit exposing (Unit)
+import Game.UnitType exposing (UnitType)
 
 
 type Action
@@ -36,7 +36,7 @@ toString option =
             let
                 unitString : String
                 unitString =
-                    List.foldl (\unit total -> total ++ Juralen.UnitType.toString unit.unitType ++ " ") "" units
+                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
             in
             "Move [ " ++ unitString ++ "] from " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y ++ " to " ++ String.fromInt loc.x ++ ", " ++ String.fromInt loc.y
 
@@ -44,12 +44,12 @@ toString option =
             let
                 unitString : String
                 unitString =
-                    List.foldl (\unit total -> total ++ Juralen.UnitType.toString unit.unitType ++ " ") "" units
+                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
             in
             "Attack - Move [ " ++ unitString ++ "] from " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y ++ " to " ++ String.fromInt loc.x ++ ", " ++ String.fromInt loc.y
 
         BuildUnit unitType ->
-            "Build [ " ++ Juralen.UnitType.toString unitType ++ " ] in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+            "Build [ " ++ Game.UnitType.toString unitType ++ " ] in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
 
         Research tech ->
             "Research " ++ tech.name

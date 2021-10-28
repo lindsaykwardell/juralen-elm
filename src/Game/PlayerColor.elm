@@ -1,4 +1,4 @@
-module Juralen.PlayerColor exposing (..)
+module Game.PlayerColor exposing (..)
 
 
 type PlayerColor

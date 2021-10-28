@@ -1,8 +1,8 @@
-module Juralen.Cell exposing (..)
+module Game.Cell exposing (..)
 
-import Juralen.CellType exposing (CellType)
-import Juralen.Player exposing (Player)
-import Juralen.Structure exposing (Structure)
+import Game.CellType exposing (CellType)
+import Game.Player exposing (Player)
+import Game.Structure exposing (Structure)
 import List.Extra
 
 
@@ -27,10 +27,10 @@ type alias Cell =
 generate : Loc -> Int -> Cell
 generate loc roll =
     if roll <= 12 then
-        { cellType = Juralen.CellType.Plains
+        { cellType = Game.CellType.Plains
         , controlledBy = Nothing
         , defBonus = 3
-        , structure = Just Juralen.Structure.Town
+        , structure = Just Game.Structure.Town
         , farms = 0
         , towers = 0
         , x = loc.x
@@ -38,7 +38,7 @@ generate loc roll =
         }
 
     else if roll > 12 && roll <= 20 then
-        { cellType = Juralen.CellType.Mountain
+        { cellType = Game.CellType.Mountain
         , controlledBy = Nothing
         , defBonus = 0
         , structure = Nothing
@@ -49,7 +49,7 @@ generate loc roll =
         }
 
     else if roll > 20 && roll <= 40 then
-        { cellType = Juralen.CellType.Forest
+        { cellType = Game.CellType.Forest
         , controlledBy = Nothing
         , defBonus = 1
         , structure = Nothing
@@ -60,7 +60,7 @@ generate loc roll =
         }
 
     else
-        { cellType = Juralen.CellType.Plains
+        { cellType = Game.CellType.Plains
         , controlledBy = Nothing
         , defBonus = 0
         , structure = Nothing
@@ -73,7 +73,7 @@ generate loc roll =
 
 empty : Cell
 empty =
-    { cellType = Juralen.CellType.Plains
+    { cellType = Game.CellType.Plains
     , controlledBy = Nothing
     , defBonus = -1
     , structure = Nothing
@@ -147,12 +147,12 @@ hasStructure cell =
 
 buildStructure : Cell -> Structure -> Cell
 buildStructure cell structure =
-    { cell | structure = Just structure, cellType = Juralen.CellType.Plains, defBonus = 5 }
+    { cell | structure = Just structure, cellType = Game.CellType.Plains, defBonus = 5 }
 
 
 updateControl : Cell -> Int -> Cell
 updateControl cell playerId =
-    if cell.cellType == Juralen.CellType.Plains then
+    if cell.cellType == Game.CellType.Plains then
         { cell | controlledBy = Just playerId }
 
     else
@@ -163,10 +163,10 @@ getColorClass : Cell -> List Player -> String
 getColorClass cell players =
     case cell.controlledBy of
         Nothing ->
-            Juralen.CellType.getColorClass cell.cellType
+            Game.CellType.getColorClass cell.cellType
 
         _ ->
-            Juralen.Player.getColorClass players cell.controlledBy
+            Game.Player.getColorClass players cell.controlledBy
 
 
 getDistance : Loc -> Loc -> Int
@@ -232,7 +232,7 @@ getBorderingPlayer cells players =
                     getBorderingPlayer remainingCells players
 
                 Just cell ->
-                    if cell.cellType == Juralen.CellType.Mountain then
+                    if cell.cellType == Game.CellType.Mountain then
                         getBorderingPlayer remainingCells players
 
                     else

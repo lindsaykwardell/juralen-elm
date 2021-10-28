@@ -1,15 +1,15 @@
 module Game.Analyzer exposing (..)
 
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
-import Juralen.Analysis exposing (Action(..), Option, UpgradeType)
-import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
-import Juralen.Cell exposing (Cell, Loc)
-import Juralen.CellType
-import Juralen.Grid
-import Juralen.Structure
-import Juralen.TechTree as TechTree exposing (TechLevel(..))
-import Juralen.Unit exposing (Unit)
-import Juralen.UnitType exposing (UnitType)
+import Game.Analysis exposing (Action(..), Option, UpgradeType)
+import Game.AnalyzerMode exposing (AnalyzerMode(..))
+import Game.Cell exposing (Cell, Loc)
+import Game.CellType
+import Game.Grid
+import Game.Structure
+import Game.TechTree as TechTree exposing (TechLevel(..))
+import Game.Unit exposing (Unit)
+import Game.UnitType exposing (UnitType)
 
 
 
@@ -54,16 +54,16 @@ analyzeUpgrades model =
     in
     List.concat
         [ -- if levelOneTech == Just TechTree.BuildFarms then
-          checkCellForUpgrades Juralen.Analysis.BuildFarm targetCells []
+          checkCellForUpgrades Game.Analysis.BuildFarm targetCells []
 
         --   else
         --     []
         -- , if levelOneTech == Just TechTree.BuildActions then
-        , checkCellForUpgrades Juralen.Analysis.BuildTower targetCells []
+        , checkCellForUpgrades Game.Analysis.BuildTower targetCells []
 
         --   else
         --     []
-        , checkCellForUpgrades Juralen.Analysis.RepairDefense targetCells []
+        , checkCellForUpgrades Game.Analysis.RepairDefense targetCells []
         ]
 
 
@@ -72,15 +72,15 @@ checkCellForUpgrades upgradeType cells options =
     case cells of
         cell :: remainingCells ->
             case upgradeType of
-                Juralen.Analysis.BuildFarm ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildFarm, score = 0 } ] ])
+                Game.Analysis.BuildFarm ->
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Game.Analysis.BuildFarm, score = 0 } ] ])
 
-                Juralen.Analysis.BuildTower ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.BuildTower, score = 0 } ] ])
+                Game.Analysis.BuildTower ->
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Game.Analysis.BuildTower, score = 0 } ] ])
 
-                Juralen.Analysis.RepairDefense ->
-                    if Juralen.Structure.initDef cell.structure > cell.defBonus then
-                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Juralen.Analysis.RepairDefense, score = 0 } ] ])
+                Game.Analysis.RepairDefense ->
+                    if Game.Structure.initDef cell.structure > cell.defBonus then
+                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Game.Analysis.RepairDefense, score = 0 } ] ])
 
                     else
                         checkCellForUpgrades upgradeType remainingCells options
@@ -106,7 +106,7 @@ analyzeMoves : Core.Model -> List Option
 analyzeMoves model =
     let
         myUnits =
-            Juralen.Unit.controlledBy model.units model.activePlayer
+            Game.Unit.controlledBy model.units model.activePlayer
 
         cellsWithUnits : List Cell
         cellsWithUnits =
@@ -115,7 +115,7 @@ analyzeMoves model =
                     (\row collection ->
                         List.foldl
                             (\cell cells ->
-                                if Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y } /= [] then
+                                if Game.Unit.inCell myUnits { x = cell.x, y = cell.y } /= [] then
                                     cell :: cells
 
                                 else
@@ -136,7 +136,7 @@ analyzeMoves model =
                                 combinations ++ [ { unitOptions = units, cell = cell } ]
                             )
                             []
-                            (combineUnitWith [] [] (Juralen.Unit.inCell myUnits { x = cell.x, y = cell.y }))
+                            (combineUnitWith [] [] (Game.Unit.inCell myUnits { x = cell.x, y = cell.y }))
                     )
                     cellsWithUnits
                 )
@@ -249,7 +249,7 @@ getMoveCost : List Unit -> Float
 getMoveCost units =
     List.foldl
         (\unit cost ->
-            cost + Juralen.UnitType.moveCost unit.unitType
+            cost + Game.UnitType.moveCost unit.unitType
         )
         0
         units
@@ -272,7 +272,7 @@ analyzeBuildUnits model =
                                     controlledBy == model.activePlayer
                            )
                 )
-                (Juralen.Grid.toList model.grid)
+                (Game.Grid.toList model.grid)
     in
     getUnitOptions (Core.currentPlayerStats model) cellsWithStructures []
 
@@ -293,9 +293,9 @@ getUnitOptions stats cells options =
                             )
                             (List.filter
                                 (\unitType ->
-                                    Juralen.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
+                                    Game.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
                                 )
-                                (Juralen.Structure.canBuild cell.structure stats.techTree)
+                                (Game.Structure.canBuild cell.structure stats.techTree)
                             )
             in
             getUnitOptions stats remainingCells newOptions
@@ -328,7 +328,7 @@ scoreOption model option =
         Move units toLoc ->
             let
                 targetCell =
-                    Juralen.Cell.atLoc model.grid toLoc
+                    Game.Cell.atLoc model.grid toLoc
 
                 isAttack =
                     case targetCell.controlledBy of
@@ -356,7 +356,7 @@ scoreOption model option =
                             0
                           )
                         -- Subtract distance (shorter is better)
-                        - Juralen.Cell.getDistance option.loc toLoc
+                        - Game.Cell.getDistance option.loc toLoc
                         * (if analyzer == Defensive || analyzer == Expansionist then
                             3
 
@@ -369,10 +369,10 @@ scoreOption model option =
                         -- Add based on cell type (plains are better than forests)
                         -- Don't move to mountains
                         + (case targetCell.cellType of
-                            Juralen.CellType.Plains ->
+                            Game.CellType.Plains ->
                                 15
 
-                            Juralen.CellType.Mountain ->
+                            Game.CellType.Mountain ->
                                 -1000
 
                             _ ->
@@ -386,7 +386,7 @@ scoreOption model option =
 
                                 Just playerId ->
                                     if playerId == model.activePlayer then
-                                        if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 1 then
+                                        if List.length (Game.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 1 then
                                             120
 
                                         else
@@ -415,7 +415,7 @@ scoreOption model option =
                             Nothing ->
                                 let
                                     isForest =
-                                        targetCell.cellType == Juralen.CellType.Forest
+                                        targetCell.cellType == Game.CellType.Forest
                                 in
                                 if isForest then
                                     0
@@ -433,21 +433,21 @@ scoreOption model option =
 
                                 else
                                     abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
-                                        + (if List.length (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
+                                        + (if List.length (Game.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
                                             if analyzer == Passive then
                                                 -1000
 
                                             else
                                                 let
                                                     attackerThreat =
-                                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
+                                                        List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
                                                             0
                                                             (List.map (\unit -> unit.unitType) units)
 
                                                     defenderThreat =
-                                                        List.foldl (\unit threat -> threat + Juralen.UnitType.threat unit)
+                                                        List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
                                                             0
-                                                            (List.map (\unit -> unit.unitType) (Juralen.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
+                                                            (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
 
                                                     defBonus =
                                                         targetCell.defBonus
@@ -470,7 +470,7 @@ scoreOption model option =
 
                 -- Should we move everyone in this cell? Do we really need more farms?
                 -- Defending territory is preferable if we can get away with it
-                -- + (if List.length (Juralen.Unit.inCell model.units option.loc) <= List.length units then
+                -- + (if List.length (Game.Unit.inCell model.units option.loc) <= List.length units then
                 --     if stats.farms == stats.units then
                 --         10
                 --     else
@@ -492,7 +492,7 @@ scoreOption model option =
         BuildUnit unitType ->
             let
                 unitsInCell =
-                    List.length (Juralen.Unit.inCell model.units option.loc)
+                    List.length (Game.Unit.inCell model.units option.loc)
 
                 score =
                     -- Build based on priority (higher scores are better)
@@ -653,10 +653,10 @@ scoreOption model option =
         Upgrade upgradeType ->
             let
                 cell =
-                    Juralen.Cell.atLoc model.grid option.loc
+                    Game.Cell.atLoc model.grid option.loc
             in
             case upgradeType of
-                Juralen.Analysis.RepairDefense ->
+                Game.Analysis.RepairDefense ->
                     { option
                         | score =
                             if stats.gold < 1 then
@@ -684,7 +684,7 @@ scoreOption model option =
                                       )
                     }
 
-                Juralen.Analysis.BuildFarm ->
+                Game.Analysis.BuildFarm ->
                     { option
                         | score =
                             if stats.gold < 2 then
@@ -694,7 +694,7 @@ scoreOption model option =
                                 1
                     }
 
-                Juralen.Analysis.BuildTower ->
+                Game.Analysis.BuildTower ->
                     { option
                         | score =
                             if stats.gold < 2 then
@@ -711,25 +711,25 @@ scoreOption model option =
 unitTypeScore : UnitType -> Int
 unitTypeScore unitType =
     case unitType of
-        Juralen.UnitType.Soldier ->
+        Game.UnitType.Soldier ->
             1
 
-        Juralen.UnitType.Warrior ->
+        Game.UnitType.Warrior ->
             2
 
-        Juralen.UnitType.Archer ->
+        Game.UnitType.Archer ->
             2
 
-        Juralen.UnitType.Priest ->
+        Game.UnitType.Priest ->
             4
 
-        Juralen.UnitType.Rogue ->
+        Game.UnitType.Rogue ->
             3
 
-        Juralen.UnitType.Wizard ->
+        Game.UnitType.Wizard ->
             4
 
-        Juralen.UnitType.Knight ->
+        Game.UnitType.Knight ->
             3
 
 

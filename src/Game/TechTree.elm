@@ -1,4 +1,4 @@
-module Juralen.TechTree exposing (..)
+module Game.TechTree exposing (..)
 
 
 type alias TechTree =

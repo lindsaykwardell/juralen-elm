@@ -1,6 +1,6 @@
-module Juralen.UnitType exposing (..)
+module Game.UnitType exposing (..)
 
-import Juralen.TechTree exposing (LevelFour(..), LevelThree(..), LevelTwo(..), TechTree)
+import Game.TechTree exposing (LevelFour(..), LevelThree(..), LevelTwo(..), TechTree)
 
 
 type UnitType

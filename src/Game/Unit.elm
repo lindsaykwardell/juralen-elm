@@ -1,7 +1,7 @@
-module Juralen.Unit exposing (..)
+module Game.Unit exposing (..)
 
-import Juralen.Cell exposing (Loc)
-import Juralen.UnitType exposing (UnitType(..))
+import Game.Cell exposing (Loc)
+import Game.UnitType exposing (UnitType(..))
 
 
 type alias Unit =
@@ -21,7 +21,7 @@ buildUnit : UnitType -> Int -> Loc -> Int -> Unit
 buildUnit unitType playerId loc id =
     let
         initialValues =
-            Juralen.UnitType.initialValues unitType
+            Game.UnitType.initialValues unitType
     in
     { id = id
     , unitType = unitType
@@ -68,7 +68,7 @@ controlledBy units playerId =
 empty : Unit
 empty =
     { id = -1
-    , unitType = Juralen.UnitType.Soldier
+    , unitType = Game.UnitType.Soldier
     , movesLeft = -1
     , attack = 0
     , health = -1

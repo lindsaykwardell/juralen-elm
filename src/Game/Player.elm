@@ -1,9 +1,9 @@
-module Juralen.Player exposing (..)
+module Game.Player exposing (..)
 
-import Juralen.AnalyzerMode exposing (AnalyzerMode)
-import Juralen.PlayerColor exposing (PlayerColor)
-import Juralen.Resources exposing (Resources)
-import Juralen.TechTree as TechTree exposing (TechTree)
+import Game.AnalyzerMode exposing (AnalyzerMode)
+import Game.PlayerColor exposing (PlayerColor)
+import Game.Resources exposing (Resources)
+import Game.TechTree as TechTree exposing (TechTree)
 
 
 type alias Player =
@@ -65,8 +65,8 @@ empty =
         }
     , hasLost = True
     , isHuman = False
-    , analyzer = Juralen.AnalyzerMode.Default
-    , color = Juralen.PlayerColor.Gray
+    , analyzer = Game.AnalyzerMode.Default
+    , color = Game.PlayerColor.Gray
     , score = 0
     , techTree = TechTree.empty
     }
@@ -101,7 +101,7 @@ getResources : List Player -> Int -> Resources
 getResources players id =
     case List.head (List.filter (\p -> p.id == id) players) of
         Nothing ->
-            Juralen.Resources.empty
+            Game.Resources.empty
 
         Just player ->
             player.resources
@@ -111,7 +111,7 @@ getColor : List Player -> Int -> PlayerColor
 getColor players controlledBy =
     case List.head (List.filter (\p -> p.id == controlledBy) players) of
         Nothing ->
-            Juralen.PlayerColor.None
+            Game.PlayerColor.None
 
         Just player ->
             player.color
@@ -129,7 +129,7 @@ getColorClass players controlledBy =
                     ""
 
                 Just player ->
-                    Juralen.PlayerColor.toClass player.color
+                    Game.PlayerColor.toClass player.color
 
 
 isHuman : List Player -> Int -> Bool

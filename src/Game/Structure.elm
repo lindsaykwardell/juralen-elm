@@ -1,7 +1,7 @@
-module Juralen.Structure exposing (..)
+module Game.Structure exposing (..)
 
-import Juralen.TechTree exposing (TechTree)
-import Juralen.UnitType exposing (UnitType(..))
+import Game.TechTree exposing (TechTree)
+import Game.UnitType exposing (UnitType(..))
 
 
 type Structure
@@ -39,7 +39,7 @@ canBuild structure techTree =
                 [ Soldier ]
 
             else
-                Juralen.UnitType.researchedUnits techTree
+                Game.UnitType.researchedUnits techTree
 
 
 toString : Maybe Structure -> String

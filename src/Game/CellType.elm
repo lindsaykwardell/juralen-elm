@@ -1,4 +1,4 @@
-module Juralen.CellType exposing (..)
+module Game.CellType exposing (..)
 
 
 type CellType

@@ -1,4 +1,4 @@
-module Juralen.Resources exposing (..)
+module Game.Resources exposing (..)
 
 
 type alias Resources =
