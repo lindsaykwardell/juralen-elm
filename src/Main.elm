@@ -11,6 +11,7 @@ import FontAwesome.Transforms as Icon
 import Game
 import Game.Core as Core
 import Game.Settings as Settings exposing (Settings, settingsModal)
+import Game.Update
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -83,7 +84,7 @@ type Msg
     | ToggleSettings
     | GotSettingsMessage Settings.Msg
     | GotLobbyMsg Lobby.Msg
-    | GotGameMsg Game.Msg
+    | GotGameMsg Game.Update.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -204,14 +205,14 @@ update msg model =
             case model.page of
                 Game gameModel ->
                     case gameMsg of
-                        Game.OpenSettings ->
+                        Game.Update.OpenSettings ->
                             update ToggleSettings model
 
-                        Game.EndGame ->
+                        Game.Update.EndGame ->
                             update ToggleSettings { model | gameStatus = Core.CompletedGame }
 
                         _ ->
-                            toGame model (Game.update gameMsg gameModel)
+                            toGame model (Game.Update.update gameMsg gameModel)
 
                 _ ->
                     ( model, Cmd.none )
@@ -222,7 +223,7 @@ toLobby model ( lobby, cmd ) =
     ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg cmd )
 
 
-toGame : Model -> ( Core.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
+toGame : Model -> ( Core.Model, Cmd Game.Update.Msg ) -> ( Model, Cmd Msg )
 toGame model ( game, cmd ) =
     ( { model | page = Game game }, Cmd.map GotGameMsg cmd )
 

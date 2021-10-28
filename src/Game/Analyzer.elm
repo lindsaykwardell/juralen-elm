@@ -3,7 +3,7 @@ module Game.Analyzer exposing (..)
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Juralen.Analysis exposing (Action(..), Option, UpgradeType)
 import Juralen.AnalyzerMode exposing (AnalyzerMode(..))
-import Juralen.Cell exposing (Cell, Loc, getBorderingPlayers)
+import Juralen.Cell exposing (Cell, Loc)
 import Juralen.CellType
 import Juralen.Grid
 import Juralen.Structure

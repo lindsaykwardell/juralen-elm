@@ -3,7 +3,7 @@ module Game.Core exposing (..)
 import Game.Combat
 import Juralen.Analysis exposing (Option)
 import Juralen.AnalyzerMode exposing (AnalyzerMode)
-import Juralen.Cell exposing (Cell, Loc, getBorderCells, getBorderingPlayers, getGroupBorderingPlayers, groupNeighbors, ofType)
+import Juralen.Cell exposing (Cell, Loc, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
 import Juralen.CellType
 import Juralen.Grid exposing (Grid)
 import Juralen.Player exposing (NewPlayer, Player)
