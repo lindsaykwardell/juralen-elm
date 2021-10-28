@@ -1,10 +1,10 @@
 module Game.Core exposing (..)
 
-import Game.Combat
 import Game.Analysis exposing (Option)
 import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.Cell exposing (Cell, Loc, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
 import Game.CellType
+import Game.Combat
 import Game.Grid exposing (Grid)
 import Game.Player exposing (NewPlayer, Player)
 import Game.TechTree exposing (TechTree)
@@ -179,7 +179,7 @@ isInRange model cell =
         && Game.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
         >= (Basics.toFloat (Game.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
-        && (targetCellIsBordering model cell)
+        && targetCellIsBordering model cell
 
 
 allCellsInRange : Model -> List Cell
