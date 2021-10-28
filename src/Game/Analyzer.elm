@@ -1,10 +1,10 @@
 module Game.Analyzer exposing (..)
 
-import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Analysis exposing (Action(..), Option, UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell, Loc)
 import Game.CellType
+import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid
 import Game.Structure
 import Game.TechTree as TechTree exposing (TechLevel(..))
