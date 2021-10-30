@@ -6,7 +6,8 @@ import Game.Cell exposing (Cell, Loc, getBorderCells, getGroupBorderingPlayers, 
 import Game.CellType
 import Game.Combat
 import Game.Grid exposing (Grid)
-import Game.Player exposing (NewPlayer, Player)
+import Game.Player exposing (Player)
+import Game.Scenario
 import Game.TechTree exposing (TechTree)
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
@@ -40,14 +41,7 @@ type alias Model =
     , players : List Player
     , activePlayer : Int
     , units : List Unit
-    , init :
-        { maxX : Int
-        , maxY : Int
-        , currentX : Int
-        , currentY : Int
-        , finished : Bool
-        , newPlayers : List NewPlayer
-        }
+    , scenario : Game.Scenario.Model
     , combat : CombatStatus
     , analysisResults : List Option
     , aiSpeed : Float

@@ -125,13 +125,13 @@ update msg model =
                         , page =
                             Game
                                 (Tuple.first
-                                    (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
+                                    (Game.init model.newPlayers game.aiSpeed { x = game.scenario.maxX, y = game.scenario.maxY })
                                 )
                       }
                     , Cmd.batch
                         [ Cmd.map GotGameMsg
                             (Tuple.second
-                                (Game.init model.newPlayers game.aiSpeed { x = game.init.maxX, y = game.init.maxY })
+                                (Game.init model.newPlayers game.aiSpeed { x = game.scenario.maxX, y = game.scenario.maxY })
                             )
                         , playGameMusic ()
                         ]
@@ -168,8 +168,8 @@ update msg model =
                                             gameModel.players
                                             + 1
                                     , aiSpeed = gameModel.aiSpeed
-                                    , maxX = gameModel.init.maxX
-                                    , maxY = gameModel.init.maxY
+                                    , maxX = gameModel.scenario.maxX
+                                    , maxY = gameModel.scenario.maxY
                                     }
                             in
                             update (InitChangePage (Lobby lobbyModel)) model

@@ -1,31 +1,24 @@
 module Game.Update exposing (Msg(..), update)
 
-import Array
-import Game.Analyzer exposing (analyze)
-import Game.Combat
-import Game.Core exposing (..)
 import Game.Analysis
+import Game.Analyzer exposing (analyze)
 import Game.Cell exposing (Cell, Loc)
 import Game.CellType
+import Game.Combat
+import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
-import Game.Player exposing (NewPlayer, Player)
+import Game.Player exposing (Player)
 import Game.Resources exposing (Resources)
+import Game.Scenario exposing (Msg(..))
 import Game.Structure
 import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (InitialValues, UnitType)
-import Random
 
 
 type Msg
-    = GenerateNextCell Loc Int
-    | RollNextCell Loc
-    | GenerateNextPlayer (Maybe NewPlayer)
-    | GenerateStartingLoc Player (List Player) Loc
-    | RollStartingLocX Player (List Player)
-    | RollStartingLocY Player (List Player) Int
-    | MakeLocFromRolls Player (List Player) Int Int
-    | DetermineFirstPlayer Int
+    = InitializeScenario
+    | GotScenarioMsg Game.Scenario.Msg
     | StartTurn Player
     | Analyze
     | SelectCell Loc
@@ -48,190 +41,33 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GenerateNextCell loc roll ->
+        InitializeScenario ->
+            update (GotScenarioMsg Game.Scenario.InitializeScenario) model
+
+        GotScenarioMsg scenarioMsg ->
             let
-                nextX =
-                    if model.init.currentY == model.init.maxY then
-                        model.init.currentX + 1
-
-                    else
-                        model.init.currentX
-
-                finished =
-                    model.init.currentX > model.init.maxX
-
-                nextY =
-                    if model.init.currentY == model.init.maxY then
-                        if finished == True then
-                            model.init.currentY
-
-                        else
-                            0
-
-                    else
-                        model.init.currentY + 1
-
-                prevInit =
-                    model.init
-
-                nextInit =
-                    { prevInit | currentX = nextX, currentY = nextY, finished = finished }
-
-                newGrid =
-                    if finished == True then
-                        model.grid
-
-                    else if model.init.currentY == 0 then
-                        model.grid ++ [ [ Game.Cell.generate loc roll ] ]
-
-                    else
-                        List.map
-                            (\row ->
-                                if List.length row > model.init.maxY then
-                                    row
-
-                                else
-                                    row ++ [ Game.Cell.generate loc roll ]
-                            )
-                            model.grid
-
-                newModel =
-                    { model | init = nextInit, grid = newGrid }
+                scenario : Game.Scenario.Model
+                scenario =
+                    model.scenario
             in
-            update (RollNextCell { x = nextX, y = nextY }) newModel
-
-        RollNextCell loc ->
-            if model.init.finished == False then
-                ( model, Random.generate (GenerateNextCell loc) (randomDefinedMax 101) )
-
-            else if List.length model.init.newPlayers > 0 then
-                update (GenerateNextPlayer (List.head model.init.newPlayers)) model
-
-            else
-                ( model, Cmd.none )
-
-        GenerateNextPlayer potentialNewPlayer ->
-            case potentialNewPlayer of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just newPlayer ->
+            case scenarioMsg of
+                ScenarioLoaded ->
                     let
-                        nextId =
-                            model.nextId + 1
-
-                        player =
-                            Game.Player.generate newPlayer model.nextId
-
-                        players =
-                            model.players ++ [ player ]
-
-                        remainingNewPlayers : List NewPlayer
-                        remainingNewPlayers =
-                            case List.tail model.init.newPlayers of
-                                Nothing ->
-                                    []
-
-                                Just remainingNewPlayerstail ->
-                                    remainingNewPlayerstail
-
-                        prevInit =
-                            model.init
-
-                        newInit =
-                            { prevInit | newPlayers = remainingNewPlayers }
-
-                        newModel =
-                            { model | players = players, init = newInit, nextId = nextId }
+                        firstPlayer : Player
+                        firstPlayer =
+                            Game.Player.get scenario.players scenario.activePlayerId
                     in
-                    if List.length remainingNewPlayers == 0 then
-                        let
-                            firstPlayer =
-                                List.head newModel.players
+                    update (StartTurn firstPlayer)
+                        { model
+                            | activePlayer = scenario.activePlayerId
+                            , nextId = scenario.nextId
+                            , players = scenario.players
+                            , units = scenario.units
+                            , grid = scenario.grid
+                        }
 
-                            otherPlayers =
-                                case List.tail newModel.players of
-                                    Nothing ->
-                                        []
-
-                                    Just otherPlayerList ->
-                                        otherPlayerList
-                        in
-                        case firstPlayer of
-                            Nothing ->
-                                ( newModel, Cmd.none )
-
-                            Just aPlayer ->
-                                update (RollStartingLocX aPlayer otherPlayers) newModel
-
-                    else
-                        update (GenerateNextPlayer (List.head remainingNewPlayers)) newModel
-
-        GenerateStartingLoc player nextPlayers loc ->
-            let
-                cell : Maybe Cell
-                cell =
-                    Game.Cell.validStartingCell model.grid loc
-            in
-            case cell of
-                Nothing ->
-                    update (RollStartingLocX player nextPlayers) model
-
-                Just realCell ->
-                    if Game.Grid.distanceToEnemy model.grid { x = realCell.x, y = realCell.y } player.id <= 2 then
-                        update (RollStartingLocX player nextPlayers) model
-
-                    else
-                        let
-                            newGrid =
-                                Game.Grid.replaceCell model.grid (Game.Cell.updateControl (Game.Cell.buildStructure realCell Game.Structure.Citadel) player.id)
-
-                            nextPlayer =
-                                List.head nextPlayers
-
-                            remainingPlayers =
-                                case List.tail nextPlayers of
-                                    Nothing ->
-                                        []
-
-                                    Just playerList ->
-                                        playerList
-
-                            newUnits : List Unit
-                            newUnits =
-                                [ Game.Unit.buildUnit Game.UnitType.Soldier player.id loc model.nextId, Game.Unit.buildUnit Game.UnitType.Soldier player.id loc (model.nextId + 1), Game.Unit.buildUnit Game.UnitType.Soldier player.id loc (model.nextId + 2) ]
-
-                            nextModel =
-                                { model | grid = newGrid, units = model.units ++ newUnits, nextId = model.nextId + 3 }
-                        in
-                        case nextPlayer of
-                            Nothing ->
-                                ( nextModel, Random.generate DetermineFirstPlayer (randomDefinedMax (List.length model.players)) )
-
-                            Just theNextPlayer ->
-                                update (RollStartingLocX theNextPlayer remainingPlayers) nextModel
-
-        RollStartingLocX player nextPlayers ->
-            ( model, Random.generate (RollStartingLocY player nextPlayers) (randomDefinedMax (model.init.maxX + 1)) )
-
-        RollStartingLocY player nextPlayers xVal ->
-            ( model, Random.generate (MakeLocFromRolls player nextPlayers xVal) (randomDefinedMax (model.init.maxY + 1)) )
-
-        MakeLocFromRolls player nextPlayers xVal yVal ->
-            update (GenerateStartingLoc player nextPlayers { x = xVal, y = yVal }) model
-
-        DetermineFirstPlayer roll ->
-            let
-                firstPlayer : Maybe Player
-                firstPlayer =
-                    Array.get roll (Array.fromList model.players)
-            in
-            case firstPlayer of
-                Nothing ->
-                    ( model, Random.generate DetermineFirstPlayer (randomDefinedMax (List.length model.players)) )
-
-                Just player ->
-                    update (StartTurn player) model
+                _ ->
+                    toScenario model (Game.Scenario.update scenarioMsg scenario)
 
         StartTurn nextActivePlayer ->
             if
@@ -803,11 +639,6 @@ update msg model =
             ( { model | mobileTab = tab }, Cmd.none )
 
 
-randomDefinedMax : Int -> Random.Generator Int
-randomDefinedMax max =
-    Random.int 0 max
-
-
 gainResources : PlayerStats -> Resources -> Resources
 gainResources stats resources =
     let
@@ -862,6 +693,11 @@ shouldCombatStart units playerIdList =
 toCombat : Model -> ( Game.Combat.Model, Cmd Game.Combat.Msg ) -> ( Model, Cmd Msg )
 toCombat model ( combat, cmd ) =
     ( { model | combat = Combat combat }, Cmd.map GotCombatMsg cmd )
+
+
+toScenario : Model -> ( Game.Scenario.Model, Cmd Game.Scenario.Msg ) -> ( Model, Cmd Msg )
+toScenario model ( scenario, cmd ) =
+    ( { model | scenario = scenario }, Cmd.map GotScenarioMsg cmd )
 
 
 getNextActivePlayer : List Player -> List Player -> Int -> Player

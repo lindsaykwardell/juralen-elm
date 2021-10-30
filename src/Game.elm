@@ -1,27 +1,28 @@
 module Game exposing (..)
 
 import Components.ZoomButtons.ZoomButtons exposing (zoomButtons)
+import Game.Analysis
+import Game.Cell exposing (Loc)
+import Game.CellType
 import Game.Core exposing (..)
+import Game.Player exposing (NewPlayer, isHuman)
+import Game.PlayerColor
+import Game.Scenario as Scenario
 import Game.Scoreboard as Scoreboard
+import Game.Structure
+import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
+import Game.Unit
+import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
 import Html.Attributes exposing (class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Json
-import Game.Analysis
-import Game.Cell exposing (Loc)
-import Game.CellType
-import Game.Player exposing (NewPlayer, isHuman)
-import Game.PlayerColor
-import Game.Structure
-import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
-import Game.Unit
-import Game.UnitType
 
 
 init : List NewPlayer -> Float -> Loc -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed loc =
-    update (RollNextCell { x = 0, y = 0 })
+    update InitializeScenario
         { nextId = 1
         , grid = []
         , selectedCell = { x = 0, y = 0 }
@@ -29,14 +30,13 @@ init newPlayerList aiSpeed loc =
         , activePlayer = 0
         , units = []
         , selectedUnits = []
-        , init =
-            { maxX = loc.x
-            , maxY = loc.y
-            , currentX = 0
-            , currentY = 0
-            , finished = False
-            , newPlayers = newPlayerList
-            }
+        , scenario =
+            Scenario.init
+                { scenarioType = Scenario.Conquest
+                , maxX = loc.x
+                , maxY = loc.y
+                , players = newPlayerList
+                }
         , combat = NoCombat
         , analysisResults = []
         , aiSpeed = aiSpeed
