@@ -4,8 +4,6 @@ import Game.Core exposing (GameStatus)
 import Html exposing (Html, button, div, h1, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Game.Player exposing (Player)
-import Game.PlayerColor
 
 
 type alias Settings =
@@ -15,7 +13,6 @@ type alias Settings =
 type alias DisplaySettings =
     { gameStatus : GameStatus
     , allowLogout : Bool
-    , playerRanking : List Player
     }
 
 
@@ -42,35 +39,15 @@ settingsModal settings =
                 , button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick ToggleMute ] [ text "Mute/Unmute Audio" ]
                 ]
             , div [ class "flex flex-col p-5" ]
-                (List.concat
-                    [ [ div [ class "text-xl text-center text-white" ]
-                            [ text
-                                (if settings.gameStatus == Game.Core.CompletedGame then
-                                    "Game over!"
+                [ div [ class "text-xl text-center text-white" ]
+                    [ text
+                        (if settings.gameStatus == Game.Core.CompletedGame then
+                            "Game over!"
 
-                                 else
-                                    ""
-                                )
-                            ]
-                      ]
-                    , List.map
-                        (\player ->
-                            div
-                                [ class
-                                    ("py-1 "
-                                        ++ Game.PlayerColor.toClass player.color
-                                        ++ (if Game.PlayerColor.isDark player.color then
-                                                " text-white"
-
-                                            else
-                                                " text-black"
-                                           )
-                                    )
-                                ]
-                                [ text (player.name ++ " - " ++ String.fromInt player.score) ]
+                         else
+                            ""
                         )
-                        settings.playerRanking
                     ]
-                )
+                ]
             ]
         ]

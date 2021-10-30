@@ -283,16 +283,7 @@ view model =
             ]
             []
         , if model.showSettings then
-            let
-                playerRanking =
-                    case model.page of
-                        Game gameModel ->
-                            List.sortBy .score gameModel.players |> List.reverse
-
-                        _ ->
-                            []
-            in
-            { gameStatus = model.gameStatus, allowLogout = True, playerRanking = playerRanking } |> settingsModal |> Html.map GotSettingsMessage
+            { gameStatus = model.gameStatus, allowLogout = True } |> settingsModal |> Html.map GotSettingsMessage
 
           else
             div [] []
