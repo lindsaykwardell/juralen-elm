@@ -110,6 +110,36 @@ toClass playerColor =
         None ->
             ""
 
+toTextClass : PlayerColor -> String
+toTextClass playerColor =
+    case playerColor of
+        Red ->
+            "text-player-red"
+
+        Blue ->
+            "text-player-blue"
+
+        Green ->
+            "text-player-green"
+
+        Orange ->
+            "text-player-orange"
+
+        Teal ->
+            "text-player-teal"
+
+        Yellow ->
+            "text-player-yellow"
+
+        Purple ->
+            "text-player-purple"
+
+        Gray ->
+            "text-player-gray"
+
+        None ->
+            ""
+
 
 isDark : PlayerColor -> Bool
 isDark playerColor =
