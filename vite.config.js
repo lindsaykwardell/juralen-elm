@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa"
 export default defineConfig({
     plugins: [
         elmPlugin(),
-        vue({ customElement: true }),
+        vue(),
         VitePWA({
             registerType: "autoUpdate",
             includeAssets: [
