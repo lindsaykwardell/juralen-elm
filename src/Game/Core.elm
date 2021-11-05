@@ -35,6 +35,7 @@ type MobileTab
 
 type alias Model =
     { nextId : Int
+    , turn : Int
     , grid : Grid
     , selectedCell : Loc
     , selectedUnits : List Int

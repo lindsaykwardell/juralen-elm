@@ -24,6 +24,7 @@ init : List NewPlayer -> Float -> Loc -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed loc =
     update InitializeScenario
         { nextId = 1
+        , turn = 0
         , grid = []
         , selectedCell = { x = 0, y = 0 }
         , players = []
@@ -227,7 +228,9 @@ activePlayerCard : Game.Core.Model -> Html Msg
 activePlayerCard model =
     if model.activePlayer /= -1 then
         div [ class ("sticky top-0 text-center p-1 text-lg lg:text-xl " ++ Game.Player.getColorClass model.players (Just model.activePlayer)) ]
-            [ text (Game.Player.getName model.players (Just model.activePlayer) ++ "'s turn")
+            [ text ("[ Turn " ++ String.fromInt model.turn ++ " ]")
+            , text " "
+            , text (Game.Player.getName model.players (Just model.activePlayer) ++ "'s turn")
             , div [ class "flex w-full lg:w-2/3 m-auto" ]
                 [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
                 , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]

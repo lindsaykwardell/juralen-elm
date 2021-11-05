@@ -112,7 +112,12 @@ update msg model =
                             model.units
 
                     newModel =
-                        { model | activePlayer = nextActivePlayer.id, players = updatedPlayers, units = updatedUnits }
+                        { model
+                            | turn = model.turn + 1
+                            , activePlayer = nextActivePlayer.id
+                            , players = updatedPlayers
+                            , units = updatedUnits
+                        }
                 in
                 -- ( newModel, Cmd.none )
                 update Analyze newModel
