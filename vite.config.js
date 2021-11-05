@@ -8,7 +8,14 @@ export default defineConfig({
         elmPlugin(),
         vue({ customElement: true }),
         VitePWA({
-            includeAssets: ["/img/**", 'favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
+            registerType: "autoUpdate",
+            includeAssets: [
+                "/img/**",
+                "favicon.svg",
+                "favicon.ico",
+                "robots.txt",
+                "apple-touch-icon.png",
+            ],
             manifest: {
                 name: "Juralen",
                 short_name: "Juralen",
