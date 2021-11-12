@@ -14,6 +14,7 @@ import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
+import Game.View.Cell as Cell
 import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
 import Html.Attributes exposing (class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
@@ -77,58 +78,21 @@ view model =
                                 (\row ->
                                     tr []
                                         (List.map
-                                            (lazy
-                                                (\cell ->
-                                                    td []
-                                                        [ div
-                                                            [ class
-                                                                ("cell "
-                                                                    ++ (if isInRange model cell then
-                                                                            "in-range "
+                                            (\cell ->
+                                                lazy
+                                                    (Cell.view cell)
+                                                    { isInRange = isInRange model cell
+                                                    , isSelected = cell.x == model.selectedCell.x && cell.y == model.selectedCell.y
+                                                    , cellColor = Game.Cell.getColorClass cell model.players
+                                                    , onCellClick =
+                                                        if List.length model.selectedUnits > 0 then
+                                                            MoveSelectedUnits cell
 
-                                                                        else
-                                                                            ""
-                                                                       )
-                                                                    ++ Game.Structure.getCellClass cell.structure
-                                                                    ++ " "
-                                                                    ++ Game.Cell.getColorClass cell model.players
-                                                                )
-                                                            , style "border"
-                                                                (if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then
-                                                                    "2px solid yellow"
-
-                                                                 else
-                                                                    ""
-                                                                )
-                                                            , onClick
-                                                                (if List.length model.selectedUnits > 0 then
-                                                                    MoveSelectedUnits cell
-
-                                                                 else
-                                                                    SelectCell { x = cell.x, y = cell.y }
-                                                                )
-                                                            , onContextMenu (MoveSelectedUnits cell)
-                                                            ]
-                                                            [ div []
-                                                                (List.map
-                                                                    (\unit ->
-                                                                        span [ class "unit" ]
-                                                                            [ if Game.Unit.isSelected model.selectedUnits unit.id then
-                                                                                span []
-                                                                                    [ text "[ "
-                                                                                    , img [ src (Game.UnitType.icon unit.unitType), class "unit" ] []
-                                                                                    , text " ]"
-                                                                                    ]
-
-                                                                              else
-                                                                                span [] [ img [ src (Game.UnitType.icon unit.unitType), class "unit" ] [] ]
-                                                                            ]
-                                                                    )
-                                                                    (Game.Unit.inCell model.units { x = cell.x, y = cell.y })
-                                                                )
-                                                            ]
-                                                        ]
-                                                )
+                                                        else
+                                                            SelectCell { x = cell.x, y = cell.y }
+                                                    , units = Game.Unit.inCell model.units { x = cell.x, y = cell.y }
+                                                    , selectedUnits = model.selectedUnits
+                                                    }
                                             )
                                             row
                                         )

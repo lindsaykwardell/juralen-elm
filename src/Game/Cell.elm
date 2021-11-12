@@ -23,7 +23,6 @@ type alias Cell =
     , y : Int
     }
 
-
 generate : Loc -> Int -> Cell
 generate loc roll =
     if roll <= 12 then
