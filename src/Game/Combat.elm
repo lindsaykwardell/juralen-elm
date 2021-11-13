@@ -1,12 +1,12 @@
 module Game.Combat exposing (..)
 
-import Array exposing (Array)
 import Game.Player exposing (Player)
 import Game.Unit exposing (Unit)
 import Game.UnitType
 import Process
 import Random
 import Task
+import List.Extra as List
 
 
 
@@ -79,13 +79,9 @@ update msg model =
 
         DetermineAttacker units roll ->
             let
-                unitArray : Array Unit
-                unitArray =
-                    Array.fromList units
-
                 unit : Unit
                 unit =
-                    case Array.get roll unitArray of
+                    case List.getAt roll units of
                         Nothing ->
                             Game.Unit.empty
 
@@ -96,13 +92,9 @@ update msg model =
 
         DetermineDefender units roll ->
             let
-                unitArray : Array Unit
-                unitArray =
-                    Array.fromList units
-
                 unit : Unit
                 unit =
-                    case Array.get roll unitArray of
+                    case List.getAt roll units of
                         Nothing ->
                             Game.Unit.empty
 

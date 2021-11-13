@@ -1,12 +1,12 @@
 module Lobby exposing (..)
 
-import Array
-import Html exposing (Html, button, div, h1, input, label, option, select, text)
-import Html.Attributes exposing (checked, class, selected, type_, value)
-import Html.Events exposing (onClick, onInput)
 import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor exposing (PlayerColor)
+import Html exposing (Html, button, div, h1, input, label, option, select, text)
+import Html.Attributes exposing (checked, class, selected, type_, value)
+import Html.Events exposing (onClick, onInput)
+import List.Extra as List
 import Random
 
 
@@ -33,24 +33,23 @@ type Msg
     | StartGame
 
 
-nameList : Array.Array String
+nameList : List String
 nameList =
-    Array.fromList
-        [ "Ilthanen Juralen"
-        , "Lord Telinstrom"
-        , "Archmage Velsyph"
-        , "Uinen"
-        , "Dakh"
-        , "Drelk'ar"
-        , "Tevin"
-        , "Vanaan"
-        , "Lord Laisonen"
-        , "Lord Nerison"
-        , "Lord Sielvern"
-        , "Heliel"
-        , "Veladion"
-        , "Lady Elisten"
-        ]
+    [ "Ilthanen Juralen"
+    , "Lord Telinstrom"
+    , "Archmage Velsyph"
+    , "Uinen"
+    , "Dakh"
+    , "Drelk'ar"
+    , "Tevin"
+    , "Vanaan"
+    , "Lord Laisonen"
+    , "Lord Nerison"
+    , "Lord Sielvern"
+    , "Heliel"
+    , "Veladion"
+    , "Lady Elisten"
+    ]
 
 
 randomDefinedMax : Int -> Random.Generator Int
@@ -229,13 +228,13 @@ update msg model =
                     newPlayerList =
                         model.newPlayerList ++ [ newPlayer ]
                 in
-                ( { model | newPlayerList = newPlayerList, nextId = nextId }, Random.generate (AddPlayerName newPlayer.id) (randomDefinedMax (Array.length nameList - 1)) )
+                ( { model | newPlayerList = newPlayerList, nextId = nextId }, Random.generate (AddPlayerName newPlayer.id) (randomDefinedMax (List.length nameList - 1)) )
 
             else
                 ( model, Cmd.none )
 
         AddPlayerName playerId randomNumber ->
-            case Array.get randomNumber nameList of
+            case List.getAt randomNumber nameList of
                 Just name ->
                     let
                         nameExists =
@@ -258,7 +257,7 @@ update msg model =
                                 Game.AnalyzerMode.Default
                     in
                     if nameExists then
-                        ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (Array.length nameList - 1)) )
+                        ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (List.length nameList - 1)) )
 
                     else
                         ( { model

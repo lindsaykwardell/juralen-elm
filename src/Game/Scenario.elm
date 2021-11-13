@@ -1,12 +1,12 @@
 module Game.Scenario exposing (..)
 
-import Array
 import Game.Cell exposing (Cell, Loc)
 import Game.Grid exposing (Grid)
 import Game.Player exposing (NewPlayer, Player)
 import Game.Structure
 import Game.Unit exposing (Unit)
 import Game.UnitType
+import List.Extra as List
 import Random
 import Task
 
@@ -250,7 +250,7 @@ update msg scenario =
             let
                 firstPlayer : Maybe Player
                 firstPlayer =
-                    Array.get roll (Array.fromList scenario.players)
+                    List.getAt roll scenario.players
             in
             case firstPlayer of
                 Nothing ->
