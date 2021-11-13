@@ -15,6 +15,7 @@ import Game.Unit
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Game.View.Cell as Cell
+import Game.View.Grid as Grid
 import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
 import Html.Attributes exposing (class, disabled, src, style)
 import Html.Events exposing (onClick, preventDefaultOn)
@@ -71,36 +72,21 @@ view model =
         , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]
             [ div [ class "w-full lg:w-3/5 p-3" ]
-                [ div [ class "max-h-[350px] lg:max-h-[800px] overflow-scroll shadow-inner rounded-lg border-2 border-gray-100 shadow-inner" ]
-                    [ table [ class "m-auto" ]
-                        (List.map
-                            (lazy
-                                (\row ->
-                                    tr []
-                                        (List.map
-                                            (\cell ->
-                                                lazy
-                                                    (Cell.view cell)
-                                                    { isInRange = isInRange model cell
-                                                    , isSelected = cell.x == model.selectedCell.x && cell.y == model.selectedCell.y
-                                                    , cellColor = Game.Cell.getColorClass cell model.players
-                                                    , onCellClick =
-                                                        if List.length model.selectedUnits > 0 then
-                                                            MoveSelectedUnits cell
+                [ Grid.view
+                    model.grid
+                    { isInRange = isInRange model
+                    , selectedCell = model.selectedCell
+                    , getCellColor = \cell -> Game.Cell.getColorClass cell model.players
+                    , onCellClick =
+                        \cell ->
+                            if List.length model.selectedUnits > 0 then
+                                MoveSelectedUnits cell
 
-                                                        else
-                                                            SelectCell { x = cell.x, y = cell.y }
-                                                    , units = Game.Unit.inCell model.units { x = cell.x, y = cell.y }
-                                                    , selectedUnits = model.selectedUnits
-                                                    }
-                                            )
-                                            row
-                                        )
-                                )
-                            )
-                            model.grid
-                        )
-                    ]
+                            else
+                                SelectCell { x = cell.x, y = cell.y }
+                    , unitsInCell = \cell -> Game.Unit.inCell model.units { x = cell.x, y = cell.y }
+                    , selectedUnits = model.selectedUnits
+                    }
                 , --zoomButtons [ class "mt-1 flex justify-end" ] []
                   div [ class "flex" ]
                     [ Scoreboard.view model

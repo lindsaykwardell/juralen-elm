@@ -1,22 +1,13 @@
 module Game.View.Cell exposing (view)
 
-import Game.Analysis
-import Game.Cell exposing (Cell, Loc)
-import Game.CellType
+import Game.Cell exposing (Cell)
 import Game.Core exposing (..)
-import Game.Player exposing (NewPlayer, isHuman)
-import Game.PlayerColor
-import Game.Scenario as Scenario
-import Game.Scoreboard as Scoreboard
 import Game.Structure
-import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit exposing (Unit, isSelected)
 import Game.UnitType
-import Game.Update exposing (Msg(..), update)
-import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
-import Html.Attributes exposing (class, disabled, src, style)
-import Html.Events exposing (onClick, preventDefaultOn)
-import Html.Lazy exposing (lazy)
+import Html exposing (Html, div, img, span, td, text)
+import Html.Attributes exposing (class, src, style)
+import Html.Events exposing (onClick)
 
 
 view :
