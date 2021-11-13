@@ -3,10 +3,9 @@ module Game.Combat exposing (..)
 import Game.Player exposing (Player)
 import Game.Unit exposing (Unit)
 import Game.UnitType
-import Process
+import List.Extra as List
 import Random
 import Task
-import List.Extra as List
 
 
 
@@ -136,7 +135,7 @@ update msg model =
                 update (GetRandomUnit Attacker) newModel
 
             else
-                ( newModel, Process.sleep 0 |> Task.perform (\_ -> ExitCombat) )
+                ( newModel, Task.succeed Cmd.none |> Task.perform (\_ -> ExitCombat) )
 
         ExitCombat ->
             ( model, Cmd.none )
