@@ -72,8 +72,10 @@ view model =
         , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]
             [ div [ class "w-full lg:w-3/5 p-3" ]
-                [ Grid.view
-                    model.grid
+                [ lazy
+                    (Grid.view
+                        model.grid
+                    )
                     { isInRange = isInRange model
                     , selectedCell = model.selectedCell
                     , getCellColor = \cell -> Game.Cell.getColorClass cell model.players
