@@ -23,7 +23,7 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Json
 
 
-init : List NewPlayer -> Float -> { x : Int, y : Int} -> ( Model, Cmd Msg )
+init : List NewPlayer -> Float -> { x : Int, y : Int } -> ( Model, Cmd Msg )
 init newPlayerList aiSpeed size =
     update InitializeScenario
         { nextId = 1
@@ -230,10 +230,10 @@ selectedCellCard model =
                             Just selectedCell ->
                                 Game.CellType.toString selectedCell.cellType
                                     ++ (case selectedCell.structure of
-                                            Nothing ->
+                                            Game.Structure.None ->
                                                 ""
 
-                                            Just _ ->
+                                            _ ->
                                                 " [" ++ Game.Structure.toString selectedCell.structure ++ "]"
                                        )
                         )

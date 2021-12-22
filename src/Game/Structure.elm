@@ -10,69 +10,53 @@ type Structure
     | None
 
 
-initDef : Maybe Structure -> Int
+initDef : Structure -> Int
 initDef structure =
     case structure of
-        Nothing ->
+        Town ->
+            3
+
+        Citadel ->
+            5
+
+        _ ->
             0
 
-        Just real ->
-            case real of
-                Town ->
-                    3
 
-                Citadel ->
-                    5
-
-                _ ->
-                    0
-
-
-canBuild : Maybe Structure -> TechTree -> List UnitType
+canBuild : Structure -> TechTree -> List UnitType
 canBuild structure techTree =
     case structure of
-        Nothing ->
+        None ->
             []
 
-        Just real ->
-            if real == Town then
-                [ Soldier ]
+        Town ->
+            [ Soldier ]
 
-            else
-                Game.UnitType.researchedUnits techTree
+        Citadel ->
+            Game.UnitType.researchedUnits techTree
 
 
-toString : Maybe Structure -> String
+toString : Structure -> String
 toString structure =
     case structure of
-        Nothing ->
+        Town ->
+            "Town"
+
+        Citadel ->
+            "Citadel"
+
+        None ->
             ""
 
-        Just real ->
-            case real of
-                Town ->
-                    "Town"
 
-                Citadel ->
-                    "Citadel"
-
-                None ->
-                    ""
-
-
-getCellClass : Maybe Structure -> String
+getCellClass : Structure -> String
 getCellClass structure =
     case structure of
-        Nothing ->
+        Town ->
+            "town"
+
+        Citadel ->
+            "citadel"
+
+        None ->
             ""
-
-        Just real ->
-            case real of
-                Town ->
-                    "town"
-
-                Citadel ->
-                    "citadel"
-
-                None ->
-                    ""

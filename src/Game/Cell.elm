@@ -3,7 +3,7 @@ module Game.Cell exposing (..)
 import Game.CellType exposing (CellType)
 import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
-import Game.Structure exposing (Structure)
+import Game.Structure as Structure exposing (Structure)
 import List.Extra
 
 
@@ -11,7 +11,7 @@ type alias Cell =
     { cellType : CellType
     , controlledBy : Maybe Int
     , defBonus : Int
-    , structure : Maybe Structure
+    , structure : Structure
     , farms : Int
     , towers : Int
     , loc : Loc
@@ -24,7 +24,7 @@ generate loc roll =
         { cellType = Game.CellType.Plains
         , controlledBy = Nothing
         , defBonus = 3
-        , structure = Just Game.Structure.Town
+        , structure = Structure.Town
         , farms = 0
         , towers = 0
         , loc = loc
@@ -34,7 +34,7 @@ generate loc roll =
         { cellType = Game.CellType.Mountain
         , controlledBy = Nothing
         , defBonus = 0
-        , structure = Nothing
+        , structure = Structure.None
         , farms = 0
         , towers = 0
         , loc = loc
@@ -44,7 +44,7 @@ generate loc roll =
         { cellType = Game.CellType.Forest
         , controlledBy = Nothing
         , defBonus = 1
-        , structure = Nothing
+        , structure = Structure.None
         , farms = 0
         , towers = 0
         , loc = loc
@@ -54,7 +54,7 @@ generate loc roll =
         { cellType = Game.CellType.Plains
         , controlledBy = Nothing
         , defBonus = 0
-        , structure = Nothing
+        , structure = Structure.None
         , farms = 0
         , towers = 0
         , loc = loc
@@ -66,7 +66,7 @@ empty =
     { cellType = Game.CellType.Plains
     , controlledBy = Nothing
     , defBonus = -1
-    , structure = Nothing
+    , structure = Structure.None
     , farms = 0
     , towers = 0
     , loc = Loc.at -1 -1
@@ -131,12 +131,12 @@ validStartingCell grid loc =
 
 hasStructure : Cell -> Bool
 hasStructure cell =
-    cell.structure /= Nothing
+    cell.structure /= Structure.None
 
 
 buildStructure : Cell -> Structure -> Cell
 buildStructure cell structure =
-    { cell | structure = Just structure, cellType = Game.CellType.Plains, defBonus = 5 }
+    { cell | structure = structure, cellType = Game.CellType.Plains, defBonus = 5 }
 
 
 updateControl : Cell -> Int -> Cell

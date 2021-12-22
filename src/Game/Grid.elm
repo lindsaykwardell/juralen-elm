@@ -2,7 +2,7 @@ module Game.Grid exposing (..)
 
 import Game.Cell exposing (Cell)
 import Game.Loc exposing (Loc, getDistance)
-import Game.Structure
+import Game.Structure as Structure
 
 
 type alias Grid =
@@ -108,19 +108,14 @@ farmCountControlledBy grid playerId =
                                         1
                                             + cell.farms
                                             + (case cell.structure of
-                                                Nothing ->
+                                                Structure.Town ->
+                                                    1
+
+                                                Structure.Citadel ->
+                                                    2
+
+                                                Structure.None ->
                                                     0
-
-                                                Just structure ->
-                                                    case structure of
-                                                        Game.Structure.Town ->
-                                                            1
-
-                                                        Game.Structure.Citadel ->
-                                                            2
-
-                                                        Game.Structure.None ->
-                                                            0
                                               )
 
                                     else
@@ -147,7 +142,7 @@ townCountControlledBy grid playerId =
                                     0
 
                                 Just controlledBy ->
-                                    if cell.structure /= Nothing && controlledBy == playerId then
+                                    if cell.structure /= Structure.None && controlledBy == playerId then
                                         1 + cell.towers
 
                                     else

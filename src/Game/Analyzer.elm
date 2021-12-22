@@ -3,11 +3,11 @@ module Game.Analyzer exposing (..)
 import Game.Analysis exposing (Action(..), Option, UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell)
-import Game.Loc as Loc exposing (Loc)
 import Game.CellType
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid
-import Game.Structure
+import Game.Loc as Loc exposing (Loc)
+import Game.Structure as Structure exposing (Structure)
 import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
@@ -47,7 +47,9 @@ analyzeUpgrades model =
     let
         targetCells : List Cell
         targetCells =
-            List.filter (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Nothing) (toList model.grid)
+            List.filter
+                (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Structure.None)
+                (toList model.grid)
 
         -- levelOneTech : Maybe TechTree.LevelOne
         -- levelOneTech =
@@ -80,7 +82,7 @@ checkCellForUpgrades upgradeType cells options =
                     checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.BuildTower, score = 0 } ] ])
 
                 Game.Analysis.RepairDefense ->
-                    if Game.Structure.initDef cell.structure > cell.defBonus then
+                    if Structure.initDef cell.structure > cell.defBonus then
                         checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.RepairDefense, score = 0 } ] ])
 
                     else
@@ -264,7 +266,7 @@ analyzeBuildUnits model =
             List.filter
                 (\cell ->
                     cell.structure
-                        /= Nothing
+                        /= Structure.None
                         && (case cell.controlledBy of
                                 Nothing ->
                                     False
@@ -296,7 +298,7 @@ getUnitOptions stats cells options =
                                 (\unitType ->
                                     Game.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
                                 )
-                                (Game.Structure.canBuild cell.structure stats.techTree)
+                                (Structure.canBuild cell.structure stats.techTree)
                             )
             in
             getUnitOptions stats remainingCells newOptions
@@ -380,7 +382,7 @@ scoreOption model option =
                                 0
                           )
                         -- Add if cell has a structure (capturing structures is better)
-                        + (if targetCell.structure /= Nothing then
+                        + (if targetCell.structure /= Structure.None then
                             case targetCell.controlledBy of
                                 Nothing ->
                                     100
