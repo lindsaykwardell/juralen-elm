@@ -5,7 +5,7 @@ import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.PlayerColor
 import Game.Structure as Structure exposing (Structure)
-import List.Extra
+import List.Extra as List
 
 
 type alias Cell =
@@ -76,27 +76,22 @@ empty =
 
 find : List (List Cell) -> Loc -> Maybe Cell
 find grid loc =
-    Maybe.andThen
-        (\row ->
-            List.head
-                (List.filter
-                    (\innerCell -> innerCell.loc == loc)
-                    row
-                )
-        )
-        (List.head
-            (List.filter
-                (\row ->
-                    List.length
-                        (List.filter
-                            (\innerCell -> innerCell.loc == loc)
-                            row
-                        )
-                        > 0
-                )
-                grid
-            )
-        )
+    let
+        findInRow : List (List Cell) -> Maybe Cell
+        findInRow rows =
+            case rows of
+                [] ->
+                    Nothing
+
+                row :: rest ->
+                    case List.find (\cell -> cell.loc == loc) row of
+                        Nothing ->
+                            findInRow rest
+
+                        found ->
+                            found
+    in
+    findInRow grid
 
 
 atLoc : List (List Cell) -> Loc -> Cell
@@ -223,9 +218,9 @@ groupNeighbors cells =
                     let
                         groupIndex : Maybe Int
                         groupIndex =
-                            List.Extra.findIndex
+                            List.findIndex
                                 (\group ->
-                                    List.Extra.find
+                                    List.find
                                         (\cellInGroup ->
                                             let
                                                 loc =
@@ -260,9 +255,9 @@ groupNeighbors cells =
                         Just id ->
                             let
                                 group =
-                                    List.Extra.getAt id groups
+                                    List.getAt id groups
                             in
-                            List.Extra.setAt id (Maybe.withDefault [] group ++ [ cell ]) groups
+                            List.setAt id (Maybe.withDefault [] group ++ [ cell ]) groups
         )
         []
         cells
@@ -270,7 +265,7 @@ groupNeighbors cells =
 
 getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
 getGroup groups loc =
-    List.Extra.find (\g -> List.Extra.find (\cell -> cell.loc == loc) g /= Nothing) groups
+    List.find (\g -> List.find (\cell -> cell.loc == loc) g /= Nothing) groups
 
 
 getGroupBorderingPlayers : List (List Cell) -> Loc -> List (List Cell) -> List (Maybe Int)
