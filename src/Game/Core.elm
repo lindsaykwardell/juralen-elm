@@ -68,8 +68,8 @@ currentPlayerStats model =
 
 playerStats : Model -> Int -> PlayerStats
 playerStats model playerId =
-    { gold = (Game.Player.getResources model.players playerId).gold
-    , actions = (Game.Player.getResources model.players playerId).actions
+    { gold = Game.Player.get model.players playerId |> .resources |> .gold
+    , actions = Game.Player.get model.players playerId |> .resources |> .actions
     , farms = Game.Grid.farmCountControlledBy model.grid playerId
     , towns = Game.Grid.townCountControlledBy model.grid playerId
     , units = List.length (List.filter (\unit -> unit.controlledBy == playerId) model.units)

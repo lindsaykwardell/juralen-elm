@@ -3,6 +3,7 @@ module Game.Cell exposing (..)
 import Game.CellType exposing (CellType)
 import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
+import Game.PlayerColor
 import Game.Structure as Structure exposing (Structure)
 import List.Extra
 
@@ -154,8 +155,10 @@ getColorClass cell players =
         Nothing ->
             Game.CellType.getColorClass cell.cellType
 
-        _ ->
-            Game.Player.getColorClass players cell.controlledBy
+        Just playerId ->
+            Game.Player.get players playerId
+                |> .color
+                |> Game.PlayerColor.toClass
 
 
 getBorderCells : List (List Cell) -> Loc -> List (Maybe Cell)

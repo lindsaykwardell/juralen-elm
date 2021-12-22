@@ -139,7 +139,7 @@ update msg model =
             let
                 newResources : Resources
                 newResources =
-                    Game.Resources.spend (Game.Player.getResources model.players model.activePlayer) (Game.UnitType.cost unitType)
+                    Game.Resources.spend (Game.Player.get model.players model.activePlayer |> .resources) (Game.UnitType.cost unitType)
 
                 newUnit : Unit
                 newUnit =
@@ -198,7 +198,7 @@ update msg model =
                     newResources : Resources
                     newResources =
                         Game.Resources.useActions
-                            (Game.Player.getResources model.players model.activePlayer)
+                            (Game.Player.get model.players model.activePlayer |> .resources)
                             (Basics.toFloat (Loc.getDistance model.selectedCell cell.loc) * getMoveCost model)
 
                     newPlayerList =

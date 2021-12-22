@@ -4,6 +4,7 @@ import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.PlayerColor exposing (PlayerColor)
 import Game.Resources exposing (Resources)
 import Game.TechTree as TechTree exposing (TechTree)
+import List.Extra as List
 
 
 type alias Player =
@@ -74,69 +75,9 @@ empty =
 
 get : List Player -> Int -> Player
 get players playerId =
-    case List.head (List.filter (\p -> p.id == playerId) players) of
+    case List.find (\p -> p.id == playerId) players of
         Nothing ->
             empty
 
         Just player ->
             player
-
-
-getName : List Player -> Maybe Int -> String
-getName players controlledBy =
-    case controlledBy of
-        Nothing ->
-            ""
-
-        Just playerId ->
-            case List.head (List.filter (\p -> p.id == playerId) players) of
-                Nothing ->
-                    ""
-
-                Just player ->
-                    player.name
-
-
-getResources : List Player -> Int -> Resources
-getResources players id =
-    case List.head (List.filter (\p -> p.id == id) players) of
-        Nothing ->
-            Game.Resources.empty
-
-        Just player ->
-            player.resources
-
-
-getColor : List Player -> Int -> PlayerColor
-getColor players controlledBy =
-    case List.head (List.filter (\p -> p.id == controlledBy) players) of
-        Nothing ->
-            Game.PlayerColor.None
-
-        Just player ->
-            player.color
-
-
-getColorClass : List Player -> Maybe Int -> String
-getColorClass players controlledBy =
-    case controlledBy of
-        Nothing ->
-            ""
-
-        Just playerId ->
-            case List.head (List.filter (\p -> p.id == playerId) players) of
-                Nothing ->
-                    ""
-
-                Just player ->
-                    Game.PlayerColor.toClass player.color
-
-
-isHuman : List Player -> Int -> Bool
-isHuman players playerId =
-    case List.head (List.filter (\p -> p.id == playerId) players) of
-        Nothing ->
-            False
-
-        Just player ->
-            player.isHuman

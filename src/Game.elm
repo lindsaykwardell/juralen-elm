@@ -6,7 +6,7 @@ import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
 import Game.Loc as Loc
-import Game.Player exposing (NewPlayer, isHuman)
+import Game.Player exposing (NewPlayer)
 import Game.PlayerColor
 import Game.Scenario as Scenario
 import Game.Scoreboard as Scoreboard
@@ -59,7 +59,7 @@ view model =
         [ div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
             [ button
                 [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200 disabled:bg-green-300 disabled:hover:bg-green-300 disabled:cursor-default"
-                , disabled <| not <| isHuman model.players model.activePlayer
+                , disabled <| not <| .isHuman <| Game.Player.get model.players model.activePlayer
                 , onClick EndTurn
                 ]
                 [ text "End Turn" ]
@@ -184,10 +184,18 @@ view model =
 activePlayerCard : Game.Core.Model -> Html Msg
 activePlayerCard model =
     if model.activePlayer /= -1 then
-        div [ class ("sticky top-0 text-center p-1 text-lg lg:text-xl " ++ Game.Player.getColorClass model.players (Just model.activePlayer)) ]
+        div
+            [ class
+                ("sticky top-0 text-center p-1 text-lg lg:text-xl "
+                    ++ (Game.Player.get model.players model.activePlayer
+                            |> .color
+                            |> Game.PlayerColor.toClass
+                       )
+                )
+            ]
             [ text ("[ Turn " ++ String.fromInt model.turn ++ " ]")
             , text " "
-            , text (Game.Player.getName model.players (Just model.activePlayer) ++ "'s turn")
+            , text (Game.Player.get model.players model.activePlayer |> .name >> (++) "'s turn")
             , div [ class "flex w-full lg:w-2/3 m-auto" ]
                 [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
                 , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]
@@ -250,8 +258,8 @@ selectedCellCard model =
                                             Nothing ->
                                                 "Not Controlled"
 
-                                            _ ->
-                                                Game.Player.getName model.players selectedCell.controlledBy
+                                            Just playerId ->
+                                                Game.Player.get model.players playerId |> .name
                                        )
                                     ++ ")"
                         )
@@ -337,8 +345,8 @@ unitsInCellList model =
                     , onClick (SelectUnit unit.id)
                     ]
                     [ div [ class "flex flex-col mr-2" ]
-                        [ div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.getColor model.players unit.controlledBy)) ] []
-                        , div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.getColor model.players unit.controlledBy)) ] []
+                        [ div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
+                        , div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         ]
                     , div [ class "w-1/3 text-left" ] [ text (Game.UnitType.toString unit.unitType) ]
                     , div [ class "flex-1" ] [ text "Atk: ", text (String.fromInt unit.attack) ]
