@@ -280,7 +280,14 @@ selectedCellCard model =
 buildableUnitList : Game.Core.Model -> Html Msg
 buildableUnitList model =
     div []
-        (List.map (\buildableUnit -> button [ class "bg-blue-400 hover:bg-blue-200 py-2 px-3 rounded m-2", onClick (BuildUnit buildableUnit) ] [ text ("Build " ++ Game.UnitType.toString buildableUnit) ])
+        (List.map
+            (\buildableUnit ->
+                button
+                    [ class "bg-blue-400 hover:bg-blue-200 py-2 px-3 rounded m-2"
+                    , onClick (BuildUnit buildableUnit)
+                    ]
+                    [ text ("Build " ++ Game.UnitType.toString buildableUnit { showCost = True }) ]
+            )
             (case Game.Cell.find model.grid model.selectedCell of
                 Nothing ->
                     []
@@ -348,7 +355,7 @@ unitsInCellList model =
                         [ div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         , div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         ]
-                    , div [ class "w-1/3 text-left" ] [ text (Game.UnitType.toString unit.unitType) ]
+                    , div [ class "w-1/3 text-left" ] [ text (Game.UnitType.toString unit.unitType { showCost = False }) ]
                     , div [ class "flex-1" ] [ text "Atk: ", text (String.fromInt unit.attack) ]
                     , div [ class "flex-1" ] [ text "HP: ", text (String.fromInt unit.health) ]
                     , div [ class "flex-1" ] [ text "Moves: ", text (String.fromInt unit.movesLeft) ]

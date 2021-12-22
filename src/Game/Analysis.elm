@@ -36,7 +36,7 @@ toString option =
             let
                 unitString : String
                 unitString =
-                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
+                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType { showCost = False } ++ " ") "" units
             in
             "Move [ "
                 ++ unitString
@@ -53,7 +53,7 @@ toString option =
             let
                 unitString : String
                 unitString =
-                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
+                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType { showCost = False } ++ " ") "" units
             in
             "Attack - Move [ "
                 ++ unitString
@@ -68,7 +68,7 @@ toString option =
 
         BuildUnit unitType ->
             "Build [ "
-                ++ Game.UnitType.toString unitType
+                ++ Game.UnitType.toString unitType { showCost = True }
                 ++ " ] in "
                 ++ String.fromInt (Loc.getX option.loc)
                 ++ ", "

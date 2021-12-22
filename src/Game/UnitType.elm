@@ -80,29 +80,37 @@ threat unitType =
             4
 
 
-toString : UnitType -> String
-toString unitType =
+toString : UnitType -> { showCost : Bool } -> String
+toString unitType { showCost } =
+    let
+        costString =
+            if showCost then
+                " (" ++ String.fromInt (cost unitType) ++ ")"
+
+            else
+                ""
+    in
     case unitType of
         Soldier ->
-            "Soldier (" ++ String.fromInt (cost unitType) ++ ")"
+            "Soldier" ++ costString
 
         Warrior ->
-            "Warrior (" ++ String.fromInt (cost unitType) ++ ")"
+            "Warrior" ++ costString
 
         Archer ->
-            "Archer (" ++ String.fromInt (cost unitType) ++ ")"
+            "Archer" ++ costString
 
         Knight ->
-            "Knight (" ++ String.fromInt (cost unitType) ++ ")"
+            "Knight" ++ costString
 
         Rogue ->
-            "Rogue (" ++ String.fromInt (cost unitType) ++ ")"
+            "Rogue" ++ costString
 
         Wizard ->
-            "Wizard (" ++ String.fromInt (cost unitType) ++ ")"
+            "Wizard" ++ costString
 
         Priest ->
-            "Priest (" ++ String.fromInt (cost unitType) ++ ")"
+            "Priest" ++ costString
 
 
 short : UnitType -> String
