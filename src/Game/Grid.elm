@@ -1,7 +1,7 @@
 module Game.Grid exposing (..)
 
-import Game.Cell exposing (Cell, getDistance)
-import Game.Loc exposing (Loc)
+import Game.Cell exposing (Cell)
+import Game.Loc exposing (Loc, getDistance)
 import Game.Structure
 
 
@@ -52,7 +52,7 @@ replaceCell grid newCell =
         (\row ->
             List.map
                 (\cell ->
-                    if cell.x == newCell.x && cell.y == newCell.y then
+                    if cell.loc == newCell.loc then
                         newCell
 
                     else
@@ -76,7 +76,7 @@ distanceToEnemy grid loc playerId =
                         Just controller ->
                             let
                                 distanceToCell =
-                                    getDistance loc { x = cell.x, y = cell.y }
+                                    getDistance loc cell.loc
                             in
                             if controller /= playerId && distanceToCell < closest then
                                 distanceToCell

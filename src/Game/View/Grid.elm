@@ -33,7 +33,7 @@ view grid { isInRange, selectedCell, getCellColor, onCellClick, unitsInCell, sel
                                 lazy
                                     (Cell.view cell)
                                     { isInRange = isInRange cell
-                                    , isSelected = cell.x == selectedCell.x && cell.y == selectedCell.y
+                                    , isSelected = cell.loc == selectedCell
                                     , cellColor = getCellColor cell
                                     , onCellClick = onCellClick cell
                                     , units = unitsInCell cell

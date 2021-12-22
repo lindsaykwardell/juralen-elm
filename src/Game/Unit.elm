@@ -1,6 +1,6 @@
 module Game.Unit exposing (..)
 
-import Game.Loc exposing (Loc)
+import Game.Loc as Loc exposing (Loc)
 import Game.UnitType exposing (UnitType(..))
 
 
@@ -12,8 +12,7 @@ type alias Unit =
     , health : Int
     , range : Int
     , controlledBy : Int
-    , x : Int
-    , y : Int
+    , loc : Loc
     }
 
 
@@ -30,14 +29,13 @@ buildUnit unitType playerId loc id =
     , health = initialValues.health
     , range = initialValues.range
     , controlledBy = playerId
-    , x = loc.x
-    , y = loc.y
+    , loc = loc
     }
 
 
 inCell : List Unit -> Loc -> List Unit
 inCell units loc =
-    List.filter (\unit -> unit.x == loc.x && unit.y == loc.y) units
+    List.filter (\unit -> unit.loc == loc) units
 
 
 fromId : List Unit -> Int -> Unit
@@ -74,8 +72,7 @@ empty =
     , health = -1
     , range = -1
     , controlledBy = -1
-    , x = -1
-    , y = -1
+    , loc = Loc.at -1 -1
     }
 
 

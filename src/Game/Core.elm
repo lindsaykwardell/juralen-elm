@@ -171,10 +171,10 @@ isInRange model cell =
     List.length model.selectedUnits
         > 0
         && model.selectedCell
-        /= { x = cell.x, y = cell.y }
+        /= cell.loc
         && Game.CellType.isPassable cell.cellType
         && (currentPlayerStats model).actions
-        >= (Basics.toFloat (Game.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+        >= (Basics.toFloat (Game.Loc.getDistance model.selectedCell cell.loc) * getMoveCost model)
         && targetCellIsBordering model cell
 
 
@@ -208,7 +208,7 @@ targetCellIsBordering model cell =
     let
         borderingCells : List (Maybe Cell)
         borderingCells =
-            getBorderCells model.grid { x = cell.x, y = cell.y }
+            getBorderCells model.grid cell.loc
     in
     List.filter
         (\borderCell ->
@@ -222,7 +222,7 @@ targetCellIsBordering model cell =
                             let
                                 borderingForests : List (Maybe Cell)
                                 borderingForests =
-                                    getBorderCells model.grid { x = cell.x, y = cell.y }
+                                    getBorderCells model.grid cell.loc
                                         |> List.filter
                                             (\maybeCell ->
                                                 case maybeCell of
@@ -244,7 +244,7 @@ targetCellIsBordering model cell =
                                                     (model.grid
                                                         |> ofType Game.CellType.Forest
                                                         |> groupNeighbors
-                                                        |> getGroupBorderingPlayers model.grid { x = f.x, y = f.y }
+                                                        |> getGroupBorderingPlayers model.grid f.loc
                                                     )
                                                         ++ players
                                         )
@@ -278,7 +278,7 @@ targetCellIsBordering model cell =
                                             model.grid
                                                 |> ofType c.cellType
                                                 |> groupNeighbors
-                                                |> getGroupBorderingPlayers model.grid { x = cell.x, y = cell.y }
+                                                |> getGroupBorderingPlayers model.grid cell.loc
                                     in
                                     List.any
                                         (\player ->

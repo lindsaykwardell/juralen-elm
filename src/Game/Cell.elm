@@ -1,13 +1,10 @@
 module Game.Cell exposing (..)
 
 import Game.CellType exposing (CellType)
+import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.Structure exposing (Structure)
 import List.Extra
-import Game.Loc exposing (Loc)
-
-
-
 
 
 type alias Cell =
@@ -17,9 +14,9 @@ type alias Cell =
     , structure : Maybe Structure
     , farms : Int
     , towers : Int
-    , x : Int
-    , y : Int
+    , loc : Loc
     }
+
 
 generate : Loc -> Int -> Cell
 generate loc roll =
@@ -30,8 +27,7 @@ generate loc roll =
         , structure = Just Game.Structure.Town
         , farms = 0
         , towers = 0
-        , x = loc.x
-        , y = loc.y
+        , loc = loc
         }
 
     else if roll > 12 && roll <= 20 then
@@ -41,8 +37,7 @@ generate loc roll =
         , structure = Nothing
         , farms = 0
         , towers = 0
-        , x = loc.x
-        , y = loc.y
+        , loc = loc
         }
 
     else if roll > 20 && roll <= 40 then
@@ -52,8 +47,7 @@ generate loc roll =
         , structure = Nothing
         , farms = 0
         , towers = 0
-        , x = loc.x
-        , y = loc.y
+        , loc = loc
         }
 
     else
@@ -63,8 +57,7 @@ generate loc roll =
         , structure = Nothing
         , farms = 0
         , towers = 0
-        , x = loc.x
-        , y = loc.y
+        , loc = loc
         }
 
 
@@ -76,8 +69,7 @@ empty =
     , structure = Nothing
     , farms = 0
     , towers = 0
-    , x = -1
-    , y = -1
+    , loc = Loc.at -1 -1
     }
 
 
@@ -87,7 +79,7 @@ find grid loc =
         (\row ->
             List.head
                 (List.filter
-                    (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y)
+                    (\innerCell -> innerCell.loc == loc)
                     row
                 )
         )
@@ -96,7 +88,7 @@ find grid loc =
                 (\row ->
                     List.length
                         (List.filter
-                            (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y)
+                            (\innerCell -> innerCell.loc == loc)
                             row
                         )
                         > 0
@@ -123,13 +115,13 @@ validStartingCell grid loc =
     Maybe.andThen
         (\row ->
             List.head
-                (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y) row)
+                (List.filter (\innerCell -> innerCell.loc == loc) row)
         )
         (List.head
             (List.filter
                 (\row ->
                     List.length
-                        (List.filter (\innerCell -> innerCell.x == loc.x && innerCell.y == loc.y && hasStructure innerCell == False) row)
+                        (List.filter (\innerCell -> innerCell.loc == loc && hasStructure innerCell == False) row)
                         > 0
                 )
                 grid
@@ -166,40 +158,20 @@ getColorClass cell players =
             Game.Player.getColorClass players cell.controlledBy
 
 
-getDistance : Loc -> Loc -> Int
-getDistance from to =
-    let
-        x =
-            if (from.x - to.x) < 0 then
-                (from.x - to.x) * -1
-
-            else
-                from.x - to.x
-
-        y =
-            if (from.y - to.y) < 0 then
-                (from.y - to.y) * -1
-
-            else
-                from.y - to.y
-    in
-    x + y
-
-
 getBorderCells : List (List Cell) -> Loc -> List (Maybe Cell)
 getBorderCells grid loc =
     let
         north =
-            { loc | y = loc.y - 1 }
+            Loc.diff loc 0 -1
 
         south =
-            { loc | y = loc.y + 1 }
+            Loc.diff loc 0 1
 
         east =
-            { loc | x = loc.x + 1 }
+            Loc.diff loc 1 0
 
         west =
-            { loc | x = loc.x - 1 }
+            Loc.diff loc -1 0
     in
     [ find grid north
     , find grid south
@@ -254,26 +226,22 @@ groupNeighbors cells =
                                         (\cellInGroup ->
                                             let
                                                 loc =
-                                                    { x = cell.x
-                                                    , y = cell.y
-                                                    }
+                                                    cell.loc
 
                                                 groupLoc =
-                                                    { x = cellInGroup.x
-                                                    , y = cellInGroup.y
-                                                    }
+                                                    cellInGroup.loc
 
                                                 north =
-                                                    { loc | y = loc.y - 1 }
+                                                    Loc.diff loc 0 -1
 
                                                 south =
-                                                    { loc | y = loc.y + 1 }
+                                                    Loc.diff loc 0 1
 
                                                 east =
-                                                    { loc | x = loc.x + 1 }
+                                                    Loc.diff loc 1 0
 
                                                 west =
-                                                    { loc | x = loc.x - 1 }
+                                                    Loc.diff loc -1 0
                                             in
                                             cell.controlledBy == cellInGroup.controlledBy && ((loc == groupLoc) || (north == groupLoc) || (south == groupLoc) || (east == groupLoc) || (west == groupLoc))
                                         )
@@ -299,7 +267,7 @@ groupNeighbors cells =
 
 getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
 getGroup groups loc =
-    List.Extra.find (\g -> List.Extra.find (\cell -> cell.x == loc.x && cell.y == loc.y) g /= Nothing) groups
+    List.Extra.find (\g -> List.Extra.find (\cell -> cell.loc == loc) g /= Nothing) groups
 
 
 getGroupBorderingPlayers : List (List Cell) -> Loc -> List (List Cell) -> List (Maybe Int)
@@ -311,7 +279,7 @@ getGroupBorderingPlayers grid loc groups =
         Just cells ->
             List.foldl
                 (\cell players ->
-                    getBorderingPlayers grid { x = cell.x, y = cell.y } ++ players
+                    getBorderingPlayers grid cell.loc ++ players
                 )
                 []
                 cells

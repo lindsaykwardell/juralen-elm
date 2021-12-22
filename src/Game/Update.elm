@@ -3,11 +3,11 @@ module Game.Update exposing (Msg(..), update)
 import Game.Analysis
 import Game.Analyzer exposing (analyze)
 import Game.Cell exposing (Cell)
-import Game.Loc exposing (Loc)
 import Game.CellType
 import Game.Combat
 import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
+import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.Resources exposing (Resources)
 import Game.Scenario exposing (Msg(..))
@@ -197,7 +197,9 @@ update msg model =
                 let
                     newResources : Resources
                     newResources =
-                        Game.Resources.useActions (Game.Player.getResources model.players model.activePlayer) (Basics.toFloat (Game.Cell.getDistance model.selectedCell { x = cell.x, y = cell.y }) * getMoveCost model)
+                        Game.Resources.useActions
+                            (Game.Player.getResources model.players model.activePlayer)
+                            (Basics.toFloat (Loc.getDistance model.selectedCell cell.loc) * getMoveCost model)
 
                     newPlayerList =
                         List.map
@@ -215,12 +217,10 @@ update msg model =
                             (\unit ->
                                 if
                                     Game.Unit.isSelected model.selectedUnits unit.id
-                                        && unit.x
-                                        == model.selectedCell.x
-                                        && unit.y
-                                        == model.selectedCell.y
+                                        && unit.loc
+                                        == model.selectedCell
                                 then
-                                    { unit | x = cell.x, y = cell.y, movesLeft = unit.movesLeft - 1 }
+                                    { unit | loc = cell.loc, movesLeft = unit.movesLeft - 1 }
 
                                 else
                                     unit
@@ -228,13 +228,13 @@ update msg model =
                             model.units
 
                     newSelectedCell =
-                        { x = cell.x, y = cell.y }
+                        cell.loc
 
                     newCell =
                         if
                             cell.cellType
                                 == Game.CellType.Plains
-                                && List.length (Game.Unit.inCell model.units { x = cell.x, y = cell.y })
+                                && List.length (Game.Unit.inCell model.units cell.loc)
                                 <= 0
                         then
                             Game.Cell.updateControl cell model.activePlayer
@@ -467,7 +467,7 @@ update msg model =
                                         (\row ->
                                             List.map
                                                 (\cell ->
-                                                    if cell.x == model.selectedCell.x && cell.y == model.selectedCell.y then
+                                                    if cell.loc == model.selectedCell then
                                                         let
                                                             conquered =
                                                                 cell.controlledBy /= Just winner.id
@@ -593,7 +593,7 @@ update msg model =
 
                 priestLocs : List Loc
                 priestLocs =
-                    List.map (\unit -> { x = unit.x, y = unit.y }) priests
+                    List.map (\unit -> unit.loc) priests
 
                 capturedUnits : List Unit
                 capturedUnits =
@@ -758,7 +758,7 @@ healUnits units inLocs =
                 healedUnits =
                     List.map
                         (\unit ->
-                            if unit.x == loc.x && unit.y == loc.y then
+                            if unit.loc == loc then
                                 let
                                     initialValues : InitialValues
                                     initialValues =

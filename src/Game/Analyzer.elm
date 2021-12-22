@@ -3,7 +3,7 @@ module Game.Analyzer exposing (..)
 import Game.Analysis exposing (Action(..), Option, UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell)
-import Game.Loc exposing (Loc)
+import Game.Loc as Loc exposing (Loc)
 import Game.CellType
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid
@@ -74,14 +74,14 @@ checkCellForUpgrades upgradeType cells options =
         cell :: remainingCells ->
             case upgradeType of
                 Game.Analysis.BuildFarm ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Game.Analysis.BuildFarm, score = 0 } ] ])
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.BuildFarm, score = 0 } ] ])
 
                 Game.Analysis.BuildTower ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Game.Analysis.BuildTower, score = 0 } ] ])
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.BuildTower, score = 0 } ] ])
 
                 Game.Analysis.RepairDefense ->
                     if Game.Structure.initDef cell.structure > cell.defBonus then
-                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = { x = cell.x, y = cell.y }, action = Upgrade Game.Analysis.RepairDefense, score = 0 } ] ])
+                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.RepairDefense, score = 0 } ] ])
 
                     else
                         checkCellForUpgrades upgradeType remainingCells options
@@ -96,7 +96,7 @@ analyzeResearchOptions model =
         |> TechTree.nextAvailableTech
         |> List.map
             (\tech ->
-                { loc = { x = 0, y = 0 }
+                { loc = Loc.at 0 0
                 , action = Research tech
                 , score = 0
                 }
@@ -116,7 +116,7 @@ analyzeMoves model =
                     (\row collection ->
                         List.foldl
                             (\cell cells ->
-                                if Game.Unit.inCell myUnits { x = cell.x, y = cell.y } /= [] then
+                                if Game.Unit.inCell myUnits cell.loc /= [] then
                                     cell :: cells
 
                                 else
@@ -137,7 +137,7 @@ analyzeMoves model =
                                 combinations ++ [ { unitOptions = units, cell = cell } ]
                             )
                             []
-                            (combineUnitWith [] [] (Game.Unit.inCell myUnits { x = cell.x, y = cell.y }))
+                            (combineUnitWith [] [] (Game.Unit.inCell myUnits cell.loc))
                     )
                     cellsWithUnits
                 )
@@ -145,7 +145,7 @@ analyzeMoves model =
     toList
         (List.map
             (\combination ->
-                getMoveOptions model { x = combination.cell.x, y = combination.cell.y } combination.unitOptions
+                getMoveOptions model combination.cell.loc combination.unitOptions
             )
             unitCombinations
         )
@@ -239,7 +239,7 @@ getMoveOptions model fromLoc units =
     List.map
         (\cell ->
             { loc = fromLoc
-            , action = Move units { x = cell.x, y = cell.y }
+            , action = Move units cell.loc
             , score = 0
             }
         )
@@ -290,7 +290,7 @@ getUnitOptions stats cells options =
                     options
                         ++ List.map
                             (\unitType ->
-                                { loc = { x = cell.x, y = cell.y }, action = BuildUnit unitType, score = 0 }
+                                { loc = cell.loc, action = BuildUnit unitType, score = 0 }
                             )
                             (List.filter
                                 (\unitType ->
@@ -357,7 +357,7 @@ scoreOption model option =
                             0
                           )
                         -- Subtract distance (shorter is better)
-                        - Game.Cell.getDistance option.loc toLoc
+                        - Loc.getDistance option.loc toLoc
                         * (if analyzer == Defensive || analyzer == Expansionist then
                             3
 
@@ -387,7 +387,7 @@ scoreOption model option =
 
                                 Just playerId ->
                                     if playerId == model.activePlayer then
-                                        if List.length (Game.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) <= 1 then
+                                        if List.length (Game.Unit.inCell model.units targetCell.loc) <= 1 then
                                             120
 
                                         else
@@ -434,7 +434,7 @@ scoreOption model option =
 
                                 else
                                     abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
-                                        + (if List.length (Game.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }) > 0 then
+                                        + (if List.length (Game.Unit.inCell model.units targetCell.loc) > 0 then
                                             if analyzer == Passive then
                                                 -1000
 
@@ -448,7 +448,7 @@ scoreOption model option =
                                                     defenderThreat =
                                                         List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
                                                             0
-                                                            (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units { x = targetCell.x, y = targetCell.y }))
+                                                            (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units targetCell.loc))
 
                                                     defBonus =
                                                         targetCell.defBonus

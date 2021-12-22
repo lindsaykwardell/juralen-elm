@@ -5,7 +5,7 @@ import Game.Analysis
 import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
-import Game.Loc exposing (Loc)
+import Game.Loc as Loc
 import Game.Player exposing (NewPlayer, isHuman)
 import Game.PlayerColor
 import Game.Scenario as Scenario
@@ -23,13 +23,13 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Json
 
 
-init : List NewPlayer -> Float -> Loc -> ( Model, Cmd Msg )
-init newPlayerList aiSpeed loc =
+init : List NewPlayer -> Float -> { x : Int, y : Int} -> ( Model, Cmd Msg )
+init newPlayerList aiSpeed size =
     update InitializeScenario
         { nextId = 1
         , turn = 0
         , grid = []
-        , selectedCell = { x = 0, y = 0 }
+        , selectedCell = Loc.at 0 0
         , players = []
         , activePlayer = 0
         , units = []
@@ -37,8 +37,8 @@ init newPlayerList aiSpeed loc =
         , scenario =
             Scenario.init
                 { scenarioType = Scenario.Conquest
-                , maxX = loc.x
-                , maxY = loc.y
+                , maxX = size.x
+                , maxY = size.y
                 , players = newPlayerList
                 }
         , combat = NoCombat
@@ -85,8 +85,8 @@ view model =
                                 MoveSelectedUnits cell
 
                             else
-                                SelectCell { x = cell.x, y = cell.y }
-                    , unitsInCell = \cell -> Game.Unit.inCell model.units { x = cell.x, y = cell.y }
+                                SelectCell cell.loc
+                    , unitsInCell = \cell -> Game.Unit.inCell model.units cell.loc
                     , selectedUnits = model.selectedUnits
                     }
                 , --zoomButtons [ class "mt-1 flex justify-end" ] []
@@ -216,9 +216,9 @@ selectedCellCard model =
                        )
                 )
             ]
-            [ text (String.fromInt model.selectedCell.x)
+            [ text (String.fromInt <| Loc.getX model.selectedCell)
             , text ", "
-            , text (String.fromInt model.selectedCell.y)
+            , text (String.fromInt <| Loc.getY model.selectedCell)
             , br [] []
             , div [ class "flex" ]
                 [ div [ class "flex-1" ]

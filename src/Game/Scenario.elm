@@ -1,8 +1,8 @@
 module Game.Scenario exposing (..)
 
 import Game.Cell exposing (Cell)
-import Game.Loc exposing (Loc)
 import Game.Grid exposing (Grid)
+import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (NewPlayer, Player)
 import Game.Structure
 import Game.Unit exposing (Unit)
@@ -76,7 +76,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg scenario =
     case msg of
         InitializeScenario ->
-            update (RollNextCell { x = 0, y = 0 }) scenario
+            update (RollNextCell <| Loc.at 0 0) scenario
 
         GenerateNextCell loc roll ->
             let
@@ -127,7 +127,7 @@ update msg scenario =
                         , grid = newGrid
                     }
             in
-            update (RollNextCell { x = nextX, y = nextY }) newScenario
+            update (RollNextCell <| Loc.at nextX nextY) newScenario
 
         RollNextCell loc ->
             if scenario.finished == False then
@@ -205,7 +205,7 @@ update msg scenario =
                     update (RollStartingLocX player nextPlayers) scenario
 
                 Just realCell ->
-                    if Game.Grid.distanceToEnemy scenario.grid { x = realCell.x, y = realCell.y } player.id <= 2 then
+                    if Game.Grid.distanceToEnemy scenario.grid realCell.loc player.id <= 2 then
                         update (RollStartingLocX player nextPlayers) scenario
 
                     else
@@ -245,7 +245,7 @@ update msg scenario =
             ( scenario, Random.generate (MakeLocFromRolls player nextPlayers xVal) (randomDefinedMax (scenario.maxY + 1)) )
 
         MakeLocFromRolls player nextPlayers xVal yVal ->
-            update (GenerateStartingLoc player nextPlayers { x = xVal, y = yVal }) scenario
+            update (GenerateStartingLoc player nextPlayers <| Loc.at xVal yVal) scenario
 
         DetermineFirstPlayer roll ->
             let

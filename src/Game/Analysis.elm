@@ -1,6 +1,6 @@
 module Game.Analysis exposing (..)
 
-import Game.Loc exposing (Loc)
+import Game.Loc as Loc exposing (Loc)
 import Game.Structure exposing (Structure)
 import Game.TechTree exposing (TechDescription)
 import Game.Unit exposing (Unit)
@@ -38,7 +38,16 @@ toString option =
                 unitString =
                     List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
             in
-            "Move [ " ++ unitString ++ "] from " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y ++ " to " ++ String.fromInt loc.x ++ ", " ++ String.fromInt loc.y
+            "Move [ "
+                ++ unitString
+                ++ "] from "
+                ++ String.fromInt (Loc.getX option.loc)
+                ++ ", "
+                ++ String.fromInt (Loc.getY option.loc)
+                ++ " to "
+                ++ String.fromInt (Loc.getX loc)
+                ++ ", "
+                ++ String.fromInt (Loc.getY loc)
 
         Attack units loc ->
             let
@@ -46,10 +55,24 @@ toString option =
                 unitString =
                     List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
             in
-            "Attack - Move [ " ++ unitString ++ "] from " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y ++ " to " ++ String.fromInt loc.x ++ ", " ++ String.fromInt loc.y
+            "Attack - Move [ "
+                ++ unitString
+                ++ "] from "
+                ++ String.fromInt (Loc.getX option.loc)
+                ++ ", "
+                ++ String.fromInt (Loc.getY option.loc)
+                ++ " to "
+                ++ String.fromInt (Loc.getX loc)
+                ++ ", "
+                ++ String.fromInt (Loc.getY loc)
 
         BuildUnit unitType ->
-            "Build [ " ++ Game.UnitType.toString unitType ++ " ] in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+            "Build [ "
+                ++ Game.UnitType.toString unitType
+                ++ " ] in "
+                ++ String.fromInt (Loc.getX option.loc)
+                ++ ", "
+                ++ String.fromInt (Loc.getY option.loc)
 
         Research tech ->
             "Research " ++ tech.name
@@ -57,13 +80,22 @@ toString option =
         Upgrade upgrade ->
             case upgrade of
                 BuildFarm ->
-                    "Build farm in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+                    "Build farm in "
+                        ++ String.fromInt (Loc.getX option.loc)
+                        ++ ", "
+                        ++ String.fromInt (Loc.getY option.loc)
 
                 BuildTower ->
-                    "Build tower in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+                    "Build tower in "
+                        ++ String.fromInt (Loc.getX option.loc)
+                        ++ ", "
+                        ++ String.fromInt (Loc.getY option.loc)
 
                 RepairDefense ->
-                    "Repair structure in " ++ String.fromInt option.loc.x ++ ", " ++ String.fromInt option.loc.y
+                    "Repair structure in "
+                        ++ String.fromInt (Loc.getX option.loc)
+                        ++ ", "
+                        ++ String.fromInt (Loc.getY option.loc)
 
         _ ->
             ""
