@@ -1,6 +1,6 @@
 module Game.Analysis exposing (..)
 
-import Game.Cell exposing (Loc)
+import Game.Loc exposing (Loc)
 import Game.Structure exposing (Structure)
 import Game.TechTree exposing (TechDescription)
 import Game.Unit exposing (Unit)

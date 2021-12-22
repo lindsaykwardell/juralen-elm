@@ -1,6 +1,6 @@
 module Game.Unit exposing (..)
 
-import Game.Cell exposing (Loc)
+import Game.Loc exposing (Loc)
 import Game.UnitType exposing (UnitType(..))
 
 

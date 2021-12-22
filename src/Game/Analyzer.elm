@@ -2,7 +2,8 @@ module Game.Analyzer exposing (..)
 
 import Game.Analysis exposing (Action(..), Option, UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
-import Game.Cell exposing (Cell, Loc)
+import Game.Cell exposing (Cell)
+import Game.Loc exposing (Loc)
 import Game.CellType
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid

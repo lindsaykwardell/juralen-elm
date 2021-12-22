@@ -2,10 +2,11 @@ module Game.Core exposing (..)
 
 import Game.Analysis exposing (Option)
 import Game.AnalyzerMode exposing (AnalyzerMode)
-import Game.Cell exposing (Cell, Loc, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
+import Game.Cell exposing (Cell, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
 import Game.CellType
 import Game.Combat
 import Game.Grid exposing (Grid)
+import Game.Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.Scenario
 import Game.TechTree exposing (TechTree)

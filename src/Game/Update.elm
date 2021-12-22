@@ -2,7 +2,8 @@ module Game.Update exposing (Msg(..), update)
 
 import Game.Analysis
 import Game.Analyzer exposing (analyze)
-import Game.Cell exposing (Cell, Loc)
+import Game.Cell exposing (Cell)
+import Game.Loc exposing (Loc)
 import Game.CellType
 import Game.Combat
 import Game.Core exposing (..)

@@ -1,6 +1,7 @@
 module Game.Scenario exposing (..)
 
-import Game.Cell exposing (Cell, Loc)
+import Game.Cell exposing (Cell)
+import Game.Loc exposing (Loc)
 import Game.Grid exposing (Grid)
 import Game.Player exposing (NewPlayer, Player)
 import Game.Structure

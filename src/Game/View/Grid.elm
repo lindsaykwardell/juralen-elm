@@ -1,6 +1,7 @@
 module Game.View.Grid exposing (..)
 
-import Game.Cell exposing (Cell, Loc)
+import Game.Cell exposing (Cell)
+import Game.Loc exposing (Loc)
 import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
 import Game.Unit exposing (Unit)

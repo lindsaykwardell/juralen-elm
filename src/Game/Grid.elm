@@ -1,6 +1,7 @@
 module Game.Grid exposing (..)
 
-import Game.Cell exposing (Cell, Loc, getDistance)
+import Game.Cell exposing (Cell, getDistance)
+import Game.Loc exposing (Loc)
 import Game.Structure
 
 

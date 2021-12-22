@@ -4,12 +4,10 @@ import Game.CellType exposing (CellType)
 import Game.Player exposing (Player)
 import Game.Structure exposing (Structure)
 import List.Extra
+import Game.Loc exposing (Loc)
 
 
-type alias Loc =
-    { x : Int
-    , y : Int
-    }
+
 
 
 type alias Cell =

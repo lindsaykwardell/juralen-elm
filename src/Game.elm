@@ -2,9 +2,10 @@ module Game exposing (..)
 
 import Components.ZoomButtons.ZoomButtons exposing (zoomButtons)
 import Game.Analysis
-import Game.Cell exposing (Loc)
+import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
+import Game.Loc exposing (Loc)
 import Game.Player exposing (NewPlayer, isHuman)
 import Game.PlayerColor
 import Game.Scenario as Scenario
@@ -14,10 +15,9 @@ import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
-import Game.View.Cell as Cell
 import Game.View.Grid as Grid
-import Html exposing (Attribute, Html, br, button, div, img, span, table, td, text, tr)
-import Html.Attributes exposing (class, disabled, src, style)
+import Html exposing (Attribute, Html, br, button, div, text)
+import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Html.Lazy exposing (lazy)
 import Json.Decode as Json
