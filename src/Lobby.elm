@@ -76,7 +76,7 @@ init =
               , analyzer = Game.AnalyzerMode.Default
               }
             ]
-      , nextId = 2
+      , nextId = 3
       , aiSpeed = Just 250
       , scenarioType = Conquest
       , maxX = Just 9

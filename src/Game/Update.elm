@@ -36,6 +36,7 @@ type Msg
     | LoadGame
     | OpenSettings
     | UpdateMobileTab MobileTab
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -494,7 +495,17 @@ update msg model =
                                         )
                                         model.grid
                             in
-                            ( { model | units = newUnits, grid = updatedGrid }, runAiAction { model | units = newUnits, grid = updatedGrid } )
+                            ( { model
+                                | units = newUnits
+                                , grid = updatedGrid
+                                , combat = NoCombat
+                              }
+                            , runAiAction
+                                { model
+                                    | units = newUnits
+                                    , grid = updatedGrid
+                                }
+                            )
 
                         _ ->
                             toCombat model (Game.Combat.update combatMsg combat)
@@ -545,8 +556,8 @@ update msg model =
 
         PerformAiTurn ->
             let
-                analysisResults = analyze model
-
+                analysisResults =
+                    analyze model
             in
             case List.head analysisResults of
                 Nothing ->
@@ -640,6 +651,9 @@ update msg model =
 
         UpdateMobileTab tab ->
             ( { model | mobileTab = tab }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 runAiAction : Model -> Cmd Msg

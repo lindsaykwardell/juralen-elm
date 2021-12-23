@@ -15,6 +15,7 @@ import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
+import Game.View.CombatModal as CombatModal
 import Game.View.Grid as Grid
 import Html exposing (Attribute, Html, br, button, div, text)
 import Html.Attributes exposing (class, disabled)
@@ -77,7 +78,13 @@ onContextMenu msg =
 view : Model -> Html Msg
 view model =
     div [ class "" ]
-        [ div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
+        [ case model.combat of
+            NoCombat ->
+                text ""
+
+            Combat combatModel ->
+                CombatModal.view { show = True, onClose = NoOp, model = combatModel }
+        , div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
             [ button
                 [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200 disabled:bg-green-300 disabled:hover:bg-green-300 disabled:cursor-default"
                 , disabled <| not <| .isHuman <| Game.Player.get model.players model.activePlayer

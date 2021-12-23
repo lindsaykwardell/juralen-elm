@@ -4,6 +4,7 @@ import Game.Player exposing (Player)
 import Game.Unit exposing (Unit)
 import Game.UnitType
 import List.Extra as List
+import Process
 import Random
 import Task
 
@@ -100,7 +101,7 @@ update msg model =
                         Just thisUnit ->
                             thisUnit
             in
-            update RunCombat { model | defender = unit }
+            ( { model | defender = unit }, delay 150 RunCombat )
 
         RunCombat ->
             let
@@ -132,10 +133,11 @@ update msg model =
                     List.length (Game.Unit.controlledBy newModel.units newModel.defendingPlayer.id) > 0
             in
             if attackerHasUnits && defenderHasUnits then
-                update (GetRandomUnit Attacker) newModel
+                -- update (GetRandomUnit Attacker) newModel
+                ( newModel, delay 150 (GetRandomUnit Attacker) )
 
             else
-                ( newModel, Task.succeed Cmd.none |> Task.perform (\_ -> ExitCombat) )
+                ( newModel, delay 1500 ExitCombat )
 
         ExitCombat ->
             ( model, Cmd.none )
@@ -300,3 +302,8 @@ removeDeadUnits units =
 moveUnitsToGraveyard : List Unit -> List Unit -> List Unit
 moveUnitsToGraveyard deadUnits units =
     deadUnits ++ List.filter (\unit -> Game.Unit.isDead unit) units
+
+
+delay : Float -> b -> Cmd b
+delay int msg =
+    Process.sleep int |> Task.perform (\_ -> msg)
