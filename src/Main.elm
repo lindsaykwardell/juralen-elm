@@ -12,7 +12,7 @@ import Game
 import Game.Core as Core
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
 import Game.Settings as Settings exposing (Settings, settingsModal)
-import Game.Update
+import Game.Update as Game
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
@@ -84,7 +84,7 @@ type Msg
     | ToggleSettings
     | GotSettingsMessage Settings.Msg
     | GotLobbyMsg Lobby.Msg
-    | GotGameMsg Game.Update.Msg
+    | GotGameMsg Game.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -122,17 +122,10 @@ update msg model =
                         | inTransition = False
                         , showSettings = False
                         , gameStatus = Core.ActiveGame
-                        , page =
-                            Game
-                                (Tuple.first
-                                    (Game.init model.newPlayers game.aiSpeed { x = game.scenario.maxX, y = game.scenario.maxY })
-                                )
+                        , page = Game game
                       }
                     , Cmd.batch
-                        [ Cmd.map GotGameMsg
-                            (Tuple.second
-                                (Game.init model.newPlayers game.aiSpeed { x = game.scenario.maxX, y = game.scenario.maxY })
-                            )
+                        [ Cmd.map GotGameMsg (Task.succeed Cmd.none |> Task.perform (\_ -> Game.InitializeScenario))
                         , playGameMusic ()
                         ]
                     )
@@ -167,9 +160,10 @@ update msg model =
                                             1
                                             gameModel.players
                                             + 1
-                                    , aiSpeed = gameModel.aiSpeed
-                                    , maxX = gameModel.scenario.maxX
-                                    , maxY = gameModel.scenario.maxY
+                                    , aiSpeed = Just gameModel.aiSpeed
+                                    , scenarioType = gameModel.scenario.scenarioType
+                                    , maxX = Just gameModel.scenario.maxX
+                                    , maxY = Just gameModel.scenario.maxY
                                     }
                             in
                             update (InitChangePage (Lobby lobbyModel)) model
@@ -189,7 +183,13 @@ update msg model =
                                 (InitChangePage
                                     (Game
                                         (Tuple.first
-                                            (Game.init lobbyModel.newPlayerList lobbyModel.aiSpeed { x = lobbyModel.maxX, y = lobbyModel.maxY })
+                                            (Game.init
+                                                { newPlayerList = lobbyModel.newPlayerList
+                                                , aiSpeed = Maybe.withDefault 250 lobbyModel.aiSpeed
+                                                , size = { x = Maybe.withDefault 8 lobbyModel.maxX, y = Maybe.withDefault 8 lobbyModel.maxY }
+                                                , scenarioType = lobbyModel.scenarioType
+                                                }
+                                            )
                                         )
                                     )
                                 )
@@ -205,14 +205,14 @@ update msg model =
             case model.page of
                 Game gameModel ->
                     case gameMsg of
-                        Game.Update.OpenSettings ->
+                        Game.OpenSettings ->
                             update ToggleSettings model
 
-                        Game.Update.EndGame ->
+                        Game.EndGame ->
                             update ToggleSettings { model | gameStatus = Core.CompletedGame }
 
                         _ ->
-                            toGame model (Game.Update.update gameMsg gameModel)
+                            toGame model (Game.update gameMsg gameModel)
 
                 _ ->
                     ( model, Cmd.none )
@@ -223,7 +223,7 @@ toLobby model ( lobby, cmd ) =
     ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg cmd )
 
 
-toGame : Model -> ( Core.Model, Cmd Game.Update.Msg ) -> ( Model, Cmd Msg )
+toGame : Model -> ( Core.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
 toGame model ( game, cmd ) =
     ( { model | page = Game game }, Cmd.map GotGameMsg cmd )
 

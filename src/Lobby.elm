@@ -3,8 +3,9 @@ module Lobby exposing (..)
 import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor exposing (PlayerColor)
+import Game.Scenario exposing (ScenarioType(..))
 import Html exposing (Html, button, div, h1, input, label, option, select, text)
-import Html.Attributes exposing (checked, class, selected, type_, value)
+import Html.Attributes exposing (checked, class, placeholder, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
 import List.Extra as List
 import Random
@@ -13,9 +14,10 @@ import Random
 type alias Model =
     { newPlayerList : List NewPlayer
     , nextId : Int
-    , aiSpeed : Float
-    , maxX : Int
-    , maxY : Int
+    , aiSpeed : Maybe Float
+    , scenarioType : ScenarioType
+    , maxX : Maybe Int
+    , maxY : Maybe Int
     }
 
 
@@ -27,6 +29,7 @@ type Msg
     | UpdateAiSpeed String
     | UpdateMaxX String
     | UpdateMaxY String
+    | UpdateScenario ScenarioType
     | AddPlayer
     | AddPlayerName Int Int
     | RemovePlayer Int
@@ -60,12 +63,18 @@ randomDefinedMax max =
 init : ( Model, Cmd Msg )
 init =
     ( { newPlayerList =
-            [ { id = 1, name = "Player 1", isHuman = True, color = Game.PlayerColor.Red, analyzer = Game.AnalyzerMode.Default }
+            [ { id = 1
+              , name = "Player 1"
+              , isHuman = True
+              , color = Game.PlayerColor.Red
+              , analyzer = Game.AnalyzerMode.Default
+              }
             ]
       , nextId = 2
-      , aiSpeed = 250
-      , maxX = 8
-      , maxY = 8
+      , aiSpeed = Just 250
+      , scenarioType = Conquest
+      , maxX = Just 8
+      , maxY = Just 8
       }
     , Cmd.none
     )
@@ -175,39 +184,21 @@ update msg model =
 
         UpdateAiSpeed speed ->
             ( { model
-                | aiSpeed =
-                    case String.toFloat speed of
-                        Just speedFloat ->
-                            speedFloat
-
-                        _ ->
-                            500
+                | aiSpeed = String.toFloat speed
               }
             , Cmd.none
             )
 
         UpdateMaxX maxX ->
             ( { model
-                | maxX =
-                    case String.toInt maxX of
-                        Just maxXFloat ->
-                            maxXFloat - 1
-
-                        _ ->
-                            8
+                | maxX = String.toInt maxX
               }
             , Cmd.none
             )
 
         UpdateMaxY maxY ->
             ( { model
-                | maxY =
-                    case String.toInt maxY of
-                        Just maxYFloat ->
-                            maxYFloat - 1
-
-                        _ ->
-                            8
+                | maxY = String.toInt maxY
               }
             , Cmd.none
             )
@@ -285,6 +276,11 @@ update msg model =
             in
             ( { model | newPlayerList = newPlayerList }, Cmd.none )
 
+        UpdateScenario scenario ->
+            ( { model | scenarioType = scenario }
+            , Cmd.none
+            )
+
         StartGame ->
             ( model, Cmd.none )
 
@@ -305,11 +301,82 @@ view model =
                     model.newPlayerList
                 , [ div [ class "p-3 flex justify-end" ]
                         [ label [ class "text-white" ]
+                            [ text "Scenario"
+                            , select
+                                [ class "text-black px-2 py-1 mx-3 rounded"
+                                , onInput
+                                    (\val ->
+                                        case val of
+                                            "CONQUEST" ->
+                                                UpdateScenario Conquest
+
+                                            "SCORE" ->
+                                                UpdateScenario <| ScoreReached 50
+
+                                            "TURN" ->
+                                                UpdateScenario <| NumberOfTurns 100
+
+                                            _ ->
+                                                UpdateScenario Conquest
+                                    )
+                                ]
+                                (let
+                                    ( conquestSelected, scoreSelected, turnCountSelected ) =
+                                        case model.scenarioType of
+                                            Conquest ->
+                                                ( True, False, False )
+
+                                            ScoreReached _ ->
+                                                ( False, True, False )
+
+                                            NumberOfTurns _ ->
+                                                ( False, False, True )
+                                 in
+                                 [ option [ value "CONQUEST", selected conquestSelected ] [ text "Conquest" ]
+                                 , option [ value "SCORE", selected scoreSelected ] [ text "Score" ]
+                                 , option [ value "TURN", selected turnCountSelected ] [ text "Turn Count" ]
+                                 ]
+                                )
+                            ]
+                        , case model.scenarioType of
+                            Conquest ->
+                                div [] []
+
+                            ScoreReached score ->
+                                label [ class "text-white" ]
+                                    [ text "Max Score"
+                                    , input
+                                        [ class "w-16 text-black px-2 py-1 mx-3 rounded"
+                                        , value (String.fromInt score)
+                                        , onInput (\val -> UpdateScenario <| ScoreReached <| Maybe.withDefault 0 <| String.toInt val)
+                                        ]
+                                        []
+                                    ]
+
+                            NumberOfTurns turns ->
+                                label [ class "text-white" ]
+                                    [ text "Max Score"
+                                    , input
+                                        [ class "w-16 text-black px-2 py-1 mx-3 rounded"
+                                        , value (String.fromInt turns)
+                                        , onInput (\val -> UpdateScenario <| NumberOfTurns <| Maybe.withDefault 0 <| String.toInt val)
+                                        ]
+                                        []
+                                    ]
+                        , label [ class "text-white" ]
                             [ text "Width"
                             , input
-                                [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1 mr-3"
+                                [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
                                 , type_ "number"
-                                , value (String.fromInt (model.maxX + 1))
+                                , value
+                                    (case model.maxX of
+                                        Nothing ->
+                                            ""
+
+                                        Just maxX ->
+                                            String.fromInt (maxX + 1)
+                                    )
+                                , placeholder "9"
                                 , onInput UpdateMaxX
                                 ]
                                 []
@@ -317,9 +384,17 @@ view model =
                         , label [ class "text-white" ]
                             [ text "Height"
                             , input
-                                [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1 mr-3"
+                                [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
                                 , type_ "number"
-                                , value (String.fromInt (model.maxY + 1))
+                                , value
+                                    (case model.maxY of
+                                        Nothing ->
+                                            ""
+
+                                        Just maxY ->
+                                            String.fromInt (maxY + 1)
+                                    )
+                                , placeholder "9"
                                 , onInput UpdateMaxY
                                 ]
                                 []
@@ -329,7 +404,15 @@ view model =
                             , input
                                 [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1"
                                 , type_ "number"
-                                , value (String.fromFloat model.aiSpeed)
+                                , value
+                                    (case model.aiSpeed of
+                                        Nothing ->
+                                            ""
+
+                                        Just aiSpeed ->
+                                            String.fromFloat aiSpeed
+                                    )
+                                , placeholder "250"
                                 , onInput UpdateAiSpeed
                                 ]
                                 []

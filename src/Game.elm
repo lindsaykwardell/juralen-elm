@@ -8,7 +8,7 @@ import Game.Core exposing (..)
 import Game.Loc as Loc
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor
-import Game.Scenario as Scenario
+import Game.Scenario as Scenario exposing (ScenarioType)
 import Game.Scoreboard as Scoreboard
 import Game.Structure
 import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
@@ -23,8 +23,14 @@ import Html.Lazy exposing (lazy)
 import Json.Decode as Json
 
 
-init : List NewPlayer -> Float -> { x : Int, y : Int } -> ( Model, Cmd Msg )
-init newPlayerList aiSpeed size =
+init :
+    { newPlayerList : List NewPlayer
+    , aiSpeed : Float
+    , size : { x : Int, y : Int }
+    , scenarioType : Scenario.ScenarioType
+    }
+    -> ( Model, Cmd Msg )
+init { newPlayerList, aiSpeed, size, scenarioType } =
     update InitializeScenario
         { nextId = 1
         , turn = 0
@@ -36,7 +42,7 @@ init newPlayerList aiSpeed size =
         , selectedUnits = []
         , scenario =
             Scenario.init
-                { scenarioType = Scenario.Conquest
+                { scenarioType = scenarioType
                 , maxX = size.x
                 , maxY = size.y
                 , players = newPlayerList
