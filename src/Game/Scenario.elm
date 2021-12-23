@@ -25,6 +25,7 @@ type alias Model =
     , currentX : Int
     , currentY : Int
     , finished : Bool
+    , playerCount : Int
     , newPlayers : List NewPlayer
     , players : List Player
     , units : List Unit
@@ -63,6 +64,7 @@ init flags =
     , currentX = 0
     , currentY = 0
     , finished = False
+    , playerCount = List.length flags.players
     , newPlayers = flags.players
     , players = []
     , units = []
@@ -205,7 +207,13 @@ update msg scenario =
                     update (RollStartingLocX player nextPlayers) scenario
 
                 Just realCell ->
-                    if Game.Grid.distanceToEnemy scenario.grid realCell.loc player.id <= 2 then
+                    let
+                        minDistanceBetweenPlayers =
+                            scenario.maxX * scenario.maxY // scenario.playerCount // 3
+
+                        _ = Debug.log "minDistanceBetweenPlayers" minDistanceBetweenPlayers
+                    in
+                    if Game.Grid.distanceToEnemy scenario.grid realCell.loc player.id <= minDistanceBetweenPlayers then
                         update (RollStartingLocX player nextPlayers) scenario
 
                     else
