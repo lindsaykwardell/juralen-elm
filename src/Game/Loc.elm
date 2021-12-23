@@ -1,4 +1,4 @@
-module Game.Loc exposing (Loc, at, diff, getDistance, getX, getY)
+module Game.Loc exposing (Loc, at, coords, diff, getDistance, getX, getY)
 
 
 type Loc
@@ -39,9 +39,11 @@ coords : Loc -> ( Int, Int )
 coords (Loc x y) =
     ( x, y )
 
+
 getX : Loc -> Int
 getX (Loc x _) =
     x
+
 
 getY : Loc -> Int
 getY (Loc _ y) =
