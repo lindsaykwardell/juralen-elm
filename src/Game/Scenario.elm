@@ -272,3 +272,32 @@ update msg scenario =
 randomDefinedMax : Int -> Random.Generator Int
 randomDefinedMax max =
     Random.int 0 max
+
+
+isEndConditionReached :
+    { players : List Player
+    , nextActivePlayer : Player
+    , units : List Unit
+    , getPlayerScore : Int -> Int
+    , turn : Int
+    }
+    -> Model
+    -> Bool
+isEndConditionReached config model =
+    case model.scenarioType of
+        Conquest ->
+            List.length
+                (List.filter
+                    (\player ->
+                        not player.hasLost
+                    )
+                    model.players
+                )
+                == 1
+
+        ScoreReached winningScore ->
+            config.getPlayerScore config.nextActivePlayer.id
+                >= winningScore
+
+        NumberOfTurns numberOfTurns ->
+            config.turn >= numberOfTurns

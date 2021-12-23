@@ -71,27 +71,16 @@ update msg model =
                     toScenario model (Game.Scenario.update scenarioMsg scenario)
 
         StartTurn nextActivePlayer ->
-            let
-                isEndConditionReached =
-                    case model.scenario.scenarioType of
-                        Game.Scenario.Conquest ->
-                            List.length
-                                (List.filter
-                                    (\player ->
-                                        not player.hasLost
-                                    )
-                                    model.players
-                                )
-                                == 1
-
-                        Game.Scenario.ScoreReached winningScore ->
-                            Game.Core.getPlayerScore model nextActivePlayer.id
-                                >= winningScore
-
-                        Game.Scenario.NumberOfTurns numberOfTurns ->
-                            model.turn >= numberOfTurns
-            in
-            if isEndConditionReached then
+            if
+                Game.Scenario.isEndConditionReached
+                    { players = model.players
+                    , nextActivePlayer = nextActivePlayer
+                    , units = model.units
+                    , getPlayerScore = Game.Core.getPlayerScore model
+                    , turn = model.turn
+                    }
+                    model.scenario
+            then
                 update EndGame { model | activePlayer = -1 }
 
             else
