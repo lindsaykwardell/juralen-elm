@@ -216,7 +216,7 @@ activePlayerCard model =
             ]
             [ text ("[ Turn " ++ String.fromInt model.turn ++ " ]")
             , text " "
-            , text ((++) (Game.Player.get model.players model.activePlayer |> .name) <| "'s turn")
+            , text ((Game.Player.get model.players model.activePlayer |> .name) ++ "'s turn")
             , div [ class "flex w-full lg:w-2/3 m-auto" ]
                 [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
                 , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]
