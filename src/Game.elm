@@ -1,6 +1,6 @@
 module Game exposing (..)
 
-import Components.ZoomButtons.ZoomButtons exposing (zoomButtons)
+import Components.ZoomButtons exposing (zoomButtons)
 import Game.Analysis
 import Game.Cell
 import Game.CellType

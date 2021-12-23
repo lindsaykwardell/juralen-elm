@@ -1,6 +1,6 @@
 import { defineCustomElement } from 'vue';
 
-import ZoomButtons from './ZoomButtons/ZoomButtons.ce.vue'
+import ZoomButtons from './ZoomButtons.ce.vue'
 
 const ZoomButtonsComponent = defineCustomElement(ZoomButtons);
 

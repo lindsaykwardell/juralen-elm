@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Browser exposing (Document)
+import Components.Modal as Modal
 import FontAwesome.Attributes as Icon
 import FontAwesome.Brands as Icon
 import FontAwesome.Icon as Icon
@@ -11,7 +12,7 @@ import FontAwesome.Transforms as Icon
 import Game
 import Game.Core as Core
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
-import Game.Settings as Settings exposing (Settings, settingsModal)
+import Game.Settings as Settings exposing (settingsModal)
 import Game.Update as Game
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
@@ -41,7 +42,6 @@ type alias Model =
     , gameStatus : Core.GameStatus
     , inTransition : Bool
     , showSettings : Bool
-    , settings : Settings
     , newPlayers : List NewPlayer
     }
 
@@ -52,7 +52,6 @@ defaultModel =
     , gameStatus = Core.NoGame
     , inTransition = False
     , showSettings = False
-    , settings = {}
     , newPlayers = []
     }
 
@@ -171,9 +170,6 @@ update msg model =
                         _ ->
                             update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
 
-                Settings.CloseSettings ->
-                    update ToggleSettings model
-
         GotLobbyMsg lobbyMsg ->
             case model.page of
                 Lobby lobbyModel ->
@@ -282,11 +278,16 @@ view model =
                 )
             ]
             []
-        , if model.showSettings then
-            { gameStatus = model.gameStatus, allowLogout = True } |> settingsModal |> Html.map GotSettingsMessage
-
-          else
-            div [] []
+        , Modal.view
+            { show = model.showSettings
+            , onClose = ToggleSettings
+            , content =
+                { gameStatus = model.gameStatus
+                , allowLogout = True
+                }
+                    |> settingsModal
+                    |> Html.map GotSettingsMessage
+            }
         , div [ class "flex flex-col h-screen" ]
             [ case model.page of
                 Splash ->
