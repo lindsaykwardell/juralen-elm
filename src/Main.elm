@@ -175,7 +175,7 @@ update msg model =
                                             (Game.init
                                                 { newPlayerList = lobbyModel.newPlayerList
                                                 , aiSpeed = Maybe.withDefault 250 lobbyModel.aiSpeed
-                                                , size = { x = Maybe.withDefault 8 lobbyModel.maxX, y = Maybe.withDefault 8 lobbyModel.maxY }
+                                                , size = { x = Maybe.withDefault 9 lobbyModel.maxX, y = Maybe.withDefault 9 lobbyModel.maxY }
                                                 , scenarioType = lobbyModel.scenarioType
                                                 }
                                             )

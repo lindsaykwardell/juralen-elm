@@ -79,8 +79,8 @@ init =
       , nextId = 2
       , aiSpeed = Just 250
       , scenarioType = Conquest
-      , maxX = Just 8
-      , maxY = Just 8
+      , maxX = Just 9
+      , maxY = Just 9
       }
     , Cmd.none
     )
@@ -372,7 +372,7 @@ view model =
                                             ""
 
                                         Just maxX ->
-                                            String.fromInt (maxX + 1)
+                                            String.fromInt maxX
                                     )
                                 , placeholder "9"
                                 , onInput UpdateMaxX
@@ -390,7 +390,7 @@ view model =
                                             ""
 
                                         Just maxY ->
-                                            String.fromInt (maxY + 1)
+                                            String.fromInt maxY
                                     )
                                 , placeholder "9"
                                 , onInput UpdateMaxY

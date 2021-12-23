@@ -43,8 +43,24 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
         , scenario =
             Scenario.init
                 { scenarioType = scenarioType
-                , maxX = size.x
-                , maxY = size.y
+
+                -- n - 1 is for adjusting for lists starting at 0
+                , maxX =
+                    (if size.x <= 0 then
+                        9
+
+                     else
+                        size.x
+                    )
+                        - 1
+                , maxY =
+                    (if size.y <= 0 then
+                        9
+
+                     else
+                        size.y
+                    )
+                        - 1
                 , players = newPlayerList
                 }
         , combat = NoCombat
@@ -200,7 +216,7 @@ activePlayerCard model =
             ]
             [ text ("[ Turn " ++ String.fromInt model.turn ++ " ]")
             , text " "
-            , text (Game.Player.get model.players model.activePlayer |> .name >> (++) "'s turn")
+            , text ((++) (Game.Player.get model.players model.activePlayer |> .name) <| "'s turn")
             , div [ class "flex w-full lg:w-2/3 m-auto" ]
                 [ div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Gold: ", text (String.fromInt (currentPlayerStats model).gold) ]
                 , div [ class "flex-1 text-xs lg:txt-sm" ] [ text "Actions: ", text (String.fromFloat (currentPlayerStats model).actions) ]
