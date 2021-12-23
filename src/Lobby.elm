@@ -69,6 +69,12 @@ init =
               , color = Game.PlayerColor.Red
               , analyzer = Game.AnalyzerMode.Default
               }
+            , { id = 2
+              , name = "Player 2"
+              , isHuman = False
+              , color = Game.PlayerColor.Blue
+              , analyzer = Game.AnalyzerMode.Default
+              }
             ]
       , nextId = 2
       , aiSpeed = Just 250
