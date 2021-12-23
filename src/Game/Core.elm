@@ -1,6 +1,5 @@
 module Game.Core exposing (..)
 
-import Game.Analysis exposing (Option)
 import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.Cell exposing (Cell, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
 import Game.CellType
@@ -45,7 +44,6 @@ type alias Model =
     , units : List Unit
     , scenario : Game.Scenario.Model
     , combat : CombatStatus
-    , analysisResults : List Option
     , aiSpeed : Float
     , mobileTab : MobileTab
     }

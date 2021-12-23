@@ -8,7 +8,7 @@ import Game.Core exposing (..)
 import Game.Loc as Loc
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor
-import Game.Scenario as Scenario exposing (ScenarioType)
+import Game.Scenario as Scenario
 import Game.Scoreboard as Scoreboard
 import Game.Structure
 import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
@@ -20,7 +20,7 @@ import Html exposing (Attribute, Html, br, button, div, text)
 import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Html.Lazy exposing (lazy)
-import Json.Decode as Json
+import Json.Decode as Decode
 
 
 init :
@@ -48,7 +48,6 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
                 , players = newPlayerList
                 }
         , combat = NoCombat
-        , analysisResults = []
         , aiSpeed = aiSpeed
         , mobileTab = DetailsTab
         }
@@ -56,7 +55,7 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
 
 onContextMenu : msg -> Attribute msg
 onContextMenu msg =
-    preventDefaultOn "contextmenu" (Json.succeed ( msg, True ))
+    preventDefaultOn "contextmenu" (Decode.succeed ( msg, True ))
 
 
 view : Model -> Html Msg

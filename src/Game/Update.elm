@@ -21,7 +21,6 @@ type Msg
     = InitializeScenario
     | GotScenarioMsg Game.Scenario.Msg
     | StartTurn Player
-    | Analyze
     | SelectCell Loc
     | BuildUnit UnitType
     | SelectUnit Int
@@ -120,17 +119,7 @@ update msg model =
                             , units = updatedUnits
                         }
                 in
-                -- ( newModel, Cmd.none )
-                update Analyze newModel
-
-        Analyze ->
-            ( { model | analysisResults = analyze model }
-            , if (Game.Player.get model.players model.activePlayer).isHuman then
-                Cmd.none
-
-              else
-                Game.Core.delay model.aiSpeed PerformAiTurn
-            )
+                ( newModel, runAiAction newModel )
 
         SelectCell loc ->
             ( { model | selectedCell = loc, selectedUnits = [] }, Cmd.none )
@@ -164,7 +153,11 @@ update msg model =
                         model.players
             in
             if canAfford model unitType then
-                update Analyze { model | nextId = nextId, units = newUnitList, players = newPlayerList }
+                let
+                    newModel =
+                        { model | nextId = nextId, units = newUnitList, players = newPlayerList }
+                in
+                ( newModel, runAiAction newModel )
 
             else
                 ( model, Cmd.none )
@@ -280,7 +273,7 @@ update msg model =
                     update (GotCombatMsg (Game.Combat.GetRandomUnit Game.Combat.Attacker)) { newModel | combat = startCombat }
 
                 else
-                    update Analyze newModel
+                    ( newModel, runAiAction newModel )
 
         ResearchTech tech ->
             let
@@ -309,7 +302,7 @@ update msg model =
                             )
                             model.players
                 in
-                update Analyze { model | players = players }
+                ( { model | players = players }, runAiAction { model | players = players } )
 
         UpgradeCell upgradeType ->
             let
@@ -347,7 +340,7 @@ update msg model =
                                     Just aCell ->
                                         Game.Grid.replaceCell model.grid { aCell | farms = aCell.farms + 1 }
                         in
-                        update Analyze { model | players = players, grid = grid }
+                        ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
 
                 Game.Analysis.BuildTower ->
                     if stats.gold < 2 then
@@ -379,7 +372,7 @@ update msg model =
                                     Just aCell ->
                                         Game.Grid.replaceCell model.grid { aCell | towers = aCell.towers + 1 }
                         in
-                        update Analyze { model | players = players, grid = grid }
+                        ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
 
                 Game.Analysis.RepairDefense ->
                     if stats.gold < 1 then
@@ -419,7 +412,7 @@ update msg model =
                                                         aCell.defBonus
                                             }
                         in
-                        update Analyze { model | players = players, grid = grid }
+                        ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
 
         GotCombatMsg combatMsg ->
             case model.combat of
@@ -501,7 +494,7 @@ update msg model =
                                         )
                                         model.grid
                             in
-                            update Analyze { model | units = newUnits, grid = updatedGrid }
+                            ( { model | units = newUnits, grid = updatedGrid }, runAiAction { model | units = newUnits, grid = updatedGrid } )
 
                         _ ->
                             toCombat model (Game.Combat.update combatMsg combat)
@@ -551,7 +544,11 @@ update msg model =
                     ( model, Cmd.none )
 
         PerformAiTurn ->
-            case List.head model.analysisResults of
+            let
+                analysisResults = analyze model
+
+            in
+            case List.head analysisResults of
                 Nothing ->
                     update EndTurn model
 
@@ -643,6 +640,15 @@ update msg model =
 
         UpdateMobileTab tab ->
             ( { model | mobileTab = tab }, Cmd.none )
+
+
+runAiAction : Model -> Cmd Msg
+runAiAction model =
+    if (Game.Player.get model.players model.activePlayer).isHuman then
+        Cmd.none
+
+    else
+        Game.Core.delay model.aiSpeed PerformAiTurn
 
 
 gainResources : PlayerStats -> Resources -> Resources
