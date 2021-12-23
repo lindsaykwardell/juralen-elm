@@ -210,8 +210,6 @@ update msg scenario =
                     let
                         minDistanceBetweenPlayers =
                             scenario.maxX * scenario.maxY // scenario.playerCount // 3
-
-                        _ = Debug.log "minDistanceBetweenPlayers" minDistanceBetweenPlayers
                     in
                     if Game.Grid.distanceToEnemy scenario.grid realCell.loc player.id <= minDistanceBetweenPlayers then
                         update (RollStartingLocX player nextPlayers) scenario
