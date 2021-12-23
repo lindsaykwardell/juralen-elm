@@ -26,10 +26,6 @@ import Task
 ---- MODEL ----
 
 
-type alias Init =
-    {}
-
-
 type Page
     = Splash
     | Home
@@ -46,19 +42,16 @@ type alias Model =
     }
 
 
-defaultModel : Model
-defaultModel =
-    { page = Splash
-    , gameStatus = Core.NoGame
-    , inTransition = False
-    , showSettings = False
-    , newPlayers = []
-    }
-
-
-init : Init -> ( Model, Cmd Msg )
+init : () -> ( Model, Cmd Msg )
 init _ =
-    ( defaultModel, Cmd.none )
+    ( { page = Splash
+      , gameStatus = Core.NoGame
+      , inTransition = False
+      , showSettings = False
+      , newPlayers = []
+      }
+    , Cmd.none
+    )
 
 
 
@@ -317,7 +310,7 @@ view model =
 ---- PROGRAM ----
 
 
-main : Program Init Model Msg
+main : Program () Model Msg
 main =
     Browser.document
         { init = init
