@@ -301,3 +301,19 @@ isEndConditionReached config model =
 
         NumberOfTurns numberOfTurns ->
             config.turn >= numberOfTurns
+
+
+onSelectScenario : String -> ScenarioType
+onSelectScenario scenarioName =
+    case scenarioName of
+        "CONQUEST" ->
+            Conquest
+
+        "SCORE" ->
+            ScoreReached 50
+
+        "TURN" ->
+            NumberOfTurns 100
+
+        _ ->
+            Conquest

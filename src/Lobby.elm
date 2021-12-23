@@ -283,6 +283,9 @@ update msg model =
             ( { model | newPlayerList = newPlayerList }, Cmd.none )
 
         UpdateScenario scenario ->
+            -- For campaign scenarios, fetch the config for the given scenario and load it into the lobby settings
+            -- Also need to disable manipulation of the player settings somehow
+            -- Otherwise, just set the scenario type
             ( { model | scenarioType = scenario }
             , Cmd.none
             )
@@ -312,18 +315,7 @@ view model =
                                 [ class "text-black px-2 py-1 mx-3 rounded"
                                 , onInput
                                     (\val ->
-                                        case val of
-                                            "CONQUEST" ->
-                                                UpdateScenario Conquest
-
-                                            "SCORE" ->
-                                                UpdateScenario <| ScoreReached 50
-
-                                            "TURN" ->
-                                                UpdateScenario <| NumberOfTurns 100
-
-                                            _ ->
-                                                UpdateScenario Conquest
+                                        UpdateScenario <| Game.Scenario.onSelectScenario val
                                     )
                                 ]
                                 (let
