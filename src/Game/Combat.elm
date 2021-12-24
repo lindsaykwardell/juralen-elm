@@ -79,9 +79,6 @@ update msg model =
 
         DetermineAttacker units roll ->
             let
-                _ =
-                    Debug.log "DetermineAttacker" (List.getAt roll units)
-
                 unit : Unit
                 unit =
                     case List.getAt roll units of
@@ -95,9 +92,6 @@ update msg model =
 
         DetermineDefender units roll ->
             let
-                _ =
-                    Debug.log "DetermineDefender" (List.getAt roll units)
-
                 unit : Unit
                 unit =
                     case List.getAt roll units of

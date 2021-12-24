@@ -62,17 +62,10 @@ view config =
 
 unitListDisplay : List Unit -> Unit -> Html msg
 unitListDisplay units focusedUnit =
-    let
-        _ =
-            Debug.log "focusedUnit" focusedUnit
-    in
     div [ class "flex-1 flex flex-col items-center" ]
         (List.map
             (\unit ->
                 let
-                    _ =
-                        Debug.log "unitListDisplay" unit
-
                     maxHp =
                         toFloat (Game.UnitType.initialValues unit.unitType |> .health)
 
