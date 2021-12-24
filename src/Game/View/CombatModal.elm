@@ -4,16 +4,17 @@ import Components.Modal as Modal
 import Game.Combat as Combat
 import Game.Unit exposing (Unit)
 import Game.UnitType
-import Html exposing (Html, div, h1, h2, img, text)
+import Game.Update exposing (Msg(..))
+import Html exposing (Html, button, div, h1, h2, img, text)
 import Html.Attributes exposing (class, src, style)
+import Html.Events exposing (onClick)
 
 
 view :
     { show : Bool
-    , onClose : msg
     , model : Combat.Model
     }
-    -> Html msg
+    -> Html Msg
 view config =
     let
         attackingUnits =
@@ -21,16 +22,24 @@ view config =
 
         defendingUnits =
             List.filter (\u -> u.controlledBy == config.model.defendingPlayer.id) config.model.units
+
+        combatEnded =
+            List.length attackingUnits <= 0 || List.length defendingUnits <= 0
     in
     Modal.view
         { show = config.show
-        , onClose = config.onClose
+        , onClose =
+            if combatEnded then
+                GotCombatMsg Combat.ExitCombat
+
+            else
+                NoOp
         , content =
-            div [ class "text-white" ]
+            div [ class "text-white p-2" ]
                 [ h1 [] [ text "Combat" ]
                 , div [ class "flex" ]
-                    [ unitListDisplay attackingUnits
-                    , unitListDisplay defendingUnits
+                    [ unitListDisplay attackingUnits config.model.attacker
+                    , unitListDisplay defendingUnits config.model.defender
                     ]
                 , if List.length attackingUnits <= 0 then
                     h2 [ class "text-center" ]
@@ -41,23 +50,46 @@ view config =
 
                   else
                     text ""
+                , if combatEnded then
+                    div [ class "text-center" ]
+                        [ button [ class "px-6 py-2 bg-gray-700 rounded hover:bg-gray-800 transition duration-50", onClick (GotCombatMsg Combat.ExitCombat) ] [ text "Close" ] ]
+
+                  else
+                    text ""
                 ]
         }
 
 
-unitListDisplay : List Unit -> Html msg
-unitListDisplay units =
+unitListDisplay : List Unit -> Unit -> Html msg
+unitListDisplay units focusedUnit =
+    let
+        _ =
+            Debug.log "focusedUnit" focusedUnit
+    in
     div [ class "flex-1 flex flex-col items-center" ]
         (List.map
             (\unit ->
                 let
+                    _ =
+                        Debug.log "unitListDisplay" unit
+
                     maxHp =
                         toFloat (Game.UnitType.initialValues unit.unitType |> .health)
 
                     hpLost =
                         maxHp - toFloat unit.health
                 in
-                div [ class "flex flex-col items-center py-2" ]
+                div
+                    [ class
+                        ("flex flex-col items-center p-2 w-24"
+                            ++ (if unit.id == focusedUnit.id then
+                                    " bg-gray-500 rounded-lg"
+
+                                else
+                                    " "
+                               )
+                        )
+                    ]
                     [ img [ class "w-8", src (Game.UnitType.icon unit.unitType), class "unit" ] []
                     , text (Game.UnitType.toString unit.unitType { showCost = False })
                     , div [ class "h-2 flex w-full m-2" ]

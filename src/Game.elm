@@ -83,7 +83,7 @@ view model =
                 text ""
 
             Combat combatModel ->
-                CombatModal.view { show = True, onClose = NoOp, model = combatModel }
+                CombatModal.view { show = True, model = combatModel }
         , div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
             [ button
                 [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200 disabled:bg-green-300 disabled:hover:bg-green-300 disabled:cursor-default"

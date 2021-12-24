@@ -239,7 +239,7 @@ update msg scenario =
                         in
                         case nextPlayer of
                             Nothing ->
-                                ( nextscenario, Random.generate DetermineFirstPlayer (randomDefinedMax (List.length scenario.players)) )
+                                ( nextscenario, Random.generate DetermineFirstPlayer (randomDefinedMax (List.length scenario.players - 1)) )
 
                             Just theNextPlayer ->
                                 update (RollStartingLocX theNextPlayer remainingPlayers) nextscenario
@@ -261,7 +261,7 @@ update msg scenario =
             in
             case firstPlayer of
                 Nothing ->
-                    ( scenario, Random.generate DetermineFirstPlayer (randomDefinedMax (List.length scenario.players)) )
+                    ( scenario, Random.generate DetermineFirstPlayer (randomDefinedMax (List.length scenario.players - 1)) )
 
                 Just player ->
                     let

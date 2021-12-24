@@ -75,10 +75,13 @@ update msg model =
                     )
                         units
             in
-            ( model, Random.generate nextCmd (randomDefinedMax (List.length units)) )
+            ( model, Random.generate nextCmd (randomDefinedMax (List.length units - 1)) )
 
         DetermineAttacker units roll ->
             let
+                _ =
+                    Debug.log "DetermineAttacker" (List.getAt roll units)
+
                 unit : Unit
                 unit =
                     case List.getAt roll units of
@@ -92,6 +95,9 @@ update msg model =
 
         DetermineDefender units roll ->
             let
+                _ =
+                    Debug.log "DetermineDefender" (List.getAt roll units)
+
                 unit : Unit
                 unit =
                     case List.getAt roll units of
@@ -101,7 +107,13 @@ update msg model =
                         Just thisUnit ->
                             thisUnit
             in
-            ( { model | defender = unit }, delay 150 RunCombat )
+            ( { model | defender = unit }
+            , if isHumanInvolved model then
+                delay 500 RunCombat
+
+              else
+                Task.succeed Cmd.none |> Task.perform (\_ -> RunCombat)
+            )
 
         RunCombat ->
             let
@@ -134,10 +146,22 @@ update msg model =
             in
             if attackerHasUnits && defenderHasUnits then
                 -- update (GetRandomUnit Attacker) newModel
-                ( newModel, delay 150 (GetRandomUnit Attacker) )
+                ( newModel
+                , if isHumanInvolved newModel then
+                    delay 500 (GetRandomUnit Attacker)
+
+                  else
+                    Task.succeed Cmd.none |> Task.perform (\_ -> GetRandomUnit Attacker)
+                )
 
             else
-                ( newModel, delay 1500 ExitCombat )
+                ( newModel
+                , if isHumanInvolved newModel then
+                    Cmd.none
+
+                  else
+                    Task.succeed Cmd.none |> Task.perform (\_ -> ExitCombat)
+                )
 
         ExitCombat ->
             ( model, Cmd.none )
@@ -307,3 +331,8 @@ moveUnitsToGraveyard deadUnits units =
 delay : Float -> b -> Cmd b
 delay int msg =
     Process.sleep int |> Task.perform (\_ -> msg)
+
+
+isHumanInvolved : Model -> Bool
+isHumanInvolved model =
+    model.attackingPlayer.isHuman || model.defendingPlayer.isHuman
