@@ -77,6 +77,7 @@ update msg model =
                     , units = model.units
                     , getPlayerScore = Game.Core.getPlayerScore model
                     , turn = model.turn
+                    , townCountControlledBy = Game.Grid.townCountControlledBy model.grid
                     }
                     model.scenario
             then
@@ -571,21 +572,18 @@ update msg model =
                             let
                                 score =
                                     getPlayerScore model player.id
-
-                                hasLost =
-                                    Game.Grid.townCountControlledBy model.grid player.id <= 0
                             in
-                            { player | hasLost = hasLost, score = score }
+                            { player | score = score }
                         )
                         model.players
 
                 livingPlayers : List Player
                 livingPlayers =
-                    List.filter (\player -> not player.hasLost) players
+                    List.filter (\player -> not <| Game.Grid.townCountControlledBy model.grid player.id <= 0) players
 
                 deadPlayers : List Player
                 deadPlayers =
-                    List.filter (\player -> player.hasLost) players
+                    List.filter (\player -> Game.Grid.townCountControlledBy model.grid player.id <= 0) players
 
                 nextActivePlayer : Player
                 nextActivePlayer =

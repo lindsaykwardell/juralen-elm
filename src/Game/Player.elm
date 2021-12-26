@@ -14,7 +14,6 @@ type alias Player =
     { id : Int
     , name : String
     , resources : Resources
-    , hasLost : Bool
     , isHuman : Bool
     , analyzer : AnalyzerMode
     , color : PlayerColor
@@ -29,7 +28,6 @@ decoder =
         |> Decode.required "id" Decode.int
         |> Decode.required "name" Decode.string
         |> Decode.required "resources" Game.Resources.decoder
-        |> Decode.required "hasLost" Decode.bool
         |> Decode.required "isHuman" Decode.bool
         |> Decode.required "analyzer" Game.AnalyzerMode.decoder
         |> Decode.required "color" Game.PlayerColor.decoder
@@ -43,7 +41,6 @@ encoder player =
         [ ( "id", Encode.int player.id )
         , ( "name", Encode.string player.name )
         , ( "resources", Game.Resources.encoder player.resources )
-        , ( "hasLost", Encode.bool player.hasLost )
         , ( "isHuman", Encode.bool player.isHuman )
         , ( "analyzer", Game.AnalyzerMode.encoder player.analyzer )
         , ( "color", Game.PlayerColor.encoder player.color )
@@ -69,7 +66,6 @@ generate player id =
         { actions = 1
         , gold = 2
         }
-    , hasLost = False
     , isHuman = player.isHuman
     , analyzer = player.analyzer
     , color = player.color
@@ -96,7 +92,6 @@ empty =
         { actions = -1
         , gold = -1
         }
-    , hasLost = True
     , isHuman = False
     , analyzer = Game.AnalyzerMode.Default
     , color = Game.PlayerColor.Gray

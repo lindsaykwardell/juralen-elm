@@ -383,6 +383,7 @@ isEndConditionReached :
     , units : List Unit
     , getPlayerScore : Int -> Int
     , turn : Int
+    , townCountControlledBy : Int -> Int
     }
     -> Model
     -> Bool
@@ -392,9 +393,9 @@ isEndConditionReached config model =
             List.length
                 (List.filter
                     (\player ->
-                        player.hasLost == False
+                        not <| config.townCountControlledBy player.id <= 0
                     )
-                    model.players
+                    config.players
                 )
                 == 1
 
