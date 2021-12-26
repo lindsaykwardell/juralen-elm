@@ -263,19 +263,19 @@ analyzeBuildUnits model =
     let
         cellsWithStructures : List Cell
         cellsWithStructures =
-            List.filter
-                (\cell ->
-                    cell.structure
-                        /= Structure.None
-                        && (case cell.controlledBy of
-                                Nothing ->
-                                    False
+            List.foldl (\row collection -> row ++ collection) [] model.grid
+                |> List.filter
+                    (\cell ->
+                        cell.structure
+                            /= Structure.None
+                            && (case cell.controlledBy of
+                                    Nothing ->
+                                        False
 
-                                Just controlledBy ->
-                                    controlledBy == model.activePlayer
-                           )
-                )
-                (Game.Grid.toList model.grid)
+                                    Just controlledBy ->
+                                        controlledBy == model.activePlayer
+                               )
+                    )
     in
     getUnitOptions (Core.currentPlayerStats model) cellsWithStructures []
 
@@ -326,389 +326,396 @@ scoreOption model option =
 
         isBottomHalf =
             round ((toFloat rank / toFloat (List.length model.players)) * 100) >= 50
+
+        livingPlayers =
+            List.filter (\player -> not <| Game.Grid.townCountControlledBy model.grid player.id <= 0) model.players
     in
-    case option.action of
-        Move units toLoc ->
-            let
-                targetCell =
-                    Game.Cell.atLoc model.grid toLoc
+    if List.length livingPlayers <= 1 then
+        { option | score = -1000}
 
-                isAttack =
-                    case targetCell.controlledBy of
-                        Nothing ->
-                            False
+    else
+        case option.action of
+            Move units toLoc ->
+                let
+                    targetCell =
+                        Game.Cell.atLoc model.grid toLoc
 
-                        Just playerId ->
-                            playerId /= model.activePlayer
+                    isAttack =
+                        case targetCell.controlledBy of
+                            Nothing ->
+                                False
 
-                score =
-                    10
-                        -- Subtract number of units to move * 2 (fewer units is better)
-                        - List.length units
-                        * (if analyzer == Defensive then
-                            3
+                            Just playerId ->
+                                playerId /= model.activePlayer
 
-                           else
-                            2
-                          )
-                        -- Don't move units without moves left
-                        - (if List.any (\unit -> unit.movesLeft <= 0) units then
-                            1000
+                    score =
+                        10
+                            -- Subtract number of units to move * 2 (fewer units is better)
+                            - List.length units
+                            * (if analyzer == Defensive then
+                                3
 
-                           else
-                            0
-                          )
-                        -- Subtract distance (shorter is better)
-                        - Loc.getDistance option.loc toLoc
-                        * (if analyzer == Defensive || analyzer == Expansionist then
-                            3
+                               else
+                                2
+                              )
+                            -- Don't move units without moves left
+                            - (if List.any (\unit -> unit.movesLeft <= 0) units then
+                                1000
 
-                           else if isAttack then
-                            2
-
-                           else
-                            1
-                          )
-                        -- Add based on cell type (plains are better than forests)
-                        -- Don't move to mountains
-                        + (case targetCell.cellType of
-                            Game.CellType.Plains ->
-                                15
-
-                            Game.CellType.Mountain ->
-                                -1000
-
-                            _ ->
+                               else
                                 0
-                          )
-                        -- Add if cell has a structure (capturing structures is better)
-                        + (if targetCell.structure /= Structure.None then
-                            case targetCell.controlledBy of
+                              )
+                            -- Subtract distance (shorter is better)
+                            - Loc.getDistance option.loc toLoc
+                            * (if analyzer == Defensive || analyzer == Expansionist then
+                                3
+
+                               else if isAttack then
+                                2
+
+                               else
+                                1
+                              )
+                            -- Add based on cell type (plains are better than forests)
+                            -- Don't move to mountains
+                            + (case targetCell.cellType of
+                                Game.CellType.Plains ->
+                                    15
+
+                                Game.CellType.Mountain ->
+                                    -1000
+
+                                _ ->
+                                    0
+                              )
+                            -- Add if cell has a structure (capturing structures is better)
+                            + (if targetCell.structure /= Structure.None then
+                                case targetCell.controlledBy of
+                                    Nothing ->
+                                        100
+
+                                    Just playerId ->
+                                        if playerId == model.activePlayer then
+                                            if List.length (Game.Unit.inCell model.units targetCell.loc) <= 1 then
+                                                120
+
+                                            else
+                                                0
+
+                                        else if analyzer == Aggressive then
+                                            125
+
+                                        else
+                                            75
+
+                               else if analyzer == Aggressive then
+                                100
+
+                               else
+                                0
+                              )
+                            -- Is it worth moving there?
+                            -- No impact if cell is not controlled.
+                            -- If analyzer is expansionist, then prefer uncontrolled.
+                            -- Negative if it is controller by active player
+                            -- Add if controlled by someone else (capturing enemy territory is better)
+                            -- Analyze threat of enemy units before making a decision, attacking is less important than winning
+                            -- Include defensive bonus of cell before attacking
+                            + (case targetCell.controlledBy of
                                 Nothing ->
-                                    100
+                                    let
+                                        isForest =
+                                            targetCell.cellType == Game.CellType.Forest
+                                    in
+                                    if isForest then
+                                        0
+
+                                    else if analyzer == Expansionist then
+                                        600
+
+                                    else
+                                        300
 
                                 Just playerId ->
                                     if playerId == model.activePlayer then
-                                        if List.length (Game.Unit.inCell model.units targetCell.loc) <= 1 then
-                                            120
-
-                                        else
-                                            0
-
-                                    else if analyzer == Aggressive then
-                                        125
+                                        -- -10
+                                        -100
 
                                     else
-                                        75
-
-                           else if analyzer == Aggressive then
-                            100
-
-                           else
-                            0
-                          )
-                        -- Is it worth moving there?
-                        -- No impact if cell is not controlled.
-                        -- If analyzer is expansionist, then prefer uncontrolled.
-                        -- Negative if it is controller by active player
-                        -- Add if controlled by someone else (capturing enemy territory is better)
-                        -- Analyze threat of enemy units before making a decision, attacking is less important than winning
-                        -- Include defensive bonus of cell before attacking
-                        + (case targetCell.controlledBy of
-                            Nothing ->
-                                let
-                                    isForest =
-                                        targetCell.cellType == Game.CellType.Forest
-                                in
-                                if isForest then
-                                    0
-
-                                else if analyzer == Expansionist then
-                                    600
-
-                                else
-                                    300
-
-                            Just playerId ->
-                                if playerId == model.activePlayer then
-                                    -- -10
-                                    -100
-
-                                else
-                                    abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
-                                        + (if List.length (Game.Unit.inCell model.units targetCell.loc) > 0 then
-                                            if analyzer == Passive then
-                                                -1000
-
-                                            else
-                                                let
-                                                    attackerThreat =
-                                                        List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
-                                                            0
-                                                            (List.map (\unit -> unit.unitType) units)
-
-                                                    defenderThreat =
-                                                        List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
-                                                            0
-                                                            (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units targetCell.loc))
-
-                                                    defBonus =
-                                                        targetCell.defBonus
-                                                in
-                                                -- Don't attack if you're weaker than the enemy
-                                                -- Doesn't account for everything, but that's intentional
-                                                if attackerThreat < defenderThreat then
+                                        abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
+                                            + (if List.length (Game.Unit.inCell model.units targetCell.loc) > 0 then
+                                                if analyzer == Passive then
                                                     -1000
 
                                                 else
-                                                    attackerThreat - defenderThreat - defBonus
+                                                    let
+                                                        attackerThreat =
+                                                            List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
+                                                                0
+                                                                (List.map (\unit -> unit.unitType) units)
 
-                                           else if analyzer == Aggressive then
-                                            100
+                                                        defenderThreat =
+                                                            List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
+                                                                0
+                                                                (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units targetCell.loc))
+
+                                                        defBonus =
+                                                            targetCell.defBonus
+                                                    in
+                                                    -- Don't attack if you're weaker than the enemy
+                                                    -- Doesn't account for everything, but that's intentional
+                                                    if attackerThreat < defenderThreat then
+                                                        -1000
+
+                                                    else
+                                                        attackerThreat - defenderThreat - defBonus
+
+                                               else if analyzer == Aggressive then
+                                                100
+
+                                               else
+                                                50
+                                              )
+                              )
+
+                    -- Should we move everyone in this cell? Do we really need more farms?
+                    -- Defending territory is preferable if we can get away with it
+                    -- + (if List.length (Game.Unit.inCell model.units option.loc) <= List.length units then
+                    --     if stats.farms == stats.units then
+                    --         10
+                    --     else
+                    --         -1000
+                    --    else
+                    --     0
+                    --   )
+                in
+                { option
+                    | score = score
+                    , action =
+                        if isAttack then
+                            Attack units toLoc
+
+                        else
+                            Move units toLoc
+                }
+
+            BuildUnit unitType ->
+                let
+                    unitsInCell =
+                        List.length (Game.Unit.inCell model.units option.loc)
+
+                    score =
+                        -- Build based on priority (higher scores are better)
+                        1
+                            + unitTypeScore unitType
+                            - round (toFloat (List.length (List.filter (\unit -> unit.unitType == unitType && unit.controlledBy == model.activePlayer) model.units)) / 2)
+                            -- Build based on current unit count in cell (lower pop of units is more important)
+                            + (if unitsInCell <= 0 then
+                                1000
+
+                               else
+                                5 - unitsInCell
+                              )
+                in
+                { option | score = score }
+
+            BuildStructure _ ->
+                option
+
+            Research research ->
+                if stats.gold <= research.cost || stats.farms == stats.units || analyzer == Passive then
+                    { option | score = -1000 }
+
+                else
+                    case research.tech of
+                        -- LevelOne tech ->
+                        -- case tech of
+                        --     TechTree.BuildFarms ->
+                        --         { option
+                        --             | score =
+                        --                 if analyzer == Aggressive || analyzer == Expansionist then
+                        --                     1000
+                        --                 else
+                        --                     150 + (stats.units * 10) - (stats.farms * 10)
+                        --         }
+                        --     TechTree.BuildActions ->
+                        --         { option
+                        --             | score =
+                        --                 if analyzer == Default then
+                        --                     1000
+                        --                 else
+                        --                     150 + (50 - (stats.towns * 10) - (stats.units * 10))
+                        --         }
+                        LevelTwo tech ->
+                            case tech of
+                                TechTree.BuildArchers ->
+                                    { option
+                                        | score =
+                                            200
+                                                + (if isBottomHalf then
+                                                    200
+
+                                                   else
+                                                    0
+                                                        + (if analyzer == Aggressive then
+                                                            200
+
+                                                           else
+                                                            0
+                                                          )
+                                                  )
+                                    }
+
+                                TechTree.BuildWarriors ->
+                                    { option
+                                        | score =
+                                            200
+                                                + (if isTopHalf then
+                                                    200
+
+                                                   else
+                                                    0
+                                                        + (if analyzer == Defensive then
+                                                            200
+
+                                                           else
+                                                            0
+                                                          )
+                                                  )
+                                    }
+
+                        LevelThree tech ->
+                            case tech of
+                                TechTree.BuildKnights ->
+                                    { option
+                                        | score =
+                                            200
+                                                + (if analyzer == Aggressive || analyzer == Expansionist then
+                                                    1000
+
+                                                   else
+                                                    0
+                                                        + (if isTopHalf then
+                                                            500
+
+                                                           else
+                                                            0
+                                                          )
+                                                  )
+                                    }
+
+                                TechTree.BuildRogues ->
+                                    { option
+                                        | score =
+                                            200
+                                                + (if not isTopHalf then
+                                                    300
+
+                                                   else
+                                                    0
+                                                        + (if analyzer == Defensive then
+                                                            300
+
+                                                           else
+                                                            0
+                                                          )
+                                                  )
+                                    }
+
+                        LevelFour tech ->
+                            case tech of
+                                TechTree.BuildWizards ->
+                                    { option
+                                        | score =
+                                            500
+                                                + (if analyzer == Expansionist || stats.gold > 25 then
+                                                    1000
+
+                                                   else
+                                                    0
+                                                        + (if analyzer == Default then
+                                                            1000
+
+                                                           else
+                                                            0
+                                                          )
+                                                  )
+                                    }
+
+                                TechTree.BuildPriests ->
+                                    { option
+                                        | score =
+                                            500
+                                                + (if stats.farms > 15 then
+                                                    500
+
+                                                   else
+                                                    0
+                                                        + (if analyzer == Defensive then
+                                                            1000
+
+                                                           else
+                                                            0
+                                                          )
+                                                  )
+                                    }
+
+            Upgrade upgradeType ->
+                let
+                    cell =
+                        Game.Cell.atLoc model.grid option.loc
+                in
+                case upgradeType of
+                    Game.Analysis.RepairDefense ->
+                        { option
+                            | score =
+                                if stats.gold < 1 then
+                                    -1000
+
+                                else
+                                    0
+                                        + (if stats.units < round (toFloat stats.farms / 2) then
+                                            -100
 
                                            else
-                                            50
+                                            0
+                                                + (if cell.defBonus <= 0 then
+                                                    300
+
+                                                   else
+                                                    0
+                                                        + (if analyzer /= Aggressive then
+                                                            150
+
+                                                           else
+                                                            25
+                                                          )
+                                                  )
                                           )
-                          )
+                        }
 
-                -- Should we move everyone in this cell? Do we really need more farms?
-                -- Defending territory is preferable if we can get away with it
-                -- + (if List.length (Game.Unit.inCell model.units option.loc) <= List.length units then
-                --     if stats.farms == stats.units then
-                --         10
-                --     else
-                --         -1000
-                --    else
-                --     0
-                --   )
-            in
-            { option
-                | score = score
-                , action =
-                    if isAttack then
-                        Attack units toLoc
+                    Game.Analysis.BuildFarm ->
+                        { option
+                            | score =
+                                if stats.gold < 2 then
+                                    -1000
 
-                    else
-                        Move units toLoc
-            }
+                                else
+                                    1
+                        }
 
-        BuildUnit unitType ->
-            let
-                unitsInCell =
-                    List.length (Game.Unit.inCell model.units option.loc)
+                    Game.Analysis.BuildTower ->
+                        { option
+                            | score =
+                                if stats.gold < 2 then
+                                    -1000
 
-                score =
-                    -- Build based on priority (higher scores are better)
-                    1
-                        + unitTypeScore unitType
-                        - round (toFloat (List.length (List.filter (\unit -> unit.unitType == unitType && unit.controlledBy == model.activePlayer) model.units)) / 2)
-                        -- Build based on current unit count in cell (lower pop of units is more important)
-                        + (if unitsInCell <= 0 then
-                            1000
+                                else
+                                    1
+                        }
 
-                           else
-                            5 - unitsInCell
-                          )
-            in
-            { option | score = score }
-
-        BuildStructure _ ->
-            option
-
-        Research research ->
-            if stats.gold <= research.cost || stats.farms == stats.units || analyzer == Passive then
-                { option | score = -1000 }
-
-            else
-                case research.tech of
-                    -- LevelOne tech ->
-                    -- case tech of
-                    --     TechTree.BuildFarms ->
-                    --         { option
-                    --             | score =
-                    --                 if analyzer == Aggressive || analyzer == Expansionist then
-                    --                     1000
-                    --                 else
-                    --                     150 + (stats.units * 10) - (stats.farms * 10)
-                    --         }
-                    --     TechTree.BuildActions ->
-                    --         { option
-                    --             | score =
-                    --                 if analyzer == Default then
-                    --                     1000
-                    --                 else
-                    --                     150 + (50 - (stats.towns * 10) - (stats.units * 10))
-                    --         }
-                    LevelTwo tech ->
-                        case tech of
-                            TechTree.BuildArchers ->
-                                { option
-                                    | score =
-                                        200
-                                            + (if isBottomHalf then
-                                                200
-
-                                               else
-                                                0
-                                                    + (if analyzer == Aggressive then
-                                                        200
-
-                                                       else
-                                                        0
-                                                      )
-                                              )
-                                }
-
-                            TechTree.BuildWarriors ->
-                                { option
-                                    | score =
-                                        200
-                                            + (if isTopHalf then
-                                                200
-
-                                               else
-                                                0
-                                                    + (if analyzer == Defensive then
-                                                        200
-
-                                                       else
-                                                        0
-                                                      )
-                                              )
-                                }
-
-                    LevelThree tech ->
-                        case tech of
-                            TechTree.BuildKnights ->
-                                { option
-                                    | score =
-                                        200
-                                            + (if analyzer == Aggressive || analyzer == Expansionist then
-                                                1000
-
-                                               else
-                                                0
-                                                    + (if isTopHalf then
-                                                        500
-
-                                                       else
-                                                        0
-                                                      )
-                                              )
-                                }
-
-                            TechTree.BuildRogues ->
-                                { option
-                                    | score =
-                                        200
-                                            + (if not isTopHalf then
-                                                300
-
-                                               else
-                                                0
-                                                    + (if analyzer == Defensive then
-                                                        300
-
-                                                       else
-                                                        0
-                                                      )
-                                              )
-                                }
-
-                    LevelFour tech ->
-                        case tech of
-                            TechTree.BuildWizards ->
-                                { option
-                                    | score =
-                                        500
-                                            + (if analyzer == Expansionist || stats.gold > 25 then
-                                                1000
-
-                                               else
-                                                0
-                                                    + (if analyzer == Default then
-                                                        1000
-
-                                                       else
-                                                        0
-                                                      )
-                                              )
-                                }
-
-                            TechTree.BuildPriests ->
-                                { option
-                                    | score =
-                                        500
-                                            + (if stats.farms > 15 then
-                                                500
-
-                                               else
-                                                0
-                                                    + (if analyzer == Defensive then
-                                                        1000
-
-                                                       else
-                                                        0
-                                                      )
-                                              )
-                                }
-
-        Upgrade upgradeType ->
-            let
-                cell =
-                    Game.Cell.atLoc model.grid option.loc
-            in
-            case upgradeType of
-                Game.Analysis.RepairDefense ->
-                    { option
-                        | score =
-                            if stats.gold < 1 then
-                                -1000
-
-                            else
-                                0
-                                    + (if stats.units < round (toFloat stats.farms / 2) then
-                                        -100
-
-                                       else
-                                        0
-                                            + (if cell.defBonus <= 0 then
-                                                300
-
-                                               else
-                                                0
-                                                    + (if analyzer /= Aggressive then
-                                                        150
-
-                                                       else
-                                                        25
-                                                      )
-                                              )
-                                      )
-                    }
-
-                Game.Analysis.BuildFarm ->
-                    { option
-                        | score =
-                            if stats.gold < 2 then
-                                -1000
-
-                            else
-                                1
-                    }
-
-                Game.Analysis.BuildTower ->
-                    { option
-                        | score =
-                            if stats.gold < 2 then
-                                -1000
-
-                            else
-                                1
-                    }
-
-        _ ->
-            option
+            _ ->
+                option
 
 
 unitTypeScore : UnitType -> Int

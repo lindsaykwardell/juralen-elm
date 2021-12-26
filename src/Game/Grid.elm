@@ -7,52 +7,19 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
+
 type alias Grid =
     List (List Cell)
+
 
 decoder : Decoder Grid
 decoder =
     Decode.list (Decode.list Game.Cell.decoder)
 
+
 encoder : Grid -> Encode.Value
 encoder grid =
     Encode.list (Encode.list Game.Cell.encoder) grid
-
-toList : Grid -> List Cell
-toList grid =
-    addNextRow grid []
-
-
-addNextRow : Grid -> List Cell -> List Cell
-addNextRow grid cellList =
-    let
-        firstRow : List Cell
-        firstRow =
-            case List.head grid of
-                Nothing ->
-                    []
-
-                Just row ->
-                    row
-
-        remainingRows : List (List Cell)
-        remainingRows =
-            case List.tail grid of
-                Nothing ->
-                    []
-
-                Just rows ->
-                    rows
-
-        updatedList : List Cell
-        updatedList =
-            cellList ++ firstRow
-    in
-    if List.length firstRow <= 0 then
-        updatedList
-
-    else
-        addNextRow remainingRows updatedList
 
 
 replaceCell : Grid -> Cell -> Grid
