@@ -565,25 +565,13 @@ update msg model =
 
         EndTurn ->
             let
-                players : List Player
-                players =
-                    List.map
-                        (\player ->
-                            let
-                                score =
-                                    getPlayerScore model player.id
-                            in
-                            { player | score = score }
-                        )
-                        model.players
-
                 livingPlayers : List Player
                 livingPlayers =
-                    List.filter (\player -> not <| Game.Grid.townCountControlledBy model.grid player.id <= 0) players
+                    List.filter (\player -> not <| Game.Grid.townCountControlledBy model.grid player.id <= 0) model.players
 
                 deadPlayers : List Player
                 deadPlayers =
-                    List.filter (\player -> Game.Grid.townCountControlledBy model.grid player.id <= 0) players
+                    List.filter (\player -> Game.Grid.townCountControlledBy model.grid player.id <= 0) model.players
 
                 nextActivePlayer : Player
                 nextActivePlayer =
@@ -627,7 +615,7 @@ update msg model =
                         model.grid
 
                 newModel =
-                    { model | activePlayer = nextActivePlayer.id, players = players, units = healedUnits, grid = capturedGrid }
+                    { model | activePlayer = nextActivePlayer.id, units = healedUnits, grid = capturedGrid }
             in
             update (StartTurn nextActivePlayer) newModel
 

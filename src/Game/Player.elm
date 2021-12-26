@@ -17,7 +17,6 @@ type alias Player =
     , isHuman : Bool
     , analyzer : AnalyzerMode
     , color : PlayerColor
-    , score : Int
     , techTree : TechTree
     }
 
@@ -31,7 +30,6 @@ decoder =
         |> Decode.required "isHuman" Decode.bool
         |> Decode.required "analyzer" Game.AnalyzerMode.decoder
         |> Decode.required "color" Game.PlayerColor.decoder
-        |> Decode.required "score" Decode.int
         |> Decode.required "techTree" TechTree.decoder
 
 
@@ -44,7 +42,6 @@ encoder player =
         , ( "isHuman", Encode.bool player.isHuman )
         , ( "analyzer", Game.AnalyzerMode.encoder player.analyzer )
         , ( "color", Game.PlayerColor.encoder player.color )
-        , ( "score", Encode.int player.score )
         , ( "techTree", TechTree.encoder player.techTree )
         ]
 
@@ -69,7 +66,6 @@ generate player id =
     , isHuman = player.isHuman
     , analyzer = player.analyzer
     , color = player.color
-    , score = 2
     , techTree = TechTree.empty
     }
 
@@ -95,7 +91,6 @@ empty =
     , isHuman = False
     , analyzer = Game.AnalyzerMode.Default
     , color = Game.PlayerColor.Gray
-    , score = 0
     , techTree = TechTree.empty
     }
 
