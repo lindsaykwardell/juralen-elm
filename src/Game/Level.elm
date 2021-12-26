@@ -1,12 +1,41 @@
-module Game.Level exposing (Level, XP, at, currentLevel, gainXp, toXp)
+module Game.Level exposing (Level, XP, at, currentLevel, decoder, encoder, gainXp, toXp)
+
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 
 
 type Level
-    = Level
-        { level : Int
-        , xp : XP
-        , toNextLevel : Int
-        }
+    = Level Model
+
+
+type alias Model =
+    { level : Int
+    , xp : XP
+    , toNextLevel : Int
+    }
+
+
+decoder : Decoder Level
+decoder =
+    Decode.succeed Model
+        |> Decode.required "level" Decode.int
+        |> Decode.required "xp" (Decode.int |> Decode.andThen (\xp -> Decode.succeed (XP xp)))
+        |> Decode.required "toNextLevel" Decode.int
+        |> Decode.andThen (\model -> Decode.succeed (Level model))
+
+
+encoder : Level -> Encode.Value
+encoder (Level level) =
+    let
+        (XP xp) =
+            level.xp
+    in
+    Encode.object
+        [ ( "level", Encode.int level.level )
+        , ( "xp", Encode.int xp )
+        , ( "toNextLevel", Encode.int level.toNextLevel )
+        ]
 
 
 type XP

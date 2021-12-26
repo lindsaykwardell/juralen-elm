@@ -10,11 +10,11 @@ import Game.Grid exposing (Grid)
 import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.Resources exposing (Resources)
-import Game.Scenario exposing (Msg(..))
+import Game.Scenario exposing (Msg)
 import Game.Structure
 import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit exposing (Unit)
-import Game.UnitType exposing (InitialValues, UnitType)
+import Game.UnitType exposing (UnitType)
 
 
 type Msg
@@ -33,7 +33,6 @@ type Msg
     | EndTurn
     | EndGame
     | SaveGame
-    | LoadGame
     | OpenSettings
     | UpdateMobileTab MobileTab
     | NoOp
@@ -52,7 +51,7 @@ update msg model =
                     model.scenario
             in
             case scenarioMsg of
-                ScenarioLoaded ->
+                Game.Scenario.ScenarioLoaded ->
                     let
                         firstPlayer : Player
                         firstPlayer =
@@ -641,9 +640,6 @@ update msg model =
             ( model, Cmd.none )
 
         SaveGame ->
-            ( model, Cmd.none )
-
-        LoadGame ->
             ( model, Cmd.none )
 
         UpdateMobileTab tab ->

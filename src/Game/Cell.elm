@@ -5,6 +5,9 @@ import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.PlayerColor
 import Game.Structure as Structure exposing (Structure)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 import List.Extra as List
 
 
@@ -17,6 +20,38 @@ type alias Cell =
     , towers : Int
     , loc : Loc
     }
+
+
+decoder : Decoder Cell
+decoder =
+    Decode.succeed Cell
+        |> Decode.required "cellType" Game.CellType.decoder
+        |> Decode.required "controlledBy" (Decode.nullable Decode.int)
+        |> Decode.required "defBonus" Decode.int
+        |> Decode.required "structure" Structure.decoder
+        |> Decode.required "farms" Decode.int
+        |> Decode.required "towers" Decode.int
+        |> Decode.required "loc" Loc.decoder
+
+
+encoder : Cell -> Encode.Value
+encoder cell =
+    Encode.object
+        [ ( "cellType", Game.CellType.encoder cell.cellType )
+        , ( "controlledBy"
+          , case cell.controlledBy of
+                Nothing ->
+                    Encode.null
+
+                Just player ->
+                    Encode.int player
+          )
+        , ( "defBonus", Encode.int cell.defBonus )
+        , ( "structure", Structure.encoder cell.structure )
+        , ( "farms", Encode.int cell.farms )
+        , ( "towers", Encode.int cell.towers )
+        , ( "loc", Loc.encoder cell.loc )
+        ]
 
 
 generate : Loc -> Int -> Cell

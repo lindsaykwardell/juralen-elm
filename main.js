@@ -25,3 +25,13 @@ app.ports.playGameMusic.subscribe(async () => {
     await audioControl.stop()
     audioControl.shuffleAlbum("inGame")
 })
+
+app.ports.saveGame.subscribe((game) => localStorage.setItem("game", game))
+
+app.ports.loadGame.subscribe(() => {
+    const game = localStorage.getItem("game")
+    if (game) {
+        console.log(app.ports)
+        app.ports.gameLoaded.send(game)
+    }
+})

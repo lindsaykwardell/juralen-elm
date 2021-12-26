@@ -2,10 +2,12 @@ module Game.Combat exposing (..)
 
 import Game.Cell exposing (Cell)
 import Game.Level exposing (XP)
-import Game.Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.Unit exposing (Unit, isDead)
 import Game.UnitType
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 import List.Extra as List
 import Process
 import Random
@@ -38,6 +40,56 @@ type alias Model =
     , defBonus : Int
     , cell : Cell
     }
+
+
+decoder : Decoder Model
+decoder =
+    Decode.succeed Model
+        |> Decode.required "units" (Decode.list Game.Unit.decoder)
+        |> Decode.required "deadUnits" (Decode.list Game.Unit.decoder)
+        |> Decode.required "attacker" Game.Unit.decoder
+        |> Decode.required "defender" Game.Unit.decoder
+        |> Decode.required "attackingPlayer" Game.Player.decoder
+        |> Decode.required "defendingPlayer" Game.Player.decoder
+        |> Decode.required "whoGoesFirst"
+            (Decode.string
+                |> Decode.andThen
+                    (\whoGoesFirst ->
+                        case whoGoesFirst of
+                            "attacker" ->
+                                Decode.succeed Attacker
+
+                            "defender" ->
+                                Decode.succeed Defender
+
+                            _ ->
+                                Decode.fail "whoGoesFirst must be attacker or defender"
+                    )
+            )
+        |> Decode.required "defBonus" Decode.int
+        |> Decode.required "cell" Game.Cell.decoder
+
+
+encoder : Model -> Encode.Value
+encoder model =
+    Encode.object
+        [ ( "units", Encode.list Game.Unit.encoder model.units )
+        , ( "deadUnits", Encode.list Game.Unit.encoder model.deadUnits )
+        , ( "attacker", Game.Unit.encoder model.attacker )
+        , ( "defender", Game.Unit.encoder model.defender )
+        , ( "attackingPlayer", Game.Player.encoder model.attackingPlayer )
+        , ( "defendingPlayer", Game.Player.encoder model.defendingPlayer )
+        , ( "whoGoesFirst"
+          , case model.whoGoesFirst of
+                Attacker ->
+                    Encode.string "attacker"
+
+                Defender ->
+                    Encode.string "defender"
+          )
+        , ( "defBonus", Encode.int model.defBonus )
+        , ( "cell", Game.Cell.encoder model.cell )
+        ]
 
 
 type CombatRole

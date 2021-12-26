@@ -1,12 +1,17 @@
 module Game.Scenario exposing (..)
 
+import Dict
 import Game.Cell exposing (Cell)
 import Game.Grid exposing (Grid)
 import Game.Loc as Loc exposing (Loc)
+import Game.NewPlayer
 import Game.Player exposing (NewPlayer, Player)
 import Game.Structure
 import Game.Unit exposing (Unit)
 import Game.UnitType
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 import List.Extra as List
 import Random
 import Task
@@ -33,6 +38,98 @@ type alias Model =
     , nextId : Int
     , activePlayerId : Int
     }
+
+
+decoder : Decoder Model
+decoder =
+    Decode.succeed Model
+        |> Decode.required "scenarioType"
+            (Decode.string
+                |> Decode.dict
+                |> Decode.andThen
+                    (\t ->
+                        case Dict.get "scenarioName" t of
+                            Nothing ->
+                                Decode.fail "scenarioName not found"
+
+                            Just name ->
+                                case name of
+                                    "conquest" ->
+                                        Decode.succeed Conquest
+
+                                    "scoreReached" ->
+                                        case Dict.get "score" t of
+                                            Nothing ->
+                                                Decode.fail "score not found"
+
+                                            Just strScore ->
+                                                case String.toInt strScore of
+                                                    Nothing ->
+                                                        Decode.fail "score not an integer"
+
+                                                    Just score ->
+                                                        Decode.succeed (ScoreReached score)
+
+                                    "numberOfTurns" ->
+                                        case Dict.get "turns" t of
+                                            Nothing ->
+                                                Decode.fail "turns not found"
+
+                                            Just strTurns ->
+                                                case String.toInt strTurns of
+                                                    Nothing ->
+                                                        Decode.fail "turns not an integer"
+
+                                                    Just turns ->
+                                                        Decode.succeed (NumberOfTurns turns)
+
+                                    _ ->
+                                        Decode.fail "unknown scenarioName"
+                    )
+            )
+        |> Decode.required "maxX" Decode.int
+        |> Decode.required "maxY" Decode.int
+        |> Decode.required "currentX" Decode.int
+        |> Decode.required "currentY" Decode.int
+        |> Decode.required "finished" Decode.bool
+        |> Decode.required "playerCount" Decode.int
+        |> Decode.required "newPlayers" (Decode.list Game.NewPlayer.decoder)
+        |> Decode.required "players" (Decode.list Game.Player.decoder)
+        |> Decode.required "units" (Decode.list Game.Unit.decoder)
+        |> Decode.required "grid" Game.Grid.decoder
+        |> Decode.required "nextId" Decode.int
+        |> Decode.required "activePlayerId" Decode.int
+
+
+encoder : Model -> Encode.Value
+encoder model =
+    Encode.object
+        [ ( "scenarioType"
+          , Encode.object
+                (case model.scenarioType of
+                    Conquest ->
+                        [ ( "scenarioName", Encode.string "conquest" ) ]
+
+                    ScoreReached score ->
+                        [ ( "scenarioName", Encode.string "scoreReached" ), ( "score", Encode.string (String.fromInt score) ) ]
+
+                    NumberOfTurns turns ->
+                        [ ( "scenarioName", Encode.string "numberOfTurns" ), ( "turns", Encode.string (String.fromInt turns) ) ]
+                )
+          )
+        , ( "maxX", Encode.int model.maxX )
+        , ( "maxY", Encode.int model.maxY )
+        , ( "currentX", Encode.int model.currentX )
+        , ( "currentY", Encode.int model.currentY )
+        , ( "finished", Encode.bool model.finished )
+        , ( "playerCount", Encode.int model.playerCount )
+        , ( "newPlayers", Encode.list Game.NewPlayer.encoder model.newPlayers )
+        , ( "players", Encode.list Game.Player.encoder model.players )
+        , ( "units", Encode.list Game.Unit.encoder model.units )
+        , ( "grid", Game.Grid.encoder model.grid )
+        , ( "nextId", Encode.int model.nextId )
+        , ( "activePlayerId", Encode.int model.activePlayerId )
+        ]
 
 
 type alias Flags =

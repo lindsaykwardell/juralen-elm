@@ -1,6 +1,10 @@
 module Game.UnitType exposing (..)
 
 import Game.TechTree exposing (LevelFour(..), LevelThree(..), LevelTwo(..), TechTree)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
+
 
 type UnitType
     = Soldier
@@ -10,6 +14,63 @@ type UnitType
     | Rogue
     | Wizard
     | Priest
+
+
+decoder : Decoder UnitType
+decoder =
+    Decode.string
+        |> Decode.andThen
+            (\unitType ->
+                case unitType of
+                    "soldier" ->
+                        Decode.succeed Soldier
+
+                    "warrior" ->
+                        Decode.succeed Warrior
+
+                    "archer" ->
+                        Decode.succeed Archer
+
+                    "knight" ->
+                        Decode.succeed Knight
+
+                    "rogue" ->
+                        Decode.succeed Rogue
+
+                    "wizard" ->
+                        Decode.succeed Wizard
+
+                    "priest" ->
+                        Decode.succeed Priest
+
+                    _ ->
+                        Decode.fail "Invalid unit type"
+            )
+
+
+encoder : UnitType -> Encode.Value
+encoder unitType =
+    case unitType of
+        Soldier ->
+            Encode.string "soldier"
+
+        Warrior ->
+            Encode.string "warrior"
+
+        Archer ->
+            Encode.string "archer"
+
+        Knight ->
+            Encode.string "knight"
+
+        Rogue ->
+            Encode.string "rogue"
+
+        Wizard ->
+            Encode.string "wizard"
+
+        Priest ->
+            Encode.string "priest"
 
 
 type alias InitialValues =

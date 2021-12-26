@@ -1,5 +1,9 @@
 module Game.PlayerColor exposing (..)
 
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
+
 
 type PlayerColor
     = Red
@@ -11,6 +15,75 @@ type PlayerColor
     | Yellow
     | Gray
     | None
+
+
+decoder : Decoder PlayerColor
+decoder =
+    Decode.string
+        |> Decode.andThen
+            (\color ->
+                case color of
+                    "red" ->
+                        Decode.succeed Red
+
+                    "blue" ->
+                        Decode.succeed Blue
+
+                    "green" ->
+                        Decode.succeed Green
+
+                    "orange" ->
+                        Decode.succeed Orange
+
+                    "teal" ->
+                        Decode.succeed Teal
+
+                    "purple" ->
+                        Decode.succeed Purple
+
+                    "yellow" ->
+                        Decode.succeed Yellow
+
+                    "gray" ->
+                        Decode.succeed Gray
+
+                    "none" ->
+                        Decode.succeed None
+
+                    _ ->
+                        Decode.fail "Invalid color"
+            )
+
+
+encoder : PlayerColor -> Encode.Value
+encoder color =
+    case color of
+        Red ->
+            Encode.string "red"
+
+        Blue ->
+            Encode.string "blue"
+
+        Green ->
+            Encode.string "green"
+
+        Orange ->
+            Encode.string "orange"
+
+        Teal ->
+            Encode.string "teal"
+
+        Purple ->
+            Encode.string "purple"
+
+        Yellow ->
+            Encode.string "yellow"
+
+        Gray ->
+            Encode.string "gray"
+
+        None ->
+            Encode.string "none"
 
 
 toList : List PlayerColor
@@ -109,6 +182,7 @@ toClass playerColor =
 
         None ->
             ""
+
 
 toTextClass : PlayerColor -> String
 toTextClass playerColor =

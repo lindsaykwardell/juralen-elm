@@ -1,5 +1,9 @@
 module Game.TechTree exposing (..)
 
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
+
 
 type alias TechTree =
     { levelOne : Maybe LevelOne
@@ -9,7 +13,135 @@ type alias TechTree =
     }
 
 
-type TechLevel
+decoder : Decoder TechTree
+decoder =
+    Decode.succeed TechTree
+        |> Decode.optional "levelOne"
+            (Decode.string
+                |> Decode.andThen
+                    (\tech ->
+                        case tech of
+                            "buildFarms" ->
+                                Decode.succeed (Just BuildFarms)
+
+                            "buildActions" ->
+                                Decode.succeed (Just BuildActions)
+
+                            _ ->
+                                Decode.fail "Invalid tech tree"
+                    )
+            )
+            Nothing
+        |> Decode.optional "levelTwo"
+            (Decode.string
+                |> Decode.andThen
+                    (\tech ->
+                        case tech of
+                            "buildWarriors" ->
+                                Decode.succeed (Just BuildWarriors)
+
+                            "buildArchers" ->
+                                Decode.succeed (Just BuildArchers)
+
+                            _ ->
+                                Decode.fail "Invalid tech tree"
+                    )
+            )
+            Nothing
+        |> Decode.optional "levelThree"
+            (Decode.string
+                |> Decode.andThen
+                    (\tech ->
+                        case tech of
+                            "buildKnights" ->
+                                Decode.succeed (Just BuildKnights)
+
+                            "buildRogues" ->
+                                Decode.succeed (Just BuildRogues)
+
+                            _ ->
+                                Decode.fail "Invalid tech tree"
+                    )
+            )
+            Nothing
+        |> Decode.optional "levelFour"
+            (Decode.string
+                |> Decode.andThen
+                    (\tech ->
+                        case tech of
+                            "buildWizards" ->
+                                Decode.succeed (Just BuildWizards)
+
+                            "buildPriests" ->
+                                Decode.succeed (Just BuildPriests)
+
+                            _ ->
+                                Decode.fail "Invalid tech tree"
+                    )
+            )
+            Nothing
+
+
+encoder : TechTree -> Encode.Value
+encoder techTree =
+    Encode.object
+        [ ( "levelOne"
+          , case techTree.levelOne of
+                Nothing ->
+                    Encode.null
+
+                Just levelOne ->
+                    case levelOne of
+                        BuildFarms ->
+                            Encode.string "buildFarms"
+
+                        BuildActions ->
+                            Encode.string "buildActions"
+          )
+        , ( "levelTwo"
+          , case techTree.levelTwo of
+                Nothing ->
+                    Encode.null
+
+                Just levelTwo ->
+                    case levelTwo of
+                        BuildWarriors ->
+                            Encode.string "buildWarriors"
+
+                        BuildArchers ->
+                            Encode.string "buildArchers"
+          )
+        , ( "levelThree"
+          , case techTree.levelThree of
+                Nothing ->
+                    Encode.null
+
+                Just levelThree ->
+                    case levelThree of
+                        BuildKnights ->
+                            Encode.string "buildKnights"
+
+                        BuildRogues ->
+                            Encode.string "buildRogues"
+          )
+        , ( "levelFour"
+          , case techTree.levelFour of
+                Nothing ->
+                    Encode.null
+
+                Just levelFour ->
+                    case levelFour of
+                        BuildWizards ->
+                            Encode.string "buildWizards"
+
+                        BuildPriests ->
+                            Encode.string "buildPriests"
+          )
+        ]
+
+
+type
+    TechLevel
     -- = LevelOne LevelOne
     = LevelTwo LevelTwo
     | LevelThree LevelThree
@@ -57,7 +189,6 @@ nextAvailableTech : TechTree -> List TechDescription
 nextAvailableTech techTree =
     -- if techTree.levelOne == Nothing then
     --     [ techDescription (LevelOne BuildFarms), techDescription (LevelOne BuildActions) ]
-
     if techTree.levelTwo == Nothing then
         [ techDescription (LevelTwo BuildWarriors), techDescription (LevelTwo BuildArchers) ]
 
@@ -76,7 +207,6 @@ research techTree level =
     case level of
         -- LevelOne tech ->
         --     { techTree | levelOne = Just tech }
-
         LevelTwo tech ->
             { techTree | levelTwo = Just tech }
 
@@ -92,7 +222,6 @@ techCost level =
     case level of
         -- LevelOne _ ->
         --     3
-
         LevelTwo _ ->
             5
 
@@ -110,10 +239,8 @@ techDescription level =
         --     case levelOne of
         --         BuildFarms ->
         --             { name = "Build Farms", description = "Build more farms in your towns and citadel.", cost = techCost level, tech = level }
-
         --         BuildActions ->
         --             { name = "Build Towers", description = "Build towers to generate more actions.", cost = techCost level, tech = level }
-
         LevelTwo levelTwo ->
             case levelTwo of
                 BuildWarriors ->

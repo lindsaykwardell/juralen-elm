@@ -1,6 +1,7 @@
 module Lobby exposing (..)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
+import Game.Core
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor exposing (PlayerColor)
 import Game.Scenario exposing (ScenarioType(..))
@@ -33,6 +34,8 @@ type Msg
     | AddPlayer
     | AddPlayerName Int Int
     | RemovePlayer Int
+    | LoadGame
+    | GameLoaded String
     | StartGame
 
 
@@ -290,6 +293,12 @@ update msg model =
             , Cmd.none
             )
 
+        LoadGame ->
+            ( model, Cmd.none )
+
+        GameLoaded _ ->
+            ( model, Cmd.none )
+
         StartGame ->
             ( model, Cmd.none )
 
@@ -419,8 +428,9 @@ view model =
                   ]
                 ]
             )
-        , div [ class "text-center" ]
+        , div [ class "flex justify-center gap-4" ]
             [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick StartGame ] [ text "Start Game" ]
+            , button [ class "bg-blue-600 p-2 rounded hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick LoadGame ] [ text "Load Saved Game" ]
             ]
         ]
 

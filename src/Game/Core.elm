@@ -11,6 +11,9 @@ import Game.Scenario
 import Game.TechTree exposing (TechTree)
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 import Process
 import Task
 
@@ -47,6 +50,47 @@ type alias Model =
     , aiSpeed : Float
     , mobileTab : MobileTab
     }
+
+
+decoder : Decoder Model
+decoder =
+    Decode.succeed Model
+        |> Decode.required "nextId" Decode.int
+        |> Decode.required "turn" Decode.int
+        |> Decode.required "grid" Game.Grid.decoder
+        |> Decode.required "selectedCell" Game.Loc.decoder
+        |> Decode.required "selectedUnits" (Decode.list Decode.int)
+        |> Decode.required "players" (Decode.list Game.Player.decoder)
+        |> Decode.required "activePlayer" Decode.int
+        |> Decode.required "units" (Decode.list Game.Unit.decoder)
+        |> Decode.required "scenario" Game.Scenario.decoder
+        |> Decode.optional "combat" (Game.Combat.decoder |> Decode.andThen (\c -> Decode.succeed (Combat c))) NoCombat
+        |> Decode.required "aiSpeed" Decode.float
+        |> Decode.hardcoded UnitsTab
+
+
+encoder : Model -> Encode.Value
+encoder model =
+    Encode.object
+        [ ( "nextId", Encode.int model.nextId )
+        , ( "turn", Encode.int model.turn )
+        , ( "grid", Game.Grid.encoder model.grid )
+        , ( "selectedCell", Game.Loc.encoder model.selectedCell )
+        , ( "selectedUnits", Encode.list Encode.int model.selectedUnits )
+        , ( "players", Encode.list Game.Player.encoder model.players )
+        , ( "activePlayer", Encode.int model.activePlayer )
+        , ( "units", Encode.list Game.Unit.encoder model.units )
+        , ( "scenario", Game.Scenario.encoder model.scenario )
+        , ( "combat"
+          , case model.combat of
+                NoCombat ->
+                    Encode.null
+
+                Combat c ->
+                    Game.Combat.encoder c
+          )
+        , ( "aiSpeed", Encode.float model.aiSpeed )
+        ]
 
 
 type alias PlayerStats =

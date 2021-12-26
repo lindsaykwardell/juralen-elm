@@ -1,8 +1,54 @@
-module Game.Loc exposing (Loc, at, coords, diff, getDistance, getX, getY)
+module Game.Loc exposing (Loc, at, coords, decoder, diff, encoder, getDistance, getX, getY)
+
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
+import List.Extra as List
 
 
 type Loc
     = Loc Int Int
+
+
+decoder : Decoder Loc
+decoder =
+    Decode.string
+        |> Decode.andThen
+            (\loc ->
+                let
+                    decodeCoords =
+                        String.split "," loc
+
+                    maybeX =
+                        List.getAt 0 decodeCoords
+
+                    maybeY =
+                        List.getAt 1 decodeCoords
+                in
+                case ( maybeX, maybeY ) of
+                    ( Just strX, Just strY ) ->
+                        case ( String.toInt strX, String.toInt strY ) of
+                            ( Just x, Just y ) ->
+                                Decode.succeed (Loc x y)
+
+                            _ ->
+                                Decode.fail "Invalid coordinates"
+
+                    _ ->
+                        Decode.fail "Invalid coordinates"
+            )
+
+
+encoder : Loc -> Encode.Value
+encoder loc =
+    let
+        x =
+            getX loc
+
+        y =
+            getY loc
+    in
+    Encode.string (String.fromInt x ++ "," ++ String.fromInt y)
 
 
 at : Int -> Int -> Loc

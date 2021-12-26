@@ -3,11 +3,20 @@ module Game.Grid exposing (..)
 import Game.Cell exposing (Cell)
 import Game.Loc exposing (Loc, getDistance)
 import Game.Structure as Structure
-
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 
 type alias Grid =
     List (List Cell)
 
+decoder : Decoder Grid
+decoder =
+    Decode.list (Decode.list Game.Cell.decoder)
+
+encoder : Grid -> Encode.Value
+encoder grid =
+    Encode.list (Encode.list Game.Cell.encoder) grid
 
 toList : Grid -> List Cell
 toList grid =

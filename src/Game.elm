@@ -97,6 +97,11 @@ view model =
                 , onClick OpenSettings
                 ]
                 [ text "Settings" ]
+            , button
+                [ class "py-1 w-1/3 mx-2 lg:p-2 w-full lg:w-[150px] text-white bg-transparent border-2 border-green-500 hover:border-green-200 hover:bg-[rgba(255,255,255,0.1)]"
+                , onClick SaveGame
+                ]
+                [ text "Save Game" ]
             ]
         , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]

@@ -17,6 +17,9 @@ import Game.Update as Game
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import Json.Decode as Decode
+import Json.Encode as Encode
+import List.Extra as List
 import Lobby
 import Process
 import Task
@@ -117,7 +120,20 @@ update msg model =
                         , page = Game game
                       }
                     , Cmd.batch
-                        [ Cmd.map GotGameMsg (Task.succeed Cmd.none |> Task.perform (\_ -> Game.InitializeScenario))
+                        [ if game.turn <= 0 then
+                            Cmd.map GotGameMsg (Task.succeed Cmd.none |> Task.perform (\_ -> Game.InitializeScenario))
+
+                          else
+                            case List.getAt game.activePlayer game.players of
+                                Nothing ->
+                                    Cmd.none
+
+                                Just player ->
+                                    if player.isHuman == False then
+                                        Cmd.map GotGameMsg (Task.succeed Cmd.none |> Task.perform (\_ -> Game.PerformAiTurn))
+
+                                    else
+                                        Cmd.none
                         , playGameMusic ()
                         ]
                     )
@@ -167,6 +183,21 @@ update msg model =
             case model.page of
                 Lobby lobbyModel ->
                     case lobbyMsg of
+                        Lobby.LoadGame ->
+                            ( model, loadGame () )
+
+                        Lobby.GameLoaded json ->
+                            let
+                                decoded =
+                                    Decode.decodeString Core.decoder json
+                            in
+                            case decoded of
+                                Ok game ->
+                                    update (InitChangePage (Game game)) model
+
+                                _ ->
+                                    ( model, Cmd.none )
+
                         Lobby.StartGame ->
                             update
                                 (InitChangePage
@@ -196,6 +227,9 @@ update msg model =
                     case gameMsg of
                         Game.OpenSettings ->
                             update ToggleSettings model
+
+                        Game.SaveGame ->
+                            ( model, gameModel |> Core.encoder |> Encode.encode 0 |> saveGame )
 
                         Game.EndGame ->
                             update ToggleSettings { model | gameStatus = Core.CompletedGame }
@@ -239,6 +273,15 @@ port toggleMute : () -> Cmd msg
 port authStatus : (Bool -> msg) -> Sub msg
 
 
+port saveGame : String -> Cmd msg
+
+
+port loadGame : () -> Cmd msg
+
+
+port gameLoaded : (String -> msg) -> Sub msg
+
+
 
 ---- SUBSCRIPTIONS ----
 
@@ -247,6 +290,7 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ authStatus UpdateAuthStatus
+        , gameLoaded (\json -> GotLobbyMsg (Lobby.GameLoaded json))
         ]
 
 

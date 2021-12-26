@@ -1,8 +1,11 @@
-module Game.Unit exposing (Unit, buildUnit, controlledBy, empty, fromId, inCell, isDead, isSelected, takeDamage)
+module Game.Unit exposing (Unit, buildUnit, controlledBy, decoder, empty, encoder, fromId, inCell, isDead, isSelected, takeDamage)
 
+import Game.Level as Level exposing (Level)
 import Game.Loc as Loc exposing (Loc)
 import Game.UnitType exposing (UnitType(..))
-import Game.Level as Level exposing (Level)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 
 
 type alias Unit =
@@ -18,6 +21,40 @@ type alias Unit =
     , loc : Loc
     , level : Level
     }
+
+
+decoder : Decoder Unit
+decoder =
+    Decode.succeed Unit
+        |> Decode.required "id" Decode.int
+        |> Decode.required "unitType" Game.UnitType.decoder
+        |> Decode.required "movesLeft" Decode.int
+        |> Decode.required "maxMoves" Decode.int
+        |> Decode.required "attack" Decode.int
+        |> Decode.required "health" Decode.int
+        |> Decode.required "maxHealth" Decode.int
+        |> Decode.required "range" Decode.int
+        |> Decode.required "controlledBy" Decode.int
+        |> Decode.required "loc" Loc.decoder
+        |> Decode.required "level" Level.decoder
+
+
+encoder : Unit -> Encode.Value
+encoder unit =
+    Encode.object
+        [ ( "id", Encode.int unit.id )
+        , ( "unitType", Game.UnitType.encoder unit.unitType )
+        , ( "movesLeft", Encode.int unit.movesLeft )
+        , ( "maxMoves", Encode.int unit.maxMoves )
+        , ( "attack", Encode.int unit.attack )
+        , ( "health", Encode.int unit.health )
+        , ( "maxHealth", Encode.int unit.maxHealth )
+        , ( "range", Encode.int unit.range )
+        , ( "controlledBy", Encode.int unit.controlledBy )
+        , ( "loc", Loc.encoder unit.loc )
+        , ( "level", Level.encoder unit.level )
+        ]
+
 
 buildUnit : UnitType -> Int -> Loc -> Int -> Unit
 buildUnit unitType playerId loc id =
