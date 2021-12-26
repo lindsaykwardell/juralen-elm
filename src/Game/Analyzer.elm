@@ -49,7 +49,7 @@ analyzeUpgrades model =
         targetCells =
             List.filter
                 (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Structure.None)
-                (toList model.grid)
+                (List.foldl (\row rows -> row ++ rows) [] model.grid)
 
         -- levelOneTech : Maybe TechTree.LevelOne
         -- levelOneTech =
@@ -131,7 +131,8 @@ analyzeMoves model =
 
         unitCombinations : List UnitOption
         unitCombinations =
-            toList
+            List.foldl (\combinations cell -> cell ++ combinations)
+                []
                 (List.map
                     (\cell ->
                         List.foldl
@@ -144,50 +145,14 @@ analyzeMoves model =
                     cellsWithUnits
                 )
     in
-    toList
+    List.foldl (\options unitOption -> options ++ unitOption)
+        []
         (List.map
             (\combination ->
                 getMoveOptions model combination.cell.loc combination.unitOptions
             )
             unitCombinations
         )
-
-
-toList : List (List a) -> List a
-toList grid =
-    addNextRow grid []
-
-
-addNextRow : List (List a) -> List a -> List a
-addNextRow grid cellList =
-    let
-        firstRow : List a
-        firstRow =
-            case List.head grid of
-                Nothing ->
-                    []
-
-                Just row ->
-                    row
-
-        remainingRows : List (List a)
-        remainingRows =
-            case List.tail grid of
-                Nothing ->
-                    []
-
-                Just rows ->
-                    rows
-
-        updatedList : List a
-        updatedList =
-            cellList ++ firstRow
-    in
-    if List.length firstRow <= 0 then
-        updatedList
-
-    else
-        addNextRow remainingRows updatedList
 
 
 combineUnitWith : List (List Unit) -> List Unit -> List Unit -> List (List Unit)
@@ -331,7 +296,7 @@ scoreOption model option =
             List.filter (\player -> not <| Game.Grid.townCountControlledBy model.grid player.id <= 0) model.players
     in
     if List.length livingPlayers <= 1 then
-        { option | score = -1000}
+        { option | score = -1000 }
 
     else
         case option.action of
