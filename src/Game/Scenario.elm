@@ -295,7 +295,7 @@ isEndConditionReached config model =
             List.length
                 (List.filter
                     (\player ->
-                        not player.hasLost
+                        player.hasLost == False
                     )
                     model.players
                 )

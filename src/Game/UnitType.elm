@@ -2,7 +2,6 @@ module Game.UnitType exposing (..)
 
 import Game.TechTree exposing (LevelFour(..), LevelThree(..), LevelTwo(..), TechTree)
 
-
 type UnitType
     = Soldier
     | Warrior

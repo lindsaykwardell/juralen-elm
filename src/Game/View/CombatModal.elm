@@ -1,7 +1,9 @@
 module Game.View.CombatModal exposing (view)
 
 import Components.Modal as Modal
+import Game.CellType
 import Game.Combat as Combat
+import Game.Loc as Loc
 import Game.Unit exposing (Unit)
 import Game.UnitType
 import Game.Update exposing (Msg(..))
@@ -35,8 +37,14 @@ view config =
             else
                 NoOp
         , content =
-            div [ class "text-white p-2" ]
-                [ h1 [] [ text "Combat" ]
+            div [ class ("text-white p-2 " ++ Game.CellType.getColorClass config.model.cell.cellType) ]
+                [ h1 []
+                    [ text "( "
+                    , text (String.fromInt (Loc.getX config.model.cell.loc))
+                    , text ", "
+                    , text (String.fromInt (Loc.getY config.model.cell.loc))
+                    , text " )"
+                    ]
                 , div [ class "flex" ]
                     [ unitListDisplay attackingUnits config.model.attacker
                     , unitListDisplay defendingUnits config.model.defender
@@ -76,7 +84,7 @@ unitListDisplay units focusedUnit =
                     [ class
                         ("flex flex-col items-center p-2 w-24"
                             ++ (if unit.id == focusedUnit.id then
-                                    " bg-gray-500 rounded-lg"
+                                    " bg-juralen-transparent rounded-lg"
 
                                 else
                                     " "

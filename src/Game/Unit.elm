@@ -1,20 +1,23 @@
-module Game.Unit exposing (..)
+module Game.Unit exposing (Unit, buildUnit, controlledBy, empty, fromId, inCell, isDead, isSelected, takeDamage)
 
 import Game.Loc as Loc exposing (Loc)
 import Game.UnitType exposing (UnitType(..))
+import Game.Level as Level exposing (Level)
 
 
 type alias Unit =
     { id : Int
     , unitType : UnitType
     , movesLeft : Int
+    , maxMoves : Int
     , attack : Int
     , health : Int
+    , maxHealth : Int
     , range : Int
     , controlledBy : Int
     , loc : Loc
+    , level : Level
     }
-
 
 buildUnit : UnitType -> Int -> Loc -> Int -> Unit
 buildUnit unitType playerId loc id =
@@ -25,11 +28,14 @@ buildUnit unitType playerId loc id =
     { id = id
     , unitType = unitType
     , movesLeft = initialValues.movesLeft
+    , maxMoves = initialValues.movesLeft
     , attack = initialValues.attack
     , health = initialValues.health
+    , maxHealth = initialValues.health
     , range = initialValues.range
     , controlledBy = playerId
     , loc = loc
+    , level = Level.at 1
     }
 
 
@@ -68,11 +74,14 @@ empty =
     { id = -1
     , unitType = Game.UnitType.Soldier
     , movesLeft = -1
+    , maxMoves = -1
     , attack = 0
     , health = -1
+    , maxHealth = -1
     , range = -1
     , controlledBy = -1
     , loc = Loc.at -1 -1
+    , level = Level.at -1
     }
 
 

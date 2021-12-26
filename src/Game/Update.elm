@@ -101,13 +101,7 @@ update msg model =
                         List.map
                             (\unit ->
                                 { unit
-                                    | movesLeft =
-                                        let
-                                            initialValues : Game.UnitType.InitialValues
-                                            initialValues =
-                                                Game.UnitType.initialValues unit.unitType
-                                        in
-                                        initialValues.movesLeft
+                                    | movesLeft = unit.maxMoves
                                 }
                             )
                             model.units
@@ -265,6 +259,9 @@ update msg model =
                                                 Game.Player.get newModel.players defendingPlayerId
                             , whoGoesFirst = Game.Combat.Attacker
                             , defBonus = 0
+                            , cell =
+                                Game.Cell.find newModel.grid newModel.selectedCell
+                                    |> Maybe.withDefault Game.Cell.empty
                             }
 
                         startCombat : CombatStatus
@@ -780,13 +777,9 @@ healUnits units inLocs =
                         (\unit ->
                             if unit.loc == loc then
                                 let
-                                    initialValues : InitialValues
-                                    initialValues =
-                                        Game.UnitType.initialValues unit.unitType
-
                                     maxHealth : Int
                                     maxHealth =
-                                        initialValues.health
+                                        unit.maxHealth
                                 in
                                 { unit
                                     | health =

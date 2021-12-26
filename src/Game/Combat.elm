@@ -1,7 +1,10 @@
 module Game.Combat exposing (..)
 
+import Game.Cell exposing (Cell)
+import Game.Level exposing (XP)
+import Game.Loc exposing (Loc)
 import Game.Player exposing (Player)
-import Game.Unit exposing (Unit)
+import Game.Unit exposing (Unit, isDead)
 import Game.UnitType
 import List.Extra as List
 import Process
@@ -33,6 +36,7 @@ type alias Model =
     , defendingPlayer : Player
     , whoGoesFirst : CombatRole
     , defBonus : Int
+    , cell : Cell
     }
 
 
@@ -41,11 +45,21 @@ type CombatRole
     | Defender
 
 
+type StatUpgrade
+    = MaxHp
+    | Attack
+      -- | Range
+    | MaxMoves
+
+
 type Msg
     = DetermineAttacker (List Unit) Int
     | DetermineDefender (List Unit) Int
     | GetRandomUnit CombatRole
     | RunCombat
+    | DetermineNextAction { checkLevel : Bool }
+    | GetRandomStat Unit
+    | UpgradeUnitStat Unit Int
     | ExitCombat
 
 
@@ -110,52 +124,150 @@ update msg model =
             )
 
         RunCombat ->
+            ( if model.whoGoesFirst == Attacker then
+                model
+                    |> attackerAction
+                    |> defenderAction
+                    |> updateUnitStatus
+                    |> healUnits Attacker
+                    |> healUnits Defender
+                    |> switchPlayerRoles
+
+              else
+                model
+                    |> defenderAction
+                    |> attackerAction
+                    |> updateUnitStatus
+                    |> healUnits Attacker
+                    |> switchPlayerRoles
+            , Task.succeed Cmd.none |> Task.perform (\_ -> DetermineNextAction { checkLevel = True })
+            )
+
+        DetermineNextAction { checkLevel } ->
             let
-                newModel : Model
-                newModel =
-                    if model.whoGoesFirst == Attacker then
-                        model
-                            |> attackerAction
-                            |> defenderAction
-                            |> updateUnitStatus
-                            |> healUnits Attacker
-                            |> healUnits Defender
-                            |> switchPlayerRoles
-
-                    else
-                        model
-                            |> defenderAction
-                            |> attackerAction
-                            |> updateUnitStatus
-                            |> healUnits Attacker
-                            |> switchPlayerRoles
-
                 attackerHasUnits : Bool
                 attackerHasUnits =
-                    List.length (Game.Unit.controlledBy newModel.units newModel.attackingPlayer.id) > 0
+                    List.length (Game.Unit.controlledBy model.units model.attackingPlayer.id) > 0
 
                 defenderHasUnits : Bool
                 defenderHasUnits =
-                    List.length (Game.Unit.controlledBy newModel.units newModel.defendingPlayer.id) > 0
+                    List.length (Game.Unit.controlledBy model.units model.defendingPlayer.id) > 0
+
+                unitGainedLevel : Maybe Unit
+                unitGainedLevel =
+                    case ( isDead model.attacker, isDead model.defender ) of
+                        ( True, True ) ->
+                            Nothing
+
+                        ( False, True ) ->
+                            let
+                                unit =
+                                    Game.Unit.fromId model.units model.attacker.id
+                            in
+                            if Game.Level.currentLevel unit.level /= Game.Level.currentLevel model.attacker.level then
+                                Just unit
+
+                            else
+                                Nothing
+
+                        ( True, False ) ->
+                            let
+                                unit =
+                                    Game.Unit.fromId model.units model.defender.id
+                            in
+                            if Game.Level.currentLevel unit.level /= Game.Level.currentLevel model.defender.level then
+                                Just unit
+
+                            else
+                                Nothing
+
+                        ( False, False ) ->
+                            Nothing
+
+                nextCombat : Cmd Msg
+                nextCombat =
+                    if isHumanInvolved model then
+                        delay 500 (GetRandomUnit Attacker)
+
+                    else
+                        Task.succeed Cmd.none |> Task.perform (\_ -> GetRandomUnit Attacker)
+
+                exitCombat : Cmd Msg
+                exitCombat =
+                    if isHumanInvolved model then
+                        Cmd.none
+
+                    else
+                        Task.succeed Cmd.none |> Task.perform (\_ -> ExitCombat)
+
+                levelUpStat : Unit -> Cmd Msg
+                levelUpStat unit =
+                    Task.succeed Cmd.none |> Task.perform (\_ -> GetRandomStat unit)
             in
-            if attackerHasUnits && defenderHasUnits then
-                -- update (GetRandomUnit Attacker) newModel
-                ( newModel
-                , if isHumanInvolved newModel then
-                    delay 500 (GetRandomUnit Attacker)
+            case ( checkLevel, attackerHasUnits, defenderHasUnits ) of
+                ( True, True, True ) ->
+                    case unitGainedLevel of
+                        Nothing ->
+                            ( model, nextCombat )
 
-                  else
-                    Task.succeed Cmd.none |> Task.perform (\_ -> GetRandomUnit Attacker)
-                )
+                        Just leveledUpUnit ->
+                            ( model, levelUpStat leveledUpUnit )
 
-            else
-                ( newModel
-                , if isHumanInvolved newModel then
-                    Cmd.none
+                ( True, _, _ ) ->
+                    case unitGainedLevel of
+                        Nothing ->
+                            ( model, exitCombat )
 
-                  else
-                    Task.succeed Cmd.none |> Task.perform (\_ -> ExitCombat)
-                )
+                        Just leveledUpUnit ->
+                            ( model, levelUpStat leveledUpUnit )
+
+                ( False, True, True ) ->
+                    ( model, nextCombat )
+
+                _ ->
+                    ( model, exitCombat )
+
+        GetRandomStat unit ->
+            ( model, Random.generate (UpgradeUnitStat unit) (randomDefinedMax 10) )
+
+        UpgradeUnitStat unit roll ->
+            let
+                stat : StatUpgrade
+                stat =
+                    if roll <= 4 then
+                        MaxHp
+
+                    else if roll <= 7 then
+                        Attack
+
+                    else
+                        -- Range
+                        MaxMoves
+            in
+            ( { model
+                | units =
+                    List.map
+                        (\u ->
+                            if u.id == unit.id then
+                                case stat of
+                                    MaxHp ->
+                                        { u | maxHealth = u.maxHealth + 1, health = u.maxHealth + 1 }
+
+                                    Attack ->
+                                        { u | attack = u.attack + 1, health = u.maxHealth }
+
+                                    -- Range ->
+                                    --     { u | range = u.range + 1, health = u.maxHealth }
+                                    MaxMoves ->
+                                        { u | maxMoves = u.maxMoves + 1, health = u.maxHealth }
+
+                            else
+                                u
+                        )
+                        model.units
+              }
+            , Task.succeed Cmd.none |> Task.perform (\_ -> DetermineNextAction { checkLevel = False })
+            )
 
         ExitCombat ->
             ( model, Cmd.none )
@@ -202,13 +314,9 @@ healUnits role model =
                             (\unit ->
                                 if unit.controlledBy == model.attackingPlayer.id && unit.id /= model.attacker.id then
                                     let
-                                        initialValues : Game.UnitType.InitialValues
-                                        initialValues =
-                                            Game.UnitType.initialValues unit.unitType
-
                                         maxHealth : Int
                                         maxHealth =
-                                            initialValues.health
+                                            unit.maxHealth
                                     in
                                     { unit
                                         | health =
@@ -301,15 +409,24 @@ applyCombatToUnits units attacker defender =
     List.map
         (\unit ->
             if unit.id == attacker.id then
-                attacker
+                { attacker | level = Game.Level.gainXp (gainDeadUnitXp defender) unit.level }
 
             else if unit.id == defender.id then
-                defender
+                { defender | level = Game.Level.gainXp (gainDeadUnitXp attacker) unit.level }
 
             else
                 unit
         )
         units
+
+
+gainDeadUnitXp : Unit -> Maybe XP
+gainDeadUnitXp unit =
+    if isDead unit then
+        Just <| Game.Level.toXp unit.level
+
+    else
+        Nothing
 
 
 removeDeadUnits : List Unit -> List Unit

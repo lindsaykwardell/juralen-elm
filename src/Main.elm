@@ -154,8 +154,8 @@ update msg model =
                                             + 1
                                     , aiSpeed = Just gameModel.aiSpeed
                                     , scenarioType = gameModel.scenario.scenarioType
-                                    , maxX = Just gameModel.scenario.maxX
-                                    , maxY = Just gameModel.scenario.maxY
+                                    , maxX = Just <| gameModel.scenario.maxX + 1
+                                    , maxY = Just <| gameModel.scenario.maxY + 1
                                     }
                             in
                             update (InitChangePage (Lobby lobbyModel)) model

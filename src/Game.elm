@@ -5,6 +5,7 @@ import Game.Analysis
 import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
+import Game.Level
 import Game.Loc as Loc
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor
@@ -383,7 +384,10 @@ unitsInCellList model =
                         [ div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         , div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         ]
-                    , div [ class "w-1/3 text-left" ] [ text (Game.UnitType.toString unit.unitType { showCost = False }) ]
+                    , div [ class "w-1/3 text-left" ]
+                        [ text (Game.UnitType.toString unit.unitType { showCost = False })
+                        , text (String.repeat (Game.Level.currentLevel unit.level) "*")
+                        ]
                     , div [ class "flex-1" ] [ text "Atk: ", text (String.fromInt unit.attack) ]
                     , div [ class "flex-1" ] [ text "HP: ", text (String.fromInt unit.health) ]
                     , div [ class "flex-1" ] [ text "Moves: ", text (String.fromInt unit.movesLeft) ]
