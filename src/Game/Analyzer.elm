@@ -11,6 +11,7 @@ import Game.Structure as Structure
 import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
+import List.Extra as List
 
 
 
@@ -110,6 +111,7 @@ analyzeMoves model =
     let
         myUnits =
             Game.Unit.controlledBy model.units model.activePlayer
+                |> List.filter (\unit -> unit.movesLeft > 0)
 
         cellsWithUnits : List Cell
         cellsWithUnits =
@@ -140,7 +142,7 @@ analyzeMoves model =
                                 combinations ++ [ { unitOptions = units, cell = cell } ]
                             )
                             []
-                            (combineUnitWith [] [] (Game.Unit.inCell myUnits cell.loc))
+                            (List.subsequences (Game.Unit.inCell myUnits cell.loc))
                     )
                     cellsWithUnits
                 )
@@ -153,44 +155,6 @@ analyzeMoves model =
             )
             unitCombinations
         )
-
-
-combineUnitWith : List (List Unit) -> List Unit -> List Unit -> List (List Unit)
-combineUnitWith unitCombinations selectedUnits unusedUnits =
-    let
-        remainingUnusedUnits =
-            case List.tail unusedUnits of
-                Nothing ->
-                    []
-
-                Just units ->
-                    units
-
-        newCombination : List Unit
-        newCombination =
-            case List.head unusedUnits of
-                Nothing ->
-                    []
-
-                Just unit ->
-                    if List.member unit selectedUnits then
-                        []
-
-                    else
-                        selectedUnits ++ [ unit ]
-
-        newCombinations =
-            if List.length newCombination > 0 then
-                unitCombinations ++ [ newCombination ]
-
-            else
-                unitCombinations
-    in
-    if List.length newCombination <= 0 then
-        newCombinations
-
-    else
-        combineUnitWith newCombinations newCombination remainingUnusedUnits
 
 
 getMoveOptions : Model -> Loc -> List Unit -> List Option
