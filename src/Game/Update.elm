@@ -556,7 +556,7 @@ update msg model =
                 analysisResults =
                     analyze model
             in
-            case List.head analysisResults of
+            case analysisResults of
                 Nothing ->
                     update EndTurn model
 
