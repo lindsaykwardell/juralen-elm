@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "elm-tooling install",
-    "dev": "vite",
+    "wasm": "wasm-pack build ./juralen-analyzer --target web",
+    "dev": "npm run wasm && vite",
     "prebuild": "elm-tooling install",
     "build": "vite build",
     "serve": "vite preview"
@@ -21,7 +22,8 @@
     "tailwindcss": "^2.2.9",
     "vite": "^2.5.1",
     "vite-plugin-elm": "^2.4.3",
-    "vite-plugin-pwa": "^0.11.2"
+    "vite-plugin-pwa": "^0.11.2",
+    "vite-plugin-wasm-pack": "^0.1.9"
   },
   "dependencies": {
     "vue": "^3.2.6"

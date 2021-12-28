@@ -4,3 +4,7 @@ elm-stuff
 dist
 dist-ssr
 *.local
+
+# Added by cargo
+
+juralen-analyzer/target/**
