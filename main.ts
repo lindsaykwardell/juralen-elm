@@ -4,14 +4,9 @@ import { send, subscribe } from "./src/app"
 import audioControl from "./src/audio/audioControl"
 // @ts-ignore
 import { registerSW } from "virtual:pwa-register"
-// import init, { add, main, analyze } from "juralen-analyzer"
 // @ts-ignore
 import Worker from "./src/worker?worker"
-// import initAnalyzer from "./src/analyzer/juralen-analyzer.es.js"
-
-// await init()
 const analyzerWorker = new Worker()
-// const analyzer = initAnalyzer()
 
 const updateSW = registerSW({
     // onNeedRefresh() {},
