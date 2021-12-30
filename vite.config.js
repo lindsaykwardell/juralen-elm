@@ -2,7 +2,6 @@ import { defineConfig } from "vite"
 import elmPlugin from "vite-plugin-elm"
 import vue from "@vitejs/plugin-vue"
 import { VitePWA } from "vite-plugin-pwa"
-import wasmPack from "vite-plugin-wasm-pack"
 
 export default defineConfig({
     plugins: [
@@ -42,11 +41,5 @@ export default defineConfig({
                 ],
             },
         }),
-        // wasmPack(['./juralen-analyzer'])
     ],
-    // server: {
-    //     hmr: {
-    //         overlay: false
-    //     }
-    // }
 })
