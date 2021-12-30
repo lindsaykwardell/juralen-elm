@@ -6,21 +6,27 @@ import landOfAFolkDivided from "./land-of-a-folk-divided.mp3"
 import rememberTheWay from "./remember-the-way.mp3"
 import streetsOfSantIvo from "./streets-of-santivo.mp3"
 
-let sub = () => null
+type Albums = { [key: string]: string[] }
+
+let sub = () => {}
 
 class AudioControl {
-    constructor(audio, music) {
+    private audio: HTMLAudioElement
+    private music: Albums
+    private maxVol: number
+    private shuffle: string | null
+
+    constructor(audio: HTMLAudioElement, music: Albums) {
         const muted = localStorage.getItem("muted") === "true"
 
         this.audio = audio
         this.audio.volume = 0
         this.music = music
         this.maxVol = muted ? 0 : 1
-        this.nextAction = null
         this.shuffle = null
     }
 
-    get muted() {
+    public get muted() {
         return this.maxVol === 0
     }
 
@@ -34,7 +40,7 @@ class AudioControl {
 
     stop() {
         this.audio.removeEventListener("ended", sub)
-        return new Promise(resolve => {
+        return new Promise<void>((resolve) => {
             this.fadeOut().then(() => {
                 this.audio.pause()
                 this.audio.currentTime = 0
@@ -43,12 +49,12 @@ class AudioControl {
         })
     }
 
-    selectSong(song) {
+    selectSong(song: string) {
         const loc = song.split(":")
-        this.audio.src = this.music[loc[0]][loc[1]]
+        this.audio.src = this.music[loc[0]][Number(loc[1])]
     }
 
-    shuffleAlbum(album) {
+    shuffleAlbum(album: string) {
         this.shuffle = album
         this.nextShuffle()
         sub = this.nextShuffle.bind(this)
@@ -57,23 +63,25 @@ class AudioControl {
 
     nextShuffle() {
         let track = -1
-        while (!this.music?.[this.shuffle]?.[track]) {
-            track = Math.floor(Math.random() * this.music?.[this.shuffle]?.length)
+        while (!this.music?.[this.shuffle || ""]?.[track]) {
+            track = Math.floor(
+                Math.random() * this.music?.[this.shuffle || ""]?.length
+            )
         }
-        this.audio.src = this.music[this.shuffle][track]
+        this.audio.src = this.music[this.shuffle || ""][track]
         this.fadeIn()
     }
 
-    setMaxVolume(maxVol) {
+    setMaxVolume(maxVol: number) {
         this.maxVol = maxVol
     }
 
-    setVolume(vol) {
+    setVolume(vol: number) {
         this.audio.volume = vol
     }
 
     fadeOut() {
-        return new Promise(resolve => {
+        return new Promise<void>((resolve) => {
             const fadeAudio = setInterval(() => {
                 if (this.audio.volume !== 0 && this.audio.volume - 0.1 >= 0) {
                     this.audio.volume -= 0.1
@@ -103,11 +111,11 @@ class AudioControl {
 
     toggleMute() {
         if (this.muted) {
-            localStorage.setItem("muted", false)
+            localStorage.setItem("muted", "false")
             this.setMaxVolume(1)
             this.fadeIn()
         } else {
-            localStorage.setItem("muted", true)
+            localStorage.setItem("muted", "true")
             this.setMaxVolume(0)
             this.fadeOut()
         }
@@ -122,6 +130,6 @@ export default new AudioControl(new Audio(), {
         guardians,
         landOfAFolkDivided,
         rememberTheWay,
-        streetsOfSantIvo
-    ]
+        streetsOfSantIvo,
+    ],
 })

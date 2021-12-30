@@ -1,4 +1,4 @@
-module Game.Update exposing (Msg(..), update)
+port module Game.Update exposing (Msg(..), update)
 
 import Game.Analysis
 import Game.Analyzer exposing (analyze)
@@ -15,6 +15,10 @@ import Game.Structure
 import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
+import Json.Encode as Encode
+
+
+port analyze : String -> Cmd msg
 
 
 type Msg
@@ -552,17 +556,17 @@ update msg model =
                     ( model, Cmd.none )
 
         PerformAiTurn ->
-            let
-                analysisResults =
-                    analyze model
-            in
-            case List.head analysisResults of
-                Nothing ->
-                    update EndTurn model
+            ( model, model |> Game.Core.encoder |> Encode.encode 0 |> analyze )
 
-                Just option ->
-                    update (PerformAction option) model
-
+        -- let
+        --     analysisResults =
+        --         analyze model
+        -- in
+        -- case analysisResults of
+        --     Nothing ->
+        --         update EndTurn model
+        --     Just option ->
+        --         update (PerformAction option) model
         EndTurn ->
             let
                 livingPlayers : List Player

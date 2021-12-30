@@ -1,4 +1,4 @@
-module Game.Loc exposing (Loc, at, coords, decoder, diff, encoder, getDistance, getX, getY)
+module Game.Loc exposing (Loc, at, coords, decoder, diff, encoder, fromString, getDistance, getX, getY)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
@@ -14,28 +14,13 @@ decoder : Decoder Loc
 decoder =
     Decode.string
         |> Decode.andThen
-            (\loc ->
-                let
-                    decodeCoords =
-                        String.split "," loc
+            (\locString ->
+                case fromString locString of
+                    Ok loc ->
+                        Decode.succeed loc
 
-                    maybeX =
-                        List.getAt 0 decodeCoords
-
-                    maybeY =
-                        List.getAt 1 decodeCoords
-                in
-                case ( maybeX, maybeY ) of
-                    ( Just strX, Just strY ) ->
-                        case ( String.toInt strX, String.toInt strY ) of
-                            ( Just x, Just y ) ->
-                                Decode.succeed (Loc x y)
-
-                            _ ->
-                                Decode.fail "Invalid coordinates"
-
-                    _ ->
-                        Decode.fail "Invalid coordinates"
+                    Err err ->
+                        Decode.fail err
             )
 
 
@@ -49,6 +34,31 @@ encoder loc =
             getY loc
     in
     Encode.string (String.fromInt x ++ "," ++ String.fromInt y)
+
+
+fromString : String -> Result String Loc
+fromString loc =
+    let
+        decodeCoords =
+            String.split "," loc
+
+        maybeX =
+            List.getAt 0 decodeCoords
+
+        maybeY =
+            List.getAt 1 decodeCoords
+    in
+    case ( maybeX, maybeY ) of
+        ( Just strX, Just strY ) ->
+            case ( String.toInt strX, String.toInt strY ) of
+                ( Just x, Just y ) ->
+                    Ok (Loc x y)
+
+                _ ->
+                    Err "Invalid coordinates"
+
+        _ ->
+            Err "Invalid coordinates"
 
 
 at : Int -> Int -> Loc

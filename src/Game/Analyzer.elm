@@ -26,7 +26,7 @@ import List.Extra as List
 -- 5. Return Maybe Option (List.head)   // getBestOption : List Option -> Maybe Option
 
 
-analyze : Core.Model -> List Option
+analyze : Core.Model -> Maybe Option
 analyze model =
     analyzeBuildUnits model
         ++ analyzeMoves model
@@ -35,6 +35,8 @@ analyze model =
         |> scoreOptions model
         |> List.filter (\option -> option.score > 0)
         |> sortByScore
+        |> List.head
+    
 
 
 type alias UnitOption =
@@ -106,6 +108,18 @@ analyzeResearchOptions model =
             )
 
 
+
+-- This function is returning TOO MUCH DATA at late stages of the game.
+-- The goal of this refactor is to reduce the amount of data RETURNED,
+-- without impacting the quality of the move analysis.
+-- Fold over cellsWithUnits
+-- Internally, get the unit combinations for that cell
+-- Then, get move options for those combinations
+-- Then, score the move options
+-- Then return the highest scoring option
+-- The function returns a list of one option in order to be compatible with the old code
+
+
 analyzeMoves : Core.Model -> List Option
 analyzeMoves model =
     let
@@ -130,31 +144,47 @@ analyzeMoves model =
                             row
                     )
                     []
-
-        unitCombinations : List UnitOption
-        unitCombinations =
-            List.foldl (\combinations cell -> cell ++ combinations)
-                []
-                (List.map
-                    (\cell ->
-                        List.foldl
-                            (\units combinations ->
-                                combinations ++ [ { unitOptions = units, cell = cell } ]
-                            )
-                            []
-                            (List.subsequences (Game.Unit.inCell myUnits cell.loc))
-                    )
-                    cellsWithUnits
-                )
     in
-    List.foldl (\options unitOption -> options ++ unitOption)
-        []
-        (List.map
-            (\combination ->
-                getMoveOptions model combination.cell.loc combination.unitOptions
-            )
-            unitCombinations
+    List.foldl
+        (\cell opt ->
+            case
+                ( List.head opt
+                , List.subsequences (Game.Unit.inCell myUnits cell.loc)
+                    |> List.foldl
+                        (\units combinations ->
+                            combinations ++ [ { unitOptions = units, cell = cell } ]
+                        )
+                        []
+                    |> List.map
+                        (\combination ->
+                            getMoveOptions model combination.cell.loc combination.unitOptions
+                        )
+                    |> List.foldl (\options unitOption -> options ++ unitOption)
+                        []
+                    |> scoreOptions model
+                    |> List.filter (\option -> option.score > 0)
+                    |> sortByScore
+                    |> List.head
+                )
+            of
+                ( Nothing, Nothing ) ->
+                    []
+
+                ( Just option, Nothing ) ->
+                    [ option ]
+
+                ( Nothing, Just newOption ) ->
+                    [ newOption ]
+
+                ( Just option, Just newOption ) ->
+                    if option.score >= newOption.score then
+                        [ option ]
+
+                    else
+                        [ newOption ]
         )
+        []
+        cellsWithUnits
 
 
 getMoveOptions : Model -> Loc -> List Unit -> List Option
@@ -179,12 +209,16 @@ getMoveOptions model fromLoc units =
 
 getMoveCost : List Unit -> Float
 getMoveCost units =
-    List.foldl
-        (\unit cost ->
-            cost + Game.UnitType.moveCost unit.unitType
-        )
-        0
-        units
+    List.length units |> toFloat
+
+
+
+-- List.foldl
+--     (\unit cost ->
+--         cost + Game.UnitType.moveCost unit.unitType
+--     )
+--     0
+--     units
 
 
 analyzeBuildUnits : Core.Model -> List Option

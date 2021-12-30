@@ -2,7 +2,11 @@ import "./style.css"
 import "./src/Components"
 import { send, subscribe } from "./src/app"
 import audioControl from "./src/audio/audioControl"
+// @ts-ignore
 import { registerSW } from "virtual:pwa-register"
+// @ts-ignore
+import Worker from "./src/worker?worker"
+const analyzerWorker = new Worker()
 
 const updateSW = registerSW({
     // onNeedRefresh() {},
@@ -23,10 +27,18 @@ subscribe("playGameMusic", async () => {
     await audioControl.stop()
     audioControl.shuffleAlbum("inGame")
 })
-subscribe("saveGame", (game) => localStorage.setItem("game", game))
+subscribe("saveGame", (game: string) => {
+    localStorage.setItem("game", game)
+})
 subscribe("loadGame", () => {
     const game = localStorage.getItem("game")
     if (game) {
         send("gameLoaded", game)
     }
 })
+
+// Analyzer
+subscribe("analyze", (game: string) => analyzerWorker.postMessage(game))
+analyzerWorker.onmessage = (e: any) => {
+    send("analyzed", e.data)
+}

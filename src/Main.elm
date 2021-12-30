@@ -10,6 +10,7 @@ import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import FontAwesome.Transforms as Icon
 import Game
+import Game.Analysis as Analysis
 import Game.Core as Core
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
 import Game.Settings as Settings exposing (settingsModal)
@@ -282,6 +283,9 @@ port loadGame : () -> Cmd msg
 port gameLoaded : (String -> msg) -> Sub msg
 
 
+port analyzed : (String -> msg) -> Sub msg
+
+
 
 ---- SUBSCRIPTIONS ----
 
@@ -291,6 +295,19 @@ subscriptions _ =
     Sub.batch
         [ authStatus UpdateAuthStatus
         , gameLoaded (\json -> GotLobbyMsg (Lobby.GameLoaded json))
+        , analyzed
+            (\json ->
+                if json == "null" then
+                    GotGameMsg Game.EndTurn
+
+                else
+                    case Decode.decodeString Analysis.decoder json of
+                        Ok analysis ->
+                            GotGameMsg (Game.PerformAction analysis)
+
+                        Err _ ->
+                            GotGameMsg Game.EndTurn
+            )
         ]
 
 
