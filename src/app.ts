@@ -5,10 +5,10 @@ const app = Elm.Main.init({
     node: root,
 })
 
-export const subscribe = (port, callback) => {
+export const subscribe = <T>(port: string, callback: (payload: T) => void) => {
     app.ports[port]?.subscribe(callback)
 }
 
-export const send = (port, value) => {
+export const send = <T>(port: string, value: T) => {
     app.ports[port]?.send(value)
 }

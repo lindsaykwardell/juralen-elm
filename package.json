@@ -6,12 +6,14 @@
   "scripts": {
     "postinstall": "elm-tooling install",
     "wasm": "wasm-pack build ./juralen-analyzer --target web",
-    "dev": "npm run wasm && vite",
+    "dev": "npm run wasm && npm run build-analyzer && vite",
     "prebuild": "elm-tooling install",
-    "build": "vite build",
+    "build": "npm run build-analyzer && vite build",
+    "build-analyzer": "vite build --config analyzer.config.ts",
     "serve": "vite preview"
   },
   "devDependencies": {
+    "@rollup/plugin-typescript": "^8.3.0",
     "@vitejs/plugin-vue": "^1.6.0",
     "@vue/compiler-sfc": "^3.0.5",
     "autoprefixer": "^10.3.3",

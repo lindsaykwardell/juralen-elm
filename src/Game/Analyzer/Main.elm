@@ -1,8 +1,10 @@
 port module Game.Analyzer.Main exposing (main)
 
+import Game.Analysis as Analysis
 import Game.Analyzer as Analyzer
 import Game.Core as Core
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Platform
 
 
@@ -28,7 +30,16 @@ update : Msg -> {} -> ( {}, Cmd msg )
 update (Analyze json) _ =
     case Decode.decodeString Core.decoder json of
         Ok game ->
-            ( {}, analyzed "Did it!" )
+            let
+                result =
+                    Analyzer.analyze game
+            in
+            case result of
+                Nothing ->
+                    ( {}, Encode.null |> Encode.encode 0 |> analyzed )
+
+                Just option ->
+                    ( {}, option |> Analysis.encoder |> Encode.encode 0 |> analyzed )
 
         Err err ->
             ( {}, Decode.errorToString err |> logError )

@@ -8,3 +8,4 @@ dist-ssr
 # Added by cargo
 
 juralen-analyzer/target/**
+src/analyzer/**/*

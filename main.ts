@@ -7,9 +7,11 @@ import { registerSW } from "virtual:pwa-register"
 // import init, { add, main, analyze } from "juralen-analyzer"
 // @ts-ignore
 import Worker from "./src/worker?worker"
+// import initAnalyzer from "./src/analyzer/juralen-analyzer.es.js"
 
 // await init()
 const analyzerWorker = new Worker()
+// const analyzer = initAnalyzer()
 
 const updateSW = registerSW({
     // onNeedRefresh() {},
@@ -32,7 +34,8 @@ subscribe("playGameMusic", async () => {
 })
 subscribe("saveGame", (game: string) => {
     localStorage.setItem("game", game)
-    // analyze(game)
+    // analyzer.analyze(game)
+    analyzerWorker.postMessage(game)
 })
 subscribe("loadGame", () => {
     const game = localStorage.getItem("game")
