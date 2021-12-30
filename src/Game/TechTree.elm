@@ -52,50 +52,34 @@ type
 techLevelDecoder : Decoder TechLevel
 techLevelDecoder =
     Decode.string
-        |> Decode.dict
         |> Decode.andThen
-            (\dict ->
-                case ( Dict.get "level" dict, Dict.get "tech" dict ) of
-                    ( Nothing, _ ) ->
-                        Decode.fail "missing level"
+            (\str ->
+                if String.contains "two" str then
+                    case str |> Encode.string |> Encode.encode 0 |> Decode.decodeString levelTwoDecoder of
+                        Ok levelTwo ->
+                            Decode.succeed (LevelTwo levelTwo)
 
-                    ( Just level, Nothing ) ->
-                        Decode.fail "missing tech"
+                        Err _ ->
+                            Decode.fail "LevelTwo"
 
-                    ( Just level, Just tech ) ->
-                        case level of
-                            -- "one" ->
-                            --     case Decode.decodeString levelOneDecoder tech of
-                            --         Ok levelOne ->
-                            --             Decode.succeed (LevelOne levelOne)
-                            --         Err error ->
-                            --             Decode.fail (Decode.errorToString error)
-                            "two" ->
-                                case Decode.decodeString levelTwoDecoder tech of
-                                    Ok levelTwo ->
-                                        Decode.succeed (LevelTwo levelTwo)
+                else if String.contains "three" str then
+                    case str |> Encode.string |> Encode.encode 0 |> Decode.decodeString levelThreeDecoder of
+                        Ok levelThree ->
+                            Decode.succeed (LevelThree levelThree)
 
-                                    Err error ->
-                                        Decode.fail (Decode.errorToString error)
+                        Err _ ->
+                            Decode.fail "LevelThree"
 
-                            "three" ->
-                                case Decode.decodeString levelThreeDecoder tech of
-                                    Ok levelThree ->
-                                        Decode.succeed (LevelThree levelThree)
+                else if String.contains "four" str then
+                    case str |> Encode.string |> Encode.encode 0 |> Decode.decodeString levelFourDecoder of
+                        Ok levelFour ->
+                            Decode.succeed (LevelFour levelFour)
 
-                                    Err error ->
-                                        Decode.fail (Decode.errorToString error)
+                        Err _ ->
+                            Decode.fail "LevelFour"
 
-                            "four" ->
-                                case Decode.decodeString levelFourDecoder tech of
-                                    Ok levelFour ->
-                                        Decode.succeed (LevelFour levelFour)
-
-                                    Err error ->
-                                        Decode.fail (Decode.errorToString error)
-
-                            _ ->
-                                Decode.fail "invalid level"
+                else
+                    Decode.fail "TechLevel"
             )
 
 
@@ -103,43 +87,15 @@ techLevelEncoder : TechLevel -> Encode.Value
 techLevelEncoder techLevel =
     case techLevel of
         -- LevelOne levelOne ->
-        --     Encode.object
-        --         [ ( "level"
-        --           , Encode.string "one"
-        --           )
-        --         , ( "tech"
-        --           , Encode.encodeString levelOneEncoder levelOne
-        --           )
-        --         ]
+        --      Encode.encodeString levelOneEncoder levelOne
         LevelTwo levelTwo ->
-            Encode.object
-                [ ( "level"
-                  , Encode.string "two"
-                  )
-                , ( "tech"
-                  , levelTwoEncoder (Just levelTwo)
-                  )
-                ]
+            levelTwoEncoder (Just levelTwo)
 
         LevelThree levelThree ->
-            Encode.object
-                [ ( "level"
-                  , Encode.string "three"
-                  )
-                , ( "tech"
-                  , levelThreeEncoder (Just levelThree)
-                  )
-                ]
+            levelThreeEncoder (Just levelThree)
 
         LevelFour levelFour ->
-            Encode.object
-                [ ( "level"
-                  , Encode.string "four"
-                  )
-                , ( "tech"
-                  , levelFourEncoder (Just levelFour)
-                  )
-                ]
+            levelFourEncoder (Just levelFour)
 
 
 type LevelOne
@@ -153,10 +109,10 @@ levelOneDecoder =
         |> Decode.andThen
             (\tech ->
                 case tech of
-                    "buildFarms" ->
+                    "one:buildFarms" ->
                         Decode.succeed BuildFarms
 
-                    "buildActions" ->
+                    "one:buildActions" ->
                         Decode.succeed BuildActions
 
                     _ ->
@@ -173,10 +129,10 @@ levelOneEncoder levelOne =
         Just l1 ->
             case l1 of
                 BuildFarms ->
-                    Encode.string "buildFarms"
+                    Encode.string "one:buildFarms"
 
                 BuildActions ->
-                    Encode.string "buildActions"
+                    Encode.string "one:buildActions"
 
 
 type LevelTwo
@@ -190,10 +146,10 @@ levelTwoDecoder =
         |> Decode.andThen
             (\tech ->
                 case tech of
-                    "buildWarriors" ->
+                    "two:buildWarriors" ->
                         Decode.succeed BuildWarriors
 
-                    "buildArchers" ->
+                    "two:buildArchers" ->
                         Decode.succeed BuildArchers
 
                     _ ->
@@ -210,10 +166,10 @@ levelTwoEncoder levelTwo =
         Just l2 ->
             case l2 of
                 BuildWarriors ->
-                    Encode.string "buildWarriors"
+                    Encode.string "two:buildWarriors"
 
                 BuildArchers ->
-                    Encode.string "buildArchers"
+                    Encode.string "two:buildArchers"
 
 
 type LevelThree
@@ -227,10 +183,10 @@ levelThreeDecoder =
         |> Decode.andThen
             (\tech ->
                 case tech of
-                    "buildKnights" ->
+                    "three:buildKnights" ->
                         Decode.succeed BuildKnights
 
-                    "buildRogues" ->
+                    "three:buildRogues" ->
                         Decode.succeed BuildRogues
 
                     _ ->
@@ -247,10 +203,10 @@ levelThreeEncoder levelThree =
         Just l3 ->
             case l3 of
                 BuildKnights ->
-                    Encode.string "buildKnights"
+                    Encode.string "three:buildKnights"
 
                 BuildRogues ->
-                    Encode.string "buildRogues"
+                    Encode.string "three:buildRogues"
 
 
 type LevelFour
@@ -264,10 +220,10 @@ levelFourDecoder =
         |> Decode.andThen
             (\tech ->
                 case tech of
-                    "buildWizards" ->
+                    "four:buildWizards" ->
                         Decode.succeed BuildWizards
 
-                    "buildPriests" ->
+                    "four:buildPriests" ->
                         Decode.succeed BuildPriests
 
                     _ ->
@@ -284,10 +240,10 @@ levelFourEncoder levelFour =
         Just l4 ->
             case l4 of
                 BuildWizards ->
-                    Encode.string "buildWizards"
+                    Encode.string "four:buildWizards"
 
                 BuildPriests ->
-                    Encode.string "buildPriests"
+                    Encode.string "four:buildPriests"
 
 
 type alias TechDescription =

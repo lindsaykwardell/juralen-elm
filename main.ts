@@ -34,8 +34,6 @@ subscribe("playGameMusic", async () => {
 })
 subscribe("saveGame", (game: string) => {
     localStorage.setItem("game", game)
-    // analyzer.analyze(game)
-    analyzerWorker.postMessage(game)
 })
 subscribe("loadGame", () => {
     const game = localStorage.getItem("game")
@@ -43,3 +41,9 @@ subscribe("loadGame", () => {
         send("gameLoaded", game)
     }
 })
+
+// Analyzer
+subscribe("analyze", (game: string) => analyzerWorker.postMessage(game))
+analyzerWorker.onmessage = (e: any) => {
+    send("analyzed", e.data)
+}

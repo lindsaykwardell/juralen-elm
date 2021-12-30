@@ -1,12 +1,9 @@
 import { Elm } from "./Main.elm"
-import { ref, watch } from "vue"
 
 let app: any
 
-export default () => {
+export default (analyzed: (option: string) => void) => {
     app = Elm.Game.Analyzer.Main.init()
-    const error = ref<string | null>(null)
-    const res = ref<string | null>(null)
 
     const subscribe = <T>(port: string, callback: (payload: T) => void) => {
         app?.ports[port]?.subscribe(callback)
@@ -20,15 +17,12 @@ export default () => {
     }
 
     subscribe("analyzed", (payload: string) => {
-        res.value = payload
+        analyzed(payload)
     })
 
     subscribe("logError", (err: string) => {
-        error.value = err
+        console.error(err)
     })
 
-    watch(error, () => console.log(error.value))
-    watch(res, () => console.log(res.value))
-
-    return { analyze, error, res }
+    return { analyze }
 }

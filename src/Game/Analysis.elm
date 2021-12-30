@@ -104,9 +104,15 @@ actionDecoder =
                                         Decode.fail "No loc"
 
                                     ( Just unitString, Just locString ) ->
-                                        case ( Decode.decodeString (Decode.list Game.Unit.decoder) unitString, Decode.decodeString Loc.decoder locString ) of
+                                        case ( Decode.decodeString (Decode.list Game.Unit.decoder) unitString, Loc.fromString locString ) of
                                             ( Ok units, Ok loc ) ->
                                                 Decode.succeed (Move units loc)
+
+                                            ( Err err, Ok _ ) ->
+                                                Decode.fail <| "Invalid move" ++ Decode.errorToString err
+
+                                            ( Ok _, Err err ) ->
+                                                Decode.fail <| "Invalid loc" ++ err
 
                                             _ ->
                                                 Decode.fail "Invalid move"
@@ -120,7 +126,7 @@ actionDecoder =
                                         Decode.fail "No loc"
 
                                     ( Just unitString, Just locString ) ->
-                                        case ( Decode.decodeString (Decode.list Game.Unit.decoder) unitString, Decode.decodeString Loc.decoder locString ) of
+                                        case ( Decode.decodeString (Decode.list Game.Unit.decoder) unitString, Decode.decodeString Loc.decoder (locString |> Encode.string |> Encode.encode 0) ) of
                                             ( Ok units, Ok loc ) ->
                                                 Decode.succeed (Attack units loc)
 
@@ -133,7 +139,7 @@ actionDecoder =
                                         Decode.fail "No unitType"
 
                                     Just unitTypeString ->
-                                        case Decode.decodeString Game.UnitType.decoder unitTypeString of
+                                        case Decode.decodeString Game.UnitType.decoder (unitTypeString |> Encode.string |> Encode.encode 0) of
                                             Ok unitType ->
                                                 Decode.succeed (BuildUnit unitType)
 
@@ -146,7 +152,7 @@ actionDecoder =
                                         Decode.fail "No structure"
 
                                     Just structureString ->
-                                        case Decode.decodeString Game.Structure.decoder structureString of
+                                        case Decode.decodeString Game.Structure.decoder (structureString |> Encode.string |> Encode.encode 0) of
                                             Ok structure ->
                                                 Decode.succeed (BuildStructure structure)
 
@@ -163,8 +169,8 @@ actionDecoder =
                                             Ok tech ->
                                                 Decode.succeed (Research tech)
 
-                                            _ ->
-                                                Decode.fail "Invalid tech"
+                                            Err err ->
+                                                Decode.fail (Decode.errorToString err)
 
                             "upgrade" ->
                                 case Dict.get "upgradeType" dict of
@@ -172,7 +178,7 @@ actionDecoder =
                                         Decode.fail "No upgradeType"
 
                                     Just upgradeTypeString ->
-                                        case Decode.decodeString upgradeTypeDecoder upgradeTypeString of
+                                        case Decode.decodeString upgradeTypeDecoder (upgradeTypeString |> Encode.string |> Encode.encode 0) of
                                             Ok upgradeType ->
                                                 Decode.succeed (Upgrade upgradeType)
 
@@ -190,14 +196,14 @@ actionEncoder action =
         Move units loc ->
             Encode.object
                 [ ( "action", Encode.string "move" )
-                , ( "units", Encode.list Game.Unit.encoder units )
+                , ( "units", Encode.list Game.Unit.encoder units |> Encode.encode 0 |> Encode.string )
                 , ( "loc", Loc.encoder loc )
                 ]
 
         Attack units loc ->
             Encode.object
                 [ ( "action", Encode.string "attack" )
-                , ( "units", Encode.list Game.Unit.encoder units )
+                , ( "units", Encode.list Game.Unit.encoder units |> Encode.encode 0 |> Encode.string )
                 , ( "loc", Loc.encoder loc )
                 ]
 
@@ -216,7 +222,7 @@ actionEncoder action =
         Research tech ->
             Encode.object
                 [ ( "action", Encode.string "research" )
-                , ( "tech", Game.TechTree.techDescriptionEncoder tech )
+                , ( "tech", Game.TechTree.techDescriptionEncoder tech |> Encode.encode 0 |> Encode.string )
                 ]
 
         Upgrade upgradeType ->
