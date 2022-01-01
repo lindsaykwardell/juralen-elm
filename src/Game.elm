@@ -5,6 +5,7 @@ import Game.Action
 import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
+import Game.History as History exposing (History)
 import Game.Level
 import Game.Loc as Loc
 import Game.Player exposing (NewPlayer)
@@ -68,6 +69,7 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
         , combat = NoCombat
         , aiSpeed = aiSpeed
         , mobileTab = DetailsTab
+        , actionHistory = []
         }
 
 
@@ -129,12 +131,13 @@ view model =
                     , zoomButtons [ class "mt-1 flex justify-end" ] []
                     ]
                 ]
-            , div [ class "hidden lg:block lg:w-2/5 p-3" ]
+            , div [ class "hidden lg:block lg:w-2/5 p-3 flex flex-col" ]
                 [ selectedCellCard model
                 , buildableUnitList model
                 , researchTechList model
                 , upgradeCellList model
                 , unitsInCellList model
+                , historyView model.actionHistory
                 ]
             , div [ class "w-full text-sm lg:hidden px-3 flex flex-col pb-12" ]
                 [ case model.mobileTab of
@@ -225,8 +228,16 @@ activePlayerCard model =
                             |> .color
                             |> Game.PlayerColor.toClass
                        )
-                    ++ (if  Game.Player.get model.players model.activePlayer
-                            |> .color |> Game.PlayerColor.isDark then " text-white" else "")
+                    ++ (if
+                            Game.Player.get model.players model.activePlayer
+                                |> .color
+                                |> Game.PlayerColor.isDark
+                        then
+                            " text-white"
+
+                        else
+                            ""
+                       )
                 )
             ]
             [ text ("[ Turn " ++ String.fromInt model.turn ++ " ]")
@@ -258,8 +269,16 @@ selectedCellCard model =
                             Just selectedCell ->
                                 Game.Cell.getColorClass selectedCell model.players
                        )
-                    ++ (if  Game.Player.get model.players model.activePlayer
-                            |> .color |> Game.PlayerColor.isDark then " text-white" else "")
+                    ++ (if
+                            Game.Player.get model.players model.activePlayer
+                                |> .color
+                                |> Game.PlayerColor.isDark
+                        then
+                            " text-white"
+
+                        else
+                            ""
+                       )
                 )
             ]
             [ text (String.fromInt <| Loc.getX model.selectedCell)
@@ -374,7 +393,7 @@ upgradeCellList model =
 
 unitsInCellList : Game.Core.Model -> Html Msg
 unitsInCellList model =
-    div [ class "p-5" ]
+    div [ class "p-5 flex-grow max-h-[400px] overflow-y-scroll" ]
         (List.map
             (\unit ->
                 div
@@ -416,3 +435,20 @@ techTreeButton tech =
         , br [] []
         , text tech.description
         ]
+
+
+historyView : List History -> Html Msg
+historyView history =
+    div [ class "w-full italic text-left text-gray-300 bg-gray-800 rounded p-2 overflow-y-scroll h-[200px]" ]
+        (history
+            -- |> List.take 5
+            |> List.map
+                (\item ->
+                    div [ class "flex" ]
+                        [ div [ class "w-[75px]" ]
+                            [ text <| "Turn " ++ (item.turn |> String.fromInt) ]
+                        , div []
+                            [ text <| History.toString item ]
+                        ]
+                )
+        )

@@ -7,7 +7,7 @@ import Game.CellType
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid
 import Game.Loc as Loc exposing (Loc)
-import Game.Option as Option exposing (Option)
+import Game.Option exposing (Option)
 import Game.Structure as Structure
 import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)

@@ -5,6 +5,7 @@ import Game.Cell exposing (Cell, getBorderCells, getGroupBorderingPlayers, group
 import Game.CellType
 import Game.Combat
 import Game.Grid exposing (Grid)
+import Game.History exposing (History)
 import Game.Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.Scenario
@@ -49,6 +50,7 @@ type alias Model =
     , combat : CombatStatus
     , aiSpeed : Float
     , mobileTab : MobileTab
+    , actionHistory : List History
     }
 
 
@@ -67,6 +69,7 @@ decoder =
         |> Decode.optional "combat" (Game.Combat.decoder |> Decode.andThen (\c -> Decode.succeed (Combat c))) NoCombat
         |> Decode.required "aiSpeed" Decode.float
         |> Decode.hardcoded UnitsTab
+        |> Decode.required "actionHistory" (Decode.list Game.History.decoder)
 
 
 encoder : Model -> Encode.Value
@@ -90,6 +93,7 @@ encoder model =
                     Game.Combat.encoder c
           )
         , ( "aiSpeed", Encode.float model.aiSpeed )
+        , ( "actionHistory", Encode.list Game.History.encoder model.actionHistory )
         ]
 
 

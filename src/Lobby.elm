@@ -1,7 +1,6 @@
 module Lobby exposing (..)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
-import Game.Core
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor exposing (PlayerColor)
 import Game.Scenario exposing (ScenarioType(..))

@@ -7,6 +7,7 @@ import Game.CellType
 import Game.Combat
 import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
+import Game.History exposing (History)
 import Game.Loc as Loc exposing (Loc)
 import Game.Option as Option
 import Game.Player exposing (Player)
@@ -156,6 +157,12 @@ update msg model =
                 let
                     newModel =
                         { model | nextId = nextId, units = newUnitList, players = newPlayerList }
+                            |> recordAction
+                                { player = Game.Player.get model.players model.activePlayer |> .name
+                                , turn = model.turn
+                                , loc = model.selectedCell
+                                , action = Action.BuildUnit unitType
+                                }
                 in
                 ( newModel, runAiAction newModel )
 
@@ -238,20 +245,45 @@ update msg model =
                     newGrid =
                         Game.Grid.replaceCell model.grid newCell
 
+                    initCombat =
+                        shouldCombatStart (Game.Unit.inCell newModel.units newModel.selectedCell) []
+
                     newModel =
                         { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = [] }
+
+                    modelWithRecordedAction =
+                        newModel
+                            |> recordAction
+                                { player = Game.Player.get model.players model.activePlayer |> .name
+                                , turn = model.turn
+                                , loc = model.selectedCell
+                                , action =
+                                    (if initCombat then
+                                        Action.Attack
+
+                                     else
+                                        Action.Move
+                                    )
+                                        (List.filter
+                                            (\unit ->
+                                                Game.Unit.isSelected model.selectedUnits unit.id
+                                            )
+                                            model.units
+                                        )
+                                        cell.loc
+                                }
                 in
-                if shouldCombatStart (Game.Unit.inCell newModel.units newModel.selectedCell) [] then
+                if initCombat then
                     let
                         combatModel : Game.Combat.Model
                         combatModel =
-                            { units = Game.Unit.inCell newModel.units newModel.selectedCell
+                            { units = Game.Unit.inCell modelWithRecordedAction.units modelWithRecordedAction.selectedCell
                             , deadUnits = []
                             , attacker = Game.Unit.empty
                             , defender = Game.Unit.empty
-                            , attackingPlayer = Game.Player.get newModel.players newModel.activePlayer
+                            , attackingPlayer = Game.Player.get modelWithRecordedAction.players modelWithRecordedAction.activePlayer
                             , defendingPlayer =
-                                case Game.Cell.find newModel.grid newModel.selectedCell of
+                                case Game.Cell.find modelWithRecordedAction.grid modelWithRecordedAction.selectedCell of
                                     Nothing ->
                                         Game.Player.empty
 
@@ -261,11 +293,11 @@ update msg model =
                                                 Game.Player.empty
 
                                             Just defendingPlayerId ->
-                                                Game.Player.get newModel.players defendingPlayerId
+                                                Game.Player.get modelWithRecordedAction.players defendingPlayerId
                             , whoGoesFirst = Game.Combat.Attacker
                             , defBonus = 0
                             , cell =
-                                Game.Cell.find newModel.grid newModel.selectedCell
+                                Game.Cell.find modelWithRecordedAction.grid modelWithRecordedAction.selectedCell
                                     |> Maybe.withDefault Game.Cell.empty
                             }
 
@@ -273,10 +305,10 @@ update msg model =
                         startCombat =
                             Combat combatModel
                     in
-                    update (GotCombatMsg (Game.Combat.GetRandomUnit Game.Combat.Attacker)) { newModel | combat = startCombat }
+                    update (GotCombatMsg (Game.Combat.GetRandomUnit Game.Combat.Attacker)) { modelWithRecordedAction | combat = startCombat }
 
                 else
-                    ( newModel, runAiAction newModel )
+                    ( modelWithRecordedAction, runAiAction modelWithRecordedAction )
 
         ResearchTech tech ->
             let
@@ -304,8 +336,17 @@ update msg model =
                                     player
                             )
                             model.players
+
+                    newModel =
+                        { model | players = players }
+                            |> recordAction
+                                { player = Game.Player.get model.players model.activePlayer |> .name
+                                , turn = model.turn
+                                , loc = model.selectedCell
+                                , action = Action.Research tech
+                                }
                 in
-                ( { model | players = players }, runAiAction { model | players = players } )
+                ( newModel, runAiAction newModel )
 
         UpgradeCell upgradeType ->
             let
@@ -342,8 +383,17 @@ update msg model =
 
                                     Just aCell ->
                                         Game.Grid.replaceCell model.grid { aCell | farms = aCell.farms + 1 }
+
+                            newModel =
+                                { model | players = players, grid = grid }
+                                    |> recordAction
+                                        { player = Game.Player.get model.players model.activePlayer |> .name
+                                        , turn = model.turn
+                                        , loc = model.selectedCell
+                                        , action = Action.Upgrade Action.BuildFarm
+                                        }
                         in
-                        ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
+                        ( newModel, runAiAction newModel )
 
                 Action.BuildTower ->
                     if stats.gold < 2 then
@@ -374,8 +424,17 @@ update msg model =
 
                                     Just aCell ->
                                         Game.Grid.replaceCell model.grid { aCell | towers = aCell.towers + 1 }
+
+                            newModel =
+                                { model | players = players, grid = grid }
+                                    |> recordAction
+                                        { player = Game.Player.get model.players model.activePlayer |> .name
+                                        , turn = model.turn
+                                        , loc = model.selectedCell
+                                        , action = Action.Upgrade Action.BuildTower
+                                        }
                         in
-                        ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
+                        ( newModel, runAiAction newModel )
 
                 Action.RepairDefense ->
                     if stats.gold < 1 then
@@ -414,8 +473,17 @@ update msg model =
                                                     else
                                                         aCell.defBonus
                                             }
+
+                            newModel =
+                                { model | players = players, grid = grid }
+                                    |> recordAction
+                                        { player = Game.Player.get model.players model.activePlayer |> .name
+                                        , turn = model.turn
+                                        , loc = model.selectedCell
+                                        , action = Action.Upgrade Action.RepairDefense
+                                        }
                         in
-                        ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
+                        ( newModel, runAiAction newModel )
 
         GotCombatMsg combatMsg ->
             case model.combat of
@@ -786,3 +854,16 @@ healUnits units inLocs =
 
         [] ->
             units
+
+
+recordAction : History -> Model -> Model
+recordAction action model =
+    let
+        actionList : List History
+        actionList =
+            action :: model.actionHistory
+
+        newModel =
+            { model | actionHistory = actionList }
+    in
+    newModel
