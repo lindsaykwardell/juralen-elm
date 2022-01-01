@@ -225,6 +225,8 @@ activePlayerCard model =
                             |> .color
                             |> Game.PlayerColor.toClass
                        )
+                    ++ (if  Game.Player.get model.players model.activePlayer
+                            |> .color |> Game.PlayerColor.isDark then " text-white" else "")
                 )
             ]
             [ text ("[ Turn " ++ String.fromInt model.turn ++ " ]")
@@ -256,6 +258,8 @@ selectedCellCard model =
                             Just selectedCell ->
                                 Game.Cell.getColorClass selectedCell model.players
                        )
+                    ++ (if  Game.Player.get model.players model.activePlayer
+                            |> .color |> Game.PlayerColor.isDark then " text-white" else "")
                 )
             ]
             [ text (String.fromInt <| Loc.getX model.selectedCell)

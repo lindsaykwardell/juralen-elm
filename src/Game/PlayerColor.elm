@@ -228,7 +228,7 @@ isDark playerColor =
             False
 
         Orange ->
-            True
+            False
 
         Teal ->
             False
