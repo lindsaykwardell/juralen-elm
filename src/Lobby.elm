@@ -33,8 +33,7 @@ type Msg
     | AddPlayer
     | AddPlayerName Int Int
     | RemovePlayer Int
-    | LoadGame
-    | GameLoaded String
+    | ReturnHome
     | StartGame
 
 
@@ -292,10 +291,7 @@ update msg model =
             , Cmd.none
             )
 
-        LoadGame ->
-            ( model, Cmd.none )
-
-        GameLoaded _ ->
+        ReturnHome ->
             ( model, Cmd.none )
 
         StartGame ->
@@ -429,7 +425,7 @@ view model =
             )
         , div [ class "flex justify-center gap-4" ]
             [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick StartGame ] [ text "Start Game" ]
-            , button [ class "bg-blue-600 p-2 rounded hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick LoadGame ] [ text "Load Saved Game" ]
+            , button [ class "bg-blue-600 p-2 rounded hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick ReturnHome ] [ text "Return to Home" ]
             ]
         ]
 

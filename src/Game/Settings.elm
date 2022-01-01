@@ -16,6 +16,7 @@ type Msg
     = Logout
     | ToggleMute
     | ExitGame
+    | ReturnHome
 
 
 settingsModal : DisplaySettings -> Html Msg
@@ -25,6 +26,11 @@ settingsModal settings =
         , div [ class "flex flex-col p-2" ]
             [ if settings.gameStatus /= Game.Core.NoGame then
                 button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick ExitGame ] [ text "Return to Lobby" ]
+
+              else
+                text ""
+            , if settings.gameStatus /= Game.Core.NoGame then
+                button [ class "bg-blue-300 hover:bg-blue-400 rounded w-full my-1", onClick ReturnHome ] [ text "Return Home" ]
 
               else
                 text ""

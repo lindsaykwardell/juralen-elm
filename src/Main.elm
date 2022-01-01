@@ -10,8 +10,8 @@ import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import FontAwesome.Transforms as Icon
 import Game
-import Game.Option as Analysis
 import Game.Core as Core
+import Game.Option as Analysis
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
 import Game.Settings as Settings exposing (settingsModal)
 import Game.Update as Game
@@ -81,6 +81,8 @@ type Msg
     | GotSettingsMessage Settings.Msg
     | GotLobbyMsg Lobby.Msg
     | GotGameMsg Game.Msg
+    | LoadGame
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -180,25 +182,13 @@ update msg model =
                         _ ->
                             update (InitChangePage (Lobby (Tuple.first Lobby.init))) model
 
+                Settings.ReturnHome ->
+                    update (InitChangePage Home) model
+
         GotLobbyMsg lobbyMsg ->
             case model.page of
                 Lobby lobbyModel ->
                     case lobbyMsg of
-                        Lobby.LoadGame ->
-                            ( model, loadGame () )
-
-                        Lobby.GameLoaded json ->
-                            let
-                                decoded =
-                                    Decode.decodeString Core.decoder json
-                            in
-                            case decoded of
-                                Ok game ->
-                                    update (InitChangePage (Game game)) model
-
-                                _ ->
-                                    ( model, Cmd.none )
-
                         Lobby.StartGame ->
                             update
                                 (InitChangePage
@@ -215,6 +205,9 @@ update msg model =
                                     )
                                 )
                                 { model | newPlayers = lobbyModel.newPlayerList }
+
+                        Lobby.ReturnHome ->
+                            update (InitChangePage Home) model
 
                         _ ->
                             toLobby model (Lobby.update lobbyMsg lobbyModel)
@@ -240,6 +233,12 @@ update msg model =
 
                 _ ->
                     ( model, Cmd.none )
+
+        LoadGame ->
+            ( model, loadGame () )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 toLobby : Model -> ( Lobby.Model, Cmd Lobby.Msg ) -> ( Model, Cmd Msg )
@@ -294,7 +293,19 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ authStatus UpdateAuthStatus
-        , gameLoaded (\json -> GotLobbyMsg (Lobby.GameLoaded json))
+        , gameLoaded
+            (\json ->
+                let
+                    decoded =
+                        Decode.decodeString Core.decoder json
+                in
+                case decoded of
+                    Ok game ->
+                        InitChangePage (Game game)
+
+                    _ ->
+                        NoOp
+            )
         , analyzed
             (\json ->
                 if json == "null" then
@@ -351,8 +362,26 @@ view model =
                         ]
 
                 Home ->
-                    div [ class "flex-grow flex justify-center items-center" ]
-                        [ button [ class "border-2 bg-gray-600 p-3 xl:w-1/5 lg:w-1/3 md:w-1/2 sm:w-2/3", onClick (InitChangePage (Lobby (Tuple.first Lobby.init))) ] [ text "Enter Lobby" ]
+                    div [ class "sm:flex-grow flex flex-col justify-center items-center h-screen w-screen" ]
+                        [ Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ]
+                        , div [ class "flex justify-center items-center gap-8 w-full h-full sm:h-[50vh]" ]
+                            [ button
+                                [ class "border-2 bg-blue-600 hover:bg-blue-700 p-3 w-full xl:w-2/5 md:w-1/3 sm:w-2/3 h-full text-white text-3xl"
+                                , onClick (InitChangePage (Lobby (Tuple.first Lobby.init)))
+                                ]
+                                [ text "New Game" ]
+                            , div [ class "h-full w-full xl:w-2/5 md:w-1/3 sm:w-2/3 flex flex-col gap-8" ]
+                                [ button
+                                    [ class "border-2 border-green-600 hover:bg-green-700 p-3 text-white text-3xl w-full h-[50%]"
+                                    , onClick LoadGame
+                                    ]
+                                    [ text "Load Game" ]
+                                , button
+                                    [ class "border-2 border-blue-300 hover:bg-blue-400 p-3 text-white text-3xl w-full h-[50%]"
+                                    ]
+                                    [ text "Join Game" ]
+                                ]
+                            ]
                         ]
 
                 Lobby lobby ->

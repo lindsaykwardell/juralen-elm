@@ -8,7 +8,7 @@ import { registerSW } from "virtual:pwa-register"
 import Worker from "./src/worker?worker"
 const analyzerWorker = new Worker()
 
-const updateSW = registerSW({
+registerSW({
     // onNeedRefresh() {},
     // onOfflineReady() {},
 })
