@@ -1,12 +1,13 @@
 module Game.Analyzer exposing (..)
 
-import Game.Analysis exposing (Action(..), Option, UpgradeType)
+import Game.Action as Action exposing (UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell)
 import Game.CellType
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid
 import Game.Loc as Loc exposing (Loc)
+import Game.Option as Option exposing (Option)
 import Game.Structure as Structure
 import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)
@@ -36,7 +37,6 @@ analyze model =
         |> List.filter (\option -> option.score > 0)
         |> sortByScore
         |> List.head
-    
 
 
 type alias UnitOption =
@@ -60,16 +60,16 @@ analyzeUpgrades model =
     in
     List.concat
         [ -- if levelOneTech == Just TechTree.BuildFarms then
-          checkCellForUpgrades Game.Analysis.BuildFarm targetCells []
+          checkCellForUpgrades Action.BuildFarm targetCells []
 
         --   else
         --     []
         -- , if levelOneTech == Just TechTree.BuildActions then
-        , checkCellForUpgrades Game.Analysis.BuildTower targetCells []
+        , checkCellForUpgrades Action.BuildTower targetCells []
 
         --   else
         --     []
-        , checkCellForUpgrades Game.Analysis.RepairDefense targetCells []
+        , checkCellForUpgrades Action.RepairDefense targetCells []
         ]
 
 
@@ -78,15 +78,15 @@ checkCellForUpgrades upgradeType cells options =
     case cells of
         cell :: remainingCells ->
             case upgradeType of
-                Game.Analysis.BuildFarm ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.BuildFarm, score = 0 } ] ])
+                Action.BuildFarm ->
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Action.Upgrade Action.BuildFarm, score = 0 } ] ])
 
-                Game.Analysis.BuildTower ->
-                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.BuildTower, score = 0 } ] ])
+                Action.BuildTower ->
+                    checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Action.Upgrade Action.BuildTower, score = 0 } ] ])
 
-                Game.Analysis.RepairDefense ->
+                Action.RepairDefense ->
                     if Structure.initDef cell.structure > cell.defBonus then
-                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Upgrade Game.Analysis.RepairDefense, score = 0 } ] ])
+                        checkCellForUpgrades upgradeType remainingCells (List.concat [ options, [ { loc = cell.loc, action = Action.Upgrade Action.RepairDefense, score = 0 } ] ])
 
                     else
                         checkCellForUpgrades upgradeType remainingCells options
@@ -102,7 +102,7 @@ analyzeResearchOptions model =
         |> List.map
             (\tech ->
                 { loc = Loc.at 0 0
-                , action = Research tech
+                , action = Action.Research tech
                 , score = 0
                 }
             )
@@ -200,7 +200,7 @@ getMoveOptions model fromLoc units =
     List.map
         (\cell ->
             { loc = fromLoc
-            , action = Move units cell.loc
+            , action = Action.Move units cell.loc
             , score = 0
             }
         )
@@ -255,7 +255,7 @@ getUnitOptions stats cells options =
                     options
                         ++ List.map
                             (\unitType ->
-                                { loc = cell.loc, action = BuildUnit unitType, score = 0 }
+                                { loc = cell.loc, action = Action.BuildUnit unitType, score = 0 }
                             )
                             (List.filter
                                 (\unitType ->
@@ -298,7 +298,7 @@ scoreOption model option =
 
     else
         case option.action of
-            Move units toLoc ->
+            Action.Move units toLoc ->
                 let
                     targetCell =
                         Game.Cell.atLoc model.grid toLoc
@@ -456,13 +456,13 @@ scoreOption model option =
                     | score = score
                     , action =
                         if isAttack then
-                            Attack units toLoc
+                            Action.Attack units toLoc
 
                         else
-                            Move units toLoc
+                            Action.Move units toLoc
                 }
 
-            BuildUnit unitType ->
+            Action.BuildUnit unitType ->
                 let
                     unitsInCell =
                         List.length (Game.Unit.inCell model.units option.loc)
@@ -482,10 +482,10 @@ scoreOption model option =
                 in
                 { option | score = score }
 
-            BuildStructure _ ->
+            Action.BuildStructure _ ->
                 option
 
-            Research research ->
+            Action.Research research ->
                 if stats.gold <= research.cost || stats.farms == stats.units || analyzer == Passive then
                     { option | score = -1000 }
 
@@ -623,13 +623,13 @@ scoreOption model option =
                                                   )
                                     }
 
-            Upgrade upgradeType ->
+            Action.Upgrade upgradeType ->
                 let
                     cell =
                         Game.Cell.atLoc model.grid option.loc
                 in
                 case upgradeType of
-                    Game.Analysis.RepairDefense ->
+                    Action.RepairDefense ->
                         { option
                             | score =
                                 if stats.gold < 1 then
@@ -657,7 +657,7 @@ scoreOption model option =
                                           )
                         }
 
-                    Game.Analysis.BuildFarm ->
+                    Action.BuildFarm ->
                         { option
                             | score =
                                 if stats.gold < 2 then
@@ -667,7 +667,7 @@ scoreOption model option =
                                     1
                         }
 
-                    Game.Analysis.BuildTower ->
+                    Action.BuildTower ->
                         { option
                             | score =
                                 if stats.gold < 2 then

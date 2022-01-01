@@ -10,7 +10,7 @@ import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import FontAwesome.Transforms as Icon
 import Game
-import Game.Analysis as Analysis
+import Game.Option as Analysis
 import Game.Core as Core
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
 import Game.Settings as Settings exposing (settingsModal)

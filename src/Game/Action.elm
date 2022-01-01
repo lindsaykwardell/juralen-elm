@@ -1,4 +1,4 @@
-module Game.Analysis exposing (..)
+module Game.Action exposing (Action(..), UpgradeType(..), decoder, encoder)
 
 import Dict
 import Game.Loc as Loc exposing (Loc)
@@ -20,71 +20,8 @@ type Action
     | Upgrade UpgradeType
 
 
-type UpgradeType
-    = BuildFarm
-    | BuildTower
-    | RepairDefense
-
-
-upgradeTypeDecoder : Decoder UpgradeType
-upgradeTypeDecoder =
-    Decode.string
-        |> Decode.andThen
-            (\upgradeType ->
-                case upgradeType of
-                    "buildFarm" ->
-                        Decode.succeed BuildFarm
-
-                    "buildTower" ->
-                        Decode.succeed BuildTower
-
-                    "repairDefense" ->
-                        Decode.succeed RepairDefense
-
-                    _ ->
-                        Decode.fail "Invalid upgrade type"
-            )
-
-
-upgradeTypeEncoder : UpgradeType -> Encode.Value
-upgradeTypeEncoder upgradeType =
-    case upgradeType of
-        BuildFarm ->
-            Encode.string "buildFarm"
-
-        BuildTower ->
-            Encode.string "buildTower"
-
-        RepairDefense ->
-            Encode.string "repairDefense"
-
-
-type alias Option =
-    { loc : Loc
-    , action : Action
-    , score : Int
-    }
-
-
-decoder : Decoder Option
+decoder : Decoder Action
 decoder =
-    Decode.succeed Option
-        |> Decode.required "loc" Loc.decoder
-        |> Decode.required "action" actionDecoder
-        |> Decode.required "score" Decode.int
-
-
-encoder : Option -> Encode.Value
-encoder option =
-    Encode.object
-        [ ( "loc", Loc.encoder option.loc )
-        , ( "action", actionEncoder option.action )
-        , ( "score", Encode.int option.score )
-        ]
-
-
-actionDecoder : Decoder Action
-actionDecoder =
     Decode.string
         |> Decode.dict
         |> Decode.andThen
@@ -190,8 +127,8 @@ actionDecoder =
             )
 
 
-actionEncoder : Action -> Encode.Value
-actionEncoder action =
+encoder : Action -> Encode.Value
+encoder action =
     case action of
         Move units loc ->
             Encode.object
@@ -232,73 +169,40 @@ actionEncoder action =
                 ]
 
 
-toString : Option -> String
-toString option =
-    case option.action of
-        Move units loc ->
-            let
-                unitString : String
-                unitString =
-                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType { showCost = False } ++ " ") "" units
-            in
-            "Move [ "
-                ++ unitString
-                ++ "] from "
-                ++ String.fromInt (Loc.getX option.loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY option.loc)
-                ++ " to "
-                ++ String.fromInt (Loc.getX loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY loc)
+type UpgradeType
+    = BuildFarm
+    | BuildTower
+    | RepairDefense
 
-        Attack units loc ->
-            let
-                unitString : String
-                unitString =
-                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType { showCost = False } ++ " ") "" units
-            in
-            "Attack - Move [ "
-                ++ unitString
-                ++ "] from "
-                ++ String.fromInt (Loc.getX option.loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY option.loc)
-                ++ " to "
-                ++ String.fromInt (Loc.getX loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY loc)
 
-        BuildUnit unitType ->
-            "Build [ "
-                ++ Game.UnitType.toString unitType { showCost = True }
-                ++ " ] in "
-                ++ String.fromInt (Loc.getX option.loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY option.loc)
+upgradeTypeDecoder : Decoder UpgradeType
+upgradeTypeDecoder =
+    Decode.string
+        |> Decode.andThen
+            (\upgradeType ->
+                case upgradeType of
+                    "buildFarm" ->
+                        Decode.succeed BuildFarm
 
-        Research tech ->
-            "Research " ++ tech.name
+                    "buildTower" ->
+                        Decode.succeed BuildTower
 
-        Upgrade upgrade ->
-            case upgrade of
-                BuildFarm ->
-                    "Build farm in "
-                        ++ String.fromInt (Loc.getX option.loc)
-                        ++ ", "
-                        ++ String.fromInt (Loc.getY option.loc)
+                    "repairDefense" ->
+                        Decode.succeed RepairDefense
 
-                BuildTower ->
-                    "Build tower in "
-                        ++ String.fromInt (Loc.getX option.loc)
-                        ++ ", "
-                        ++ String.fromInt (Loc.getY option.loc)
+                    _ ->
+                        Decode.fail "Invalid upgrade type"
+            )
 
-                RepairDefense ->
-                    "Repair structure in "
-                        ++ String.fromInt (Loc.getX option.loc)
-                        ++ ", "
-                        ++ String.fromInt (Loc.getY option.loc)
 
-        _ ->
-            ""
+upgradeTypeEncoder : UpgradeType -> Encode.Value
+upgradeTypeEncoder upgradeType =
+    case upgradeType of
+        BuildFarm ->
+            Encode.string "buildFarm"
+
+        BuildTower ->
+            Encode.string "buildTower"
+
+        RepairDefense ->
+            Encode.string "repairDefense"

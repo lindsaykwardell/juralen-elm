@@ -1,6 +1,6 @@
 port module Game.Update exposing (Msg(..), update)
 
-import Game.Analysis
+import Game.Action as Action
 import Game.Analyzer exposing (analyze)
 import Game.Cell exposing (Cell)
 import Game.CellType
@@ -8,6 +8,7 @@ import Game.Combat
 import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
 import Game.Loc as Loc exposing (Loc)
+import Game.Option as Option
 import Game.Player exposing (Player)
 import Game.Resources exposing (Resources)
 import Game.Scenario exposing (Msg)
@@ -30,9 +31,9 @@ type Msg
     | SelectUnit Int
     | MoveSelectedUnits Cell
     | ResearchTech TechDescription
-    | UpgradeCell Game.Analysis.UpgradeType
+    | UpgradeCell Action.UpgradeType
     | GotCombatMsg Game.Combat.Msg
-    | PerformAction Game.Analysis.Option
+    | PerformAction Option.Option
     | PerformAiTurn
     | EndTurn
     | EndGame
@@ -312,7 +313,7 @@ update msg model =
                     Game.Core.currentPlayerStats model
             in
             case upgradeType of
-                Game.Analysis.BuildFarm ->
+                Action.BuildFarm ->
                     if stats.gold < 2 then
                         ( model, Cmd.none )
 
@@ -344,7 +345,7 @@ update msg model =
                         in
                         ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
 
-                Game.Analysis.BuildTower ->
+                Action.BuildTower ->
                     if stats.gold < 2 then
                         ( model, Cmd.none )
 
@@ -376,7 +377,7 @@ update msg model =
                         in
                         ( { model | players = players, grid = grid }, runAiAction { model | players = players, grid = grid } )
 
-                Game.Analysis.RepairDefense ->
+                Action.RepairDefense ->
                     if stats.gold < 1 then
                         ( model, Cmd.none )
 
@@ -513,7 +514,7 @@ update msg model =
 
         PerformAction option ->
             case option.action of
-                Game.Analysis.Move units toLoc ->
+                Action.Move units toLoc ->
                     let
                         selectedUnits =
                             List.map (\unit -> unit.id) units
@@ -528,7 +529,7 @@ update msg model =
                         Just cell ->
                             update (MoveSelectedUnits cell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
 
-                Game.Analysis.Attack units toLoc ->
+                Action.Attack units toLoc ->
                     let
                         selectedUnits =
                             List.map (\unit -> unit.id) units
@@ -543,13 +544,13 @@ update msg model =
                         Just cell ->
                             update (MoveSelectedUnits cell) { model | selectedUnits = selectedUnits, selectedCell = option.loc }
 
-                Game.Analysis.BuildUnit unitType ->
+                Action.BuildUnit unitType ->
                     update (BuildUnit unitType) { model | selectedCell = option.loc }
 
-                Game.Analysis.Research tech ->
+                Action.Research tech ->
                     update (ResearchTech tech) model
 
-                Game.Analysis.Upgrade upgradeType ->
+                Action.Upgrade upgradeType ->
                     update (UpgradeCell upgradeType) { model | selectedCell = option.loc }
 
                 _ ->

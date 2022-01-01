@@ -1,7 +1,7 @@
 module Game exposing (..)
 
 import Components.ZoomButtons exposing (zoomButtons)
-import Game.Analysis
+import Game.Action
 import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
@@ -358,12 +358,12 @@ upgradeCellList model =
                 (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)
                     < Game.Structure.initDef (Game.Cell.atLoc model.grid model.selectedCell |> .structure)
               then
-                button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Analysis.RepairDefense) ] [ text "Repair Defense (1)" ]
+                button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Action.RepairDefense) ] [ text "Repair Defense (1)" ]
 
               else
                 text ""
-            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Analysis.BuildFarm) ] [ text "Build Farm (2)" ]
-            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Analysis.BuildTower) ] [ text "Build Tower (2)" ]
+            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Action.BuildFarm) ] [ text "Build Farm (2)" ]
+            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Action.BuildTower) ] [ text "Build Tower (2)" ]
             ]
         )
 

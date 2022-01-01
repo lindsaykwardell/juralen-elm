@@ -1,6 +1,6 @@
 port module Game.Analyzer.Main exposing (main)
 
-import Game.Analysis as Analysis
+import Game.Option as Analysis
 import Game.Analyzer as Analyzer
 import Game.Core as Core
 import Json.Decode as Decode
