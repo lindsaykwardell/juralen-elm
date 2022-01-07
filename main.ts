@@ -7,11 +7,9 @@ import { registerSW } from "virtual:pwa-register"
 // @ts-ignore
 import Worker from "./src/worker?worker"
 const analyzerWorker = new Worker()
+import io from "socket.io-client"
 
-registerSW({
-    // onNeedRefresh() {},
-    // onOfflineReady() {},
-})
+registerSW()
 
 setTimeout(() => {
     send("authStatus", true)
@@ -42,3 +40,5 @@ subscribe("analyze", (game: string) => analyzerWorker.postMessage(game))
 analyzerWorker.onmessage = (e: any) => {
     send("analyzed", e.data)
 }
+
+const socket = io("http://localhost:3001")

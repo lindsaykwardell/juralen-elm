@@ -17,6 +17,6 @@
         "forceConsistentCasingInFileNames": true,
         "useDefineForClassFields": false
     },
-    "include": ["main.ts", "src/**/*.ts"],
+    "include": ["main.ts", "src/**/*.ts", "shim.d.ts"],
     "exclude": []
 }
