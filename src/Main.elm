@@ -77,6 +77,8 @@ type Msg
     | UpdateAuthStatus Bool
     | InitChangePage Page
     | ChangePage Page
+    | StartGame Lobby.Model
+    | ReturnHome
     | ToggleSettings
     | GotSettingsMessage Settings.Msg
     | GotLobbyMsg Lobby.Msg
@@ -144,6 +146,26 @@ update msg model =
         ToggleSettings ->
             ( { model | showSettings = not model.showSettings }, Cmd.none )
 
+        StartGame lobbyModel ->
+            update
+                (InitChangePage
+                    (Game
+                        (Tuple.first
+                            (Game.init
+                                { newPlayerList = lobbyModel.newPlayerList
+                                , aiSpeed = Maybe.withDefault 250 lobbyModel.aiSpeed
+                                , size = { x = Maybe.withDefault 9 lobbyModel.maxX, y = Maybe.withDefault 9 lobbyModel.maxY }
+                                , scenarioType = lobbyModel.scenarioType
+                                }
+                            )
+                        )
+                    )
+                )
+                { model | newPlayers = lobbyModel.newPlayerList }
+
+        ReturnHome ->
+            update (InitChangePage Home) model
+
         GotSettingsMessage settingsMsg ->
             case settingsMsg of
                 Settings.Logout ->
@@ -188,29 +210,11 @@ update msg model =
         GotLobbyMsg lobbyMsg ->
             case model.page of
                 Lobby lobbyModel ->
-                    case lobbyMsg of
-                        Lobby.StartGame ->
-                            update
-                                (InitChangePage
-                                    (Game
-                                        (Tuple.first
-                                            (Game.init
-                                                { newPlayerList = lobbyModel.newPlayerList
-                                                , aiSpeed = Maybe.withDefault 250 lobbyModel.aiSpeed
-                                                , size = { x = Maybe.withDefault 9 lobbyModel.maxX, y = Maybe.withDefault 9 lobbyModel.maxY }
-                                                , scenarioType = lobbyModel.scenarioType
-                                                }
-                                            )
-                                        )
-                                    )
-                                )
-                                { model | newPlayers = lobbyModel.newPlayerList }
-
-                        Lobby.ReturnHome ->
-                            update (InitChangePage Home) model
-
-                        _ ->
-                            toLobby model (Lobby.update lobbyMsg lobbyModel)
+                    let
+                        ( newModel, cmd ) =
+                            Lobby.update lobbyMsg lobbyModel
+                    in
+                    ( { model | page = Lobby newModel }, Cmd.map GotLobbyMsg cmd )
 
                 _ ->
                     ( model, Cmd.none )
@@ -222,14 +226,15 @@ update msg model =
                         Game.OpenSettings ->
                             update ToggleSettings model
 
-                        Game.SaveGame ->
-                            ( model, gameModel |> Core.encoder |> Encode.encode 0 |> saveGame )
-
                         Game.EndGame ->
                             update ToggleSettings { model | gameStatus = Core.CompletedGame }
 
                         _ ->
-                            toGame model (Game.update gameMsg gameModel)
+                            let
+                                ( newModel, cmd ) =
+                                    Game.update gameMsg gameModel
+                            in
+                            ( { model | page = Game newModel }, Cmd.map GotGameMsg cmd )
 
                 _ ->
                     ( model, Cmd.none )
@@ -239,16 +244,6 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
-
-
-toLobby : Model -> ( Lobby.Model, Cmd Lobby.Msg ) -> ( Model, Cmd Msg )
-toLobby model ( lobby, cmd ) =
-    ( { model | page = Lobby lobby }, Cmd.map GotLobbyMsg cmd )
-
-
-toGame : Model -> ( Core.Model, Cmd Game.Msg ) -> ( Model, Cmd Msg )
-toGame model ( game, cmd ) =
-    ( { model | page = Game game }, Cmd.map GotGameMsg cmd )
 
 
 
@@ -271,9 +266,6 @@ port toggleMute : () -> Cmd msg
 
 
 port authStatus : (Bool -> msg) -> Sub msg
-
-
-port saveGame : String -> Cmd msg
 
 
 port loadGame : () -> Cmd msg
@@ -385,7 +377,7 @@ view model =
                         ]
 
                 Lobby lobby ->
-                    div [ class "flex-grow" ] [ Lobby.view lobby |> Html.map GotLobbyMsg ]
+                    div [ class "flex-grow" ] [ Lobby.view lobby { startGame = StartGame, returnHome = ReturnHome, toMsg = GotLobbyMsg } ]
 
                 Game game ->
                     div [ class "flex-grow" ]

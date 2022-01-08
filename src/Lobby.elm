@@ -33,8 +33,6 @@ type Msg
     | AddPlayer
     | AddPlayerName Int Int
     | RemovePlayer Int
-    | ReturnHome
-    | StartGame
 
 
 nameList : List String
@@ -291,141 +289,138 @@ update msg model =
             , Cmd.none
             )
 
-        ReturnHome ->
-            ( model, Cmd.none )
 
-        StartGame ->
-            ( model, Cmd.none )
-
-
-view : Model -> Html Msg
-view model =
+view : Model -> { startGame : Model -> msg, returnHome : msg, toMsg : Msg -> msg } -> Html msg
+view model { startGame, returnHome, toMsg } =
     div [ class "m-auto w-11/12" ]
         [ h1 [ class "text-white" ] [ text "Juralen" ]
-        , div [ class "flex justify-end" ]
-            [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
-            ]
-        , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ]
-            (List.concat
-                [ List.map
-                    (newPlayerInput
-                        (List.map (\player -> player.color) model.newPlayerList)
-                    )
-                    model.newPlayerList
-                , [ div [ class "p-3 flex justify-end" ]
-                        [ label [ class "text-white" ]
-                            [ text "Scenario"
-                            , select
-                                [ class "text-black px-2 py-1 mx-3 rounded"
-                                , onInput
-                                    (\val ->
-                                        UpdateScenario <| Game.Scenario.onSelectScenario val
-                                    )
-                                ]
-                                (let
-                                    ( conquestSelected, scoreSelected, turnCountSelected ) =
-                                        case model.scenarioType of
-                                            Conquest ->
-                                                ( True, False, False )
-
-                                            ScoreReached _ ->
-                                                ( False, True, False )
-
-                                            NumberOfTurns _ ->
-                                                ( False, False, True )
-                                 in
-                                 [ option [ value "CONQUEST", selected conquestSelected ] [ text "Conquest" ]
-                                 , option [ value "SCORE", selected scoreSelected ] [ text "Score" ]
-                                 , option [ value "TURN", selected turnCountSelected ] [ text "Turn Count" ]
-                                 ]
-                                )
-                            ]
-                        , case model.scenarioType of
-                            Conquest ->
-                                div [] []
-
-                            ScoreReached score ->
-                                label [ class "text-white" ]
-                                    [ text "Max Score"
-                                    , input
-                                        [ class "w-16 text-black px-2 py-1 mx-3 rounded"
-                                        , value (String.fromInt score)
-                                        , onInput (\val -> UpdateScenario <| ScoreReached <| Maybe.withDefault 0 <| String.toInt val)
-                                        ]
-                                        []
-                                    ]
-
-                            NumberOfTurns turns ->
-                                label [ class "text-white" ]
-                                    [ text "Max Score"
-                                    , input
-                                        [ class "w-16 text-black px-2 py-1 mx-3 rounded"
-                                        , value (String.fromInt turns)
-                                        , onInput (\val -> UpdateScenario <| NumberOfTurns <| Maybe.withDefault 0 <| String.toInt val)
-                                        ]
-                                        []
-                                    ]
-                        , label [ class "text-white" ]
-                            [ text "Width"
-                            , input
-                                [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
-                                , type_ "number"
-                                , value
-                                    (case model.maxX of
-                                        Nothing ->
-                                            ""
-
-                                        Just maxX ->
-                                            String.fromInt maxX
-                                    )
-                                , placeholder "9"
-                                , onInput UpdateMaxX
-                                ]
-                                []
-                            ]
-                        , label [ class "text-white" ]
-                            [ text "Height"
-                            , input
-                                [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
-                                , type_ "number"
-                                , value
-                                    (case model.maxY of
-                                        Nothing ->
-                                            ""
-
-                                        Just maxY ->
-                                            String.fromInt maxY
-                                    )
-                                , placeholder "9"
-                                , onInput UpdateMaxY
-                                ]
-                                []
-                            ]
-                        , label [ class "text-white" ]
-                            [ text "AI Speed"
-                            , input
-                                [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1"
-                                , type_ "number"
-                                , value
-                                    (case model.aiSpeed of
-                                        Nothing ->
-                                            ""
-
-                                        Just aiSpeed ->
-                                            String.fromFloat aiSpeed
-                                    )
-                                , placeholder "250"
-                                , onInput UpdateAiSpeed
-                                ]
-                                []
-                            ]
-                        ]
-                  ]
+        , div []
+            [ div [ class "flex justify-end" ]
+                [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
                 ]
-            )
+            , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ]
+                (List.concat
+                    [ model.newPlayerList
+                        |> List.map
+                            (newPlayerInput
+                                (List.map (\player -> player.color) model.newPlayerList)
+                            )
+                    , [ div [ class "p-3 flex justify-end" ]
+                            [ label [ class "text-white" ]
+                                [ text "Scenario"
+                                , select
+                                    [ class "text-black px-2 py-1 mx-3 rounded"
+                                    , onInput
+                                        (\val ->
+                                            UpdateScenario <| Game.Scenario.onSelectScenario val
+                                        )
+                                    ]
+                                    (let
+                                        ( conquestSelected, scoreSelected, turnCountSelected ) =
+                                            case model.scenarioType of
+                                                Conquest ->
+                                                    ( True, False, False )
+
+                                                ScoreReached _ ->
+                                                    ( False, True, False )
+
+                                                NumberOfTurns _ ->
+                                                    ( False, False, True )
+                                     in
+                                     [ option [ value "CONQUEST", selected conquestSelected ] [ text "Conquest" ]
+                                     , option [ value "SCORE", selected scoreSelected ] [ text "Score" ]
+                                     , option [ value "TURN", selected turnCountSelected ] [ text "Turn Count" ]
+                                     ]
+                                    )
+                                ]
+                            , case model.scenarioType of
+                                Conquest ->
+                                    div [] []
+
+                                ScoreReached score ->
+                                    label [ class "text-white" ]
+                                        [ text "Max Score"
+                                        , input
+                                            [ class "w-16 text-black px-2 py-1 mx-3 rounded"
+                                            , value (String.fromInt score)
+                                            , onInput (\val -> UpdateScenario <| ScoreReached <| Maybe.withDefault 0 <| String.toInt val)
+                                            ]
+                                            []
+                                        ]
+
+                                NumberOfTurns turns ->
+                                    label [ class "text-white" ]
+                                        [ text "Max Score"
+                                        , input
+                                            [ class "w-16 text-black px-2 py-1 mx-3 rounded"
+                                            , value (String.fromInt turns)
+                                            , onInput (\val -> UpdateScenario <| NumberOfTurns <| Maybe.withDefault 0 <| String.toInt val)
+                                            ]
+                                            []
+                                        ]
+                            , label [ class "text-white" ]
+                                [ text "Width"
+                                , input
+                                    [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
+                                    , type_ "number"
+                                    , value
+                                        (case model.maxX of
+                                            Nothing ->
+                                                ""
+
+                                            Just maxX ->
+                                                String.fromInt maxX
+                                        )
+                                    , placeholder "9"
+                                    , onInput (\val -> UpdateMaxX val)
+                                    ]
+                                    []
+                                ]
+                            , label [ class "text-white" ]
+                                [ text "Height"
+                                , input
+                                    [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
+                                    , type_ "number"
+                                    , value
+                                        (case model.maxY of
+                                            Nothing ->
+                                                ""
+
+                                            Just maxY ->
+                                                String.fromInt maxY
+                                        )
+                                    , placeholder "9"
+                                    , onInput (\val -> UpdateMaxY val)
+                                    ]
+                                    []
+                                ]
+                            , label [ class "text-white" ]
+                                [ text "AI Speed"
+                                , input
+                                    [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1"
+                                    , type_ "number"
+                                    , value
+                                        (case model.aiSpeed of
+                                            Nothing ->
+                                                ""
+
+                                            Just aiSpeed ->
+                                                String.fromFloat aiSpeed
+                                        )
+                                    , placeholder "250"
+                                    , onInput (\val -> UpdateAiSpeed val)
+                                    ]
+                                    []
+                                ]
+                            ]
+                      ]
+                    ]
+                )
+            ]
+            |> Html.map toMsg
         , div [ class "flex justify-center gap-4" ]
-            [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick StartGame ] [ text "Start Game" ]
-            , button [ class "bg-blue-600 p-2 rounded hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick ReturnHome ] [ text "Return to Home" ]
+            [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick (startGame model) ] [ text "Start Game" ]
+            , button [ class "bg-blue-600 p-2 rounded hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick returnHome ] [ text "Return to Home" ]
             ]
         ]
 

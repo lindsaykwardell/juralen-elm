@@ -5,7 +5,7 @@ import Game.Analyzer exposing (analyze)
 import Game.Cell exposing (Cell)
 import Game.CellType
 import Game.Combat
-import Game.Core exposing (..)
+import Game.Core as Core exposing (..)
 import Game.Grid exposing (Grid)
 import Game.History exposing (History)
 import Game.Loc as Loc exposing (Loc)
@@ -81,7 +81,7 @@ update msg model =
                     { players = model.players
                     , nextActivePlayer = nextActivePlayer
                     , units = model.units
-                    , getPlayerScore = Game.Core.getPlayerScore model
+                    , getPlayerScore = Core.getPlayerScore model
                     , turn = model.turn
                     , townCountControlledBy = Game.Grid.townCountControlledBy model.grid
                     }
@@ -313,7 +313,7 @@ update msg model =
         ResearchTech tech ->
             let
                 stats =
-                    Game.Core.currentPlayerStats model
+                    Core.currentPlayerStats model
 
                 cost =
                     tech.cost
@@ -324,7 +324,7 @@ update msg model =
             else
                 let
                     techTree =
-                        TechTree.research (Game.Core.getPlayerTechTree model.players model.activePlayer) tech.tech
+                        TechTree.research (Core.getPlayerTechTree model.players model.activePlayer) tech.tech
 
                     players =
                         List.map
@@ -351,7 +351,7 @@ update msg model =
         UpgradeCell upgradeType ->
             let
                 stats =
-                    Game.Core.currentPlayerStats model
+                    Core.currentPlayerStats model
             in
             case upgradeType of
                 Action.BuildFarm ->
@@ -625,7 +625,7 @@ update msg model =
                     ( model, Cmd.none )
 
         PerformAiTurn ->
-            ( model, model |> Game.Core.encoder |> Encode.encode 0 |> analyze )
+            ( model, model |> Core.encoder |> Encode.encode 0 |> analyze )
 
         -- let
         --     analysisResults =
@@ -693,13 +693,13 @@ update msg model =
             update (StartTurn nextActivePlayer) newModel
 
         EndGame ->
-            ( model, Game.Core.delay 0 EndGame )
+            ( model, Core.delay 0 EndGame )
 
         OpenSettings ->
             ( model, Cmd.none )
 
         SaveGame ->
-            ( model, Cmd.none )
+            ( model, model |> Core.encoder |> Encode.encode 0 |> saveGame )
 
         UpdateMobileTab tab ->
             ( { model | mobileTab = tab }, Cmd.none )
@@ -714,7 +714,7 @@ runAiAction model =
         Cmd.none
 
     else
-        Game.Core.delay model.aiSpeed PerformAiTurn
+        Core.delay model.aiSpeed PerformAiTurn
 
 
 gainResources : PlayerStats -> Resources -> Resources
@@ -867,3 +867,6 @@ recordAction action model =
             { model | actionHistory = actionList }
     in
     newModel
+
+
+port saveGame : String -> Cmd msg
