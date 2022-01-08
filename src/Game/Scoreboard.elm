@@ -5,8 +5,7 @@ import Game.History
 import Game.Player
 import Game.PlayerColor exposing (isDark, toClass, toTextClass)
 import Game.PlayerScore exposing (PlayerScore)
-import Game.UnitType
-import Html exposing (Html, br, div, span, text)
+import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (class, style)
 
 
@@ -21,7 +20,7 @@ view model =
                 0
                 model.players
     in
-    div [ class "flex w-5/6 m-2" ]
+    div [ class "flex w-5/6 m-2 h-8" ]
         (List.filterMap
             (\player ->
                 let

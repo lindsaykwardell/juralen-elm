@@ -19,10 +19,9 @@ import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Game.View.CombatModal as CombatModal
 import Game.View.Grid as Grid
-import Html exposing (Attribute, Html, br, button, div, text)
-import Html.Attributes exposing (class, disabled)
+import Html exposing (Attribute, Html, br, button, div, img, text, h2)
+import Html.Attributes exposing (class, disabled, src, title)
 import Html.Events exposing (onClick, preventDefaultOn)
-import Html.Lazy exposing (lazy)
 import Json.Decode as Decode
 
 
@@ -131,9 +130,11 @@ view model =
                 ]
             , div [ class "hidden lg:block lg:w-2/5 p-3 flex flex-col" ]
                 [ selectedCellCard model
-                , buildableUnitList model
-                , researchTechList model
-                , upgradeCellList model
+                , div [ class "flex flex-wrap h-36 xl:h-20" ]
+                    (buildableUnitList model
+                        ++ researchTechList model
+                        ++ upgradeCellList model
+                    )
                 , unitsInCellList model
                 , historyView model.actionHistory
                 ]
@@ -143,13 +144,13 @@ view model =
                         unitsInCellList model
 
                     TechTreeTab ->
-                        researchTechList model
+                        div [] (researchTechList model)
 
                     BuildOptionsTab ->
                         div []
-                            [ upgradeCellList model
-                            , buildableUnitList model
-                            ]
+                            (upgradeCellList model
+                                ++ buildableUnitList model
+                            )
 
                     DetailsTab ->
                         selectedCellCard model
@@ -214,8 +215,9 @@ view model =
                 ]
             ]
         , if model.activePlayer == -1 then
-            div [ class "mb-20 text-white"]
-                [ div [ class "h-[30vh] p-3 border border-2 border-white" ]
+            div [ class "mb-20 text-white w-11/12 m-auto border-t border-white my-4" ]
+                [ h2 [ class "text-3xl py-4" ] [ text "Game Overview"]
+                , div [ class "h-[175px] md:h-[300px] p-3 border border-2 border-white" ]
                     [ Scoreboard.graph model
                     ]
                 , Scoreboard.stats model
@@ -342,66 +344,82 @@ selectedCellCard model =
         ]
 
 
-buildableUnitList : Game.Core.Model -> Html Msg
+buildableUnitList : Game.Core.Model -> List (Html Msg)
 buildableUnitList model =
-    div []
-        (List.map
-            (\buildableUnit ->
-                button
-                    [ class "bg-blue-400 hover:bg-blue-200 py-2 px-3 m-2"
-                    , onClick (BuildUnit buildableUnit)
+    List.map
+        (\buildableUnit ->
+            button
+                [ class "border border-blue-400 bg-blue-800 hover:bg-blue-200 py-2 px-3 m-2 w-16 h-16"
+                , onClick (BuildUnit buildableUnit)
+                ]
+                [ img
+                    [ src <|
+                        Game.UnitType.icon buildableUnit
+                    , title
+                        ("Build "
+                            ++ Game.UnitType.toString
+                                buildableUnit
+                                { showCost = True }
+                        )
                     ]
-                    [ text ("Build " ++ Game.UnitType.toString buildableUnit { showCost = True }) ]
-            )
-            (case Game.Cell.find model.grid model.selectedCell of
-                Nothing ->
                     []
+                ]
+        )
+        (case Game.Cell.find model.grid model.selectedCell of
+            Nothing ->
+                []
 
-                Just selectedCell ->
-                    case selectedCell.controlledBy of
-                        Nothing ->
+            Just selectedCell ->
+                case selectedCell.controlledBy of
+                    Nothing ->
+                        []
+
+                    Just controlledBy ->
+                        if controlledBy /= model.activePlayer then
                             []
 
-                        Just controlledBy ->
-                            if controlledBy /= model.activePlayer then
-                                []
-
-                            else
-                                Game.Structure.canBuild selectedCell.structure (currentPlayerStats model |> .techTree)
-            )
+                        else
+                            Game.Structure.canBuild selectedCell.structure (currentPlayerStats model |> .techTree)
         )
 
 
-researchTechList : Game.Core.Model -> Html Msg
+researchTechList : Game.Core.Model -> List (Html Msg)
 researchTechList model =
-    div []
-        (Game.Core.getPlayerTechTree model.players model.activePlayer |> TechTree.nextAvailableTech |> List.map techTreeButton)
+    if model.activePlayer == -1 then
+        []
+
+    else
+        Game.Core.getPlayerTechTree model.players model.activePlayer |> TechTree.nextAvailableTech |> List.map techTreeButton
 
 
-upgradeCellList : Game.Core.Model -> Html Msg
+upgradeCellList : Game.Core.Model -> List (Html Msg)
 upgradeCellList model =
-    div [ class "p-5" ]
-        (if (Game.Cell.atLoc model.grid model.selectedCell |> .controlledBy) /= Just model.activePlayer then
-            []
+    if (Game.Cell.atLoc model.grid model.selectedCell |> .controlledBy) /= Just model.activePlayer then
+        []
+
+    else
+        (if
+            (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)
+                < Game.Structure.initDef (Game.Cell.atLoc model.grid model.selectedCell |> .structure)
+         then
+            button [ class "border border-green-400 bg-green-800 hover:bg-green-200 py-2 px-3 m-2 w-16 h-16", onClick (UpgradeCell Game.Action.RepairDefense) ] [ img [ src "/img/repair-defense.png", title "Repair Defense (1)" ] [] ]
 
          else
-            [ if
-                (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)
-                    < Game.Structure.initDef (Game.Cell.atLoc model.grid model.selectedCell |> .structure)
-              then
-                button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 m-2", onClick (UpgradeCell Game.Action.RepairDefense) ] [ text "Repair Defense (1)" ]
-
-              else
-                text ""
-            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 m-2", onClick (UpgradeCell Game.Action.BuildFarm) ] [ text "Build Farm (2)" ]
-            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 m-2", onClick (UpgradeCell Game.Action.BuildTower) ] [ text "Build Tower (2)" ]
-            ]
+            text ""
         )
+            :: (if Game.Cell.atLoc model.grid model.selectedCell |> .structure >> (/=) Game.Structure.None then
+                    [ button [ class "border border-green-400 bg-green-800 hover:bg-green-200 py-2 px-3 m-2 w-16 h-16", onClick (UpgradeCell Game.Action.BuildFarm) ] [ img [ src "/img/farm.svg", title "Build Farm (2)" ] [] ]
+                    , button [ class "border border-green-400 bg-green-800 hover:bg-green-200 py-2 px-3 m-2 w-16 h-16", onClick (UpgradeCell Game.Action.BuildTower) ] [ img [ src "/img/tower.png", title "Build Tower (2)" ] [] ]
+                    ]
+
+                else
+                    []
+               )
 
 
 unitsInCellList : Game.Core.Model -> Html Msg
 unitsInCellList model =
-    div [ class "p-5 flex-grow max-h-[400px] overflow-y-scroll" ]
+    div [ class "p-5 flex-grow h-[215px] xl:h-[300px] overflow-y-scroll" ]
         (List.map
             (\unit ->
                 div
@@ -436,13 +454,10 @@ unitsInCellList model =
 techTreeButton : TechDescription -> Html Msg
 techTreeButton tech =
     button
-        [ class "bg-yellow-400 hover:bg-yellow-200 py-2 px-3 m-2"
+        [ class "text-white hover:text-black border border-yellow-400 bg-yellow-800 hover:bg-yellow-200 py-2 px-3 m-2 w-16 h-16"
         , onClick (ResearchTech tech)
         ]
-        [ text (tech.name ++ " (" ++ String.fromInt tech.cost ++ ")")
-        , br [] []
-        , text tech.description
-        ]
+        [ img [ src tech.icon, title (tech.name ++ " (" ++ String.fromInt tech.cost ++ ") - " ++ tech.description) ] [] ]
 
 
 historyView : List History -> Html Msg

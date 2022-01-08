@@ -24,8 +24,8 @@ view :
         }
     -> Html msg
 view grid { isInRange, selectedCell, getCellColor, onCellClick, unitsInCell, selectedUnits } =
-    div [ class "max-h-[350px] lg:max-h-[800px] overflow-scroll shadow-inner border-2 border-gray-100 shadow-inner" ]
-        [ table [ class "m-auto" ]
+    div [ class "h-[350px] lg:h-[700px] flex overflow-scroll shadow-inner border-2 border-gray-100 shadow-inner" ]
+        [ table [ class "m-auto py-[350px]" ]
             (List.map
                 (\row ->
                     tr []

@@ -6,7 +6,7 @@ import Game.Loc as Loc exposing (Loc)
 import Game.Player exposing (Player)
 import Game.PlayerScore exposing (PlayerScore)
 import Game.Structure as Structure
-import Game.UnitType as UnitType exposing (UnitType)
+import Game.UnitType as UnitType exposing (UnitType(..))
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
@@ -216,16 +216,20 @@ favoriteUnit history =
             (\action unitCounts ->
                 case action.action of
                     Action.BuildUnit unitType ->
-                        let
-                            strType =
-                                UnitType.toString unitType { showCost = False }
-                        in
-                        case Dict.get strType unitCounts of
-                            Nothing ->
-                                Dict.insert strType 1 unitCounts
+                        if unitType == Soldier then
+                            unitCounts
 
-                            Just val ->
-                                Dict.insert strType (val + 1) unitCounts
+                        else
+                            let
+                                strType =
+                                    UnitType.toString unitType { showCost = False }
+                            in
+                            case Dict.get strType unitCounts of
+                                Nothing ->
+                                    Dict.insert strType 1 unitCounts
+
+                                Just val ->
+                                    Dict.insert strType (val + 1) unitCounts
 
                     _ ->
                         unitCounts
@@ -233,6 +237,7 @@ favoriteUnit history =
             Dict.empty
         |> Dict.toList
         |> List.sortBy (\( _, v ) -> v)
+        |> List.reverse
         |> List.head
         |> Maybe.map (\( k, _ ) -> k)
         |> Maybe.withDefault ""

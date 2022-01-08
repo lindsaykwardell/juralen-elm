@@ -1,6 +1,5 @@
 module Game.UnitType exposing (..)
 
-import Game.TechTree exposing (LevelFour(..), LevelThree(..), LevelTwo(..), TechTree)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
@@ -274,61 +273,3 @@ initialValues unitType =
             , health = 5
             , range = 1
             }
-
-
-researchedUnits : TechTree -> List UnitType
-researchedUnits techTree =
-    case techTree.levelTwo of
-        Nothing ->
-            [ Soldier ]
-
-        Just levelTwo ->
-            let
-                unitTwo =
-                    levelTwoUnit levelTwo
-            in
-            case techTree.levelThree of
-                Nothing ->
-                    [ Soldier, unitTwo ]
-
-                Just levelThree ->
-                    let
-                        unitThree =
-                            levelThreeUnit levelThree
-                    in
-                    case techTree.levelFour of
-                        Nothing ->
-                            [ Soldier, unitTwo, unitThree ]
-
-                        Just levelFour ->
-                            [ Soldier, unitTwo, unitThree, levelFourUnit levelFour ]
-
-
-levelTwoUnit : LevelTwo -> UnitType
-levelTwoUnit level =
-    case level of
-        BuildWarriors ->
-            Warrior
-
-        BuildArchers ->
-            Archer
-
-
-levelThreeUnit : LevelThree -> UnitType
-levelThreeUnit level =
-    case level of
-        BuildKnights ->
-            Knight
-
-        BuildRogues ->
-            Rogue
-
-
-levelFourUnit : LevelFour -> UnitType
-levelFourUnit level =
-    case level of
-        BuildWizards ->
-            Wizard
-
-        BuildPriests ->
-            Priest

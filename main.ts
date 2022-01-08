@@ -36,11 +36,9 @@ subscribe("loadGame", () => {
 
 // Save/load lobby settings
 subscribe("saveLobby", (settings: string) => {
-    console.log("saving lobby settings", settings)
     localStorage.setItem("lobbySettings", settings)
 })
 subscribe("loadLobby", () => {
-    console.log("Here!")
     const settings = localStorage.getItem("lobbySettings")
     if (settings) {
         send("lobbyLoaded", settings)

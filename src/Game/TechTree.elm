@@ -1,5 +1,6 @@
 module Game.TechTree exposing (..)
 
+import Game.UnitType exposing (UnitType(..))
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
@@ -250,6 +251,7 @@ type alias TechDescription =
     , description : String
     , cost : Int
     , tech : TechLevel
+    , icon : String
     }
 
 
@@ -260,6 +262,7 @@ techDescriptionDecoder =
         |> Decode.required "description" Decode.string
         |> Decode.required "cost" Decode.int
         |> Decode.required "tech" techLevelDecoder
+        |> Decode.required "icon" Decode.string
 
 
 techDescriptionEncoder : TechDescription -> Encode.Value
@@ -276,6 +279,9 @@ techDescriptionEncoder desc =
           )
         , ( "tech"
           , techLevelEncoder desc.tech
+          )
+        , ( "icon"
+          , Encode.string desc.icon
           )
         ]
 
@@ -348,23 +354,111 @@ techDescription level =
         LevelTwo levelTwo ->
             case levelTwo of
                 BuildWarriors ->
-                    { name = "Build Warriors", description = "Advanced unit that deals more damage.", cost = techCost level, tech = level }
+                    { name = "Build Warriors"
+                    , description = "Advanced unit that deals more damage."
+                    , cost = techCost level
+                    , tech = level
+                    , icon = Game.UnitType.icon Warrior
+                    }
 
                 BuildArchers ->
-                    { name = "Build Archers", description = "Advanced unit that attacks at range.", cost = techCost level, tech = level }
+                    { name = "Build Archers"
+                    , description = "Advanced unit that attacks at range."
+                    , cost = techCost level
+                    , tech = level
+                    , icon = Game.UnitType.icon Archer
+                    }
 
         LevelThree levelThree ->
             case levelThree of
                 BuildKnights ->
-                    { name = "Build Knights", description = "Mobile unit that deals high damage.", cost = techCost level, tech = level }
+                    { name = "Build Knights"
+                    , description = "Mobile unit that deals high damage."
+                    , cost = techCost level
+                    , tech = level
+                    , icon = Game.UnitType.icon Knight
+                    }
 
                 BuildRogues ->
-                    { name = "Build Rogues", description = "Advanced unit with high damage, but is weaker.", cost = techCost level, tech = level }
+                    { name = "Build Rogues"
+                    , description = "Advanced unit with high damage, but is weaker."
+                    , cost = techCost level
+                    , tech = level
+                    , icon = Game.UnitType.icon Rogue
+                    }
 
         LevelFour levelFour ->
             case levelFour of
                 BuildWizards ->
-                    { name = "Build Wizards", description = "Advanced unit with lower movement cost.", cost = techCost level, tech = level }
+                    { name = "Build Wizards"
+                    , description = "Advanced unit with lower movement cost."
+                    , cost = techCost level
+                    , tech = level
+                    , icon = Game.UnitType.icon Wizard
+                    }
 
                 BuildPriests ->
-                    { name = "Build Priests", description = "Advanced unit that heals other units over time.", cost = techCost level, tech = level }
+                    { name = "Build Priests"
+                    , description = "Advanced unit that heals other units over time."
+                    , cost = techCost level
+                    , tech = level
+                    , icon = Game.UnitType.icon Priest
+                    }
+
+
+researchedUnits : TechTree -> List UnitType
+researchedUnits techTree =
+    case techTree.levelTwo of
+        Nothing ->
+            [ Soldier ]
+
+        Just levelTwo ->
+            let
+                unitTwo =
+                    levelTwoUnit levelTwo
+            in
+            case techTree.levelThree of
+                Nothing ->
+                    [ Soldier, unitTwo ]
+
+                Just levelThree ->
+                    let
+                        unitThree =
+                            levelThreeUnit levelThree
+                    in
+                    case techTree.levelFour of
+                        Nothing ->
+                            [ Soldier, unitTwo, unitThree ]
+
+                        Just levelFour ->
+                            [ Soldier, unitTwo, unitThree, levelFourUnit levelFour ]
+
+
+levelTwoUnit : LevelTwo -> UnitType
+levelTwoUnit level =
+    case level of
+        BuildWarriors ->
+            Warrior
+
+        BuildArchers ->
+            Archer
+
+
+levelThreeUnit : LevelThree -> UnitType
+levelThreeUnit level =
+    case level of
+        BuildKnights ->
+            Knight
+
+        BuildRogues ->
+            Rogue
+
+
+levelFourUnit : LevelFour -> UnitType
+levelFourUnit level =
+    case level of
+        BuildWizards ->
+            Wizard
+
+        BuildPriests ->
+            Priest

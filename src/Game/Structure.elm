@@ -69,7 +69,7 @@ canBuild structure techTree =
             [ Soldier ]
 
         Citadel ->
-            Game.UnitType.researchedUnits techTree
+            Game.TechTree.researchedUnits techTree
 
 
 toString : Structure -> String
