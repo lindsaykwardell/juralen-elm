@@ -13,7 +13,7 @@ import Game
 import Game.Core as Core
 import Game.Option as Analysis
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
-import Game.Settings as Settings exposing (settingsModal)
+import Settings
 import Game.Update as Game
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
@@ -315,7 +315,7 @@ view model =
                 { gameStatus = model.gameStatus
                 , allowLogout = True
                 }
-                    |> settingsModal
+                    |> Settings.view
                     |> Html.map GotSettingsMessage
             }
         , div [ class "flex flex-col h-screen" ]
@@ -345,6 +345,11 @@ view model =
                                     [ class "border-2 border-blue-300 hover:bg-blue-400 p-3 text-white text-3xl w-full h-[50%]"
                                     ]
                                     [ text "Join Game" ]
+                                , button
+                                    [ class "border-2 border-red-600 hover:bg-red-700 p-3 text-white text-3xl w-full"
+                                    , onClick ToggleSettings
+                                    ]
+                                    [ text "Settings" ]
                                 ]
                             ]
                         ]
