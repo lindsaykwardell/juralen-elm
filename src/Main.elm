@@ -13,7 +13,6 @@ import Game
 import Game.Core as Core
 import Game.Option as Analysis
 import Game.Player exposing (NewPlayer, revertToNewPlayer)
-import Settings
 import Game.Update as Game
 import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
@@ -22,6 +21,7 @@ import Json.Decode as Decode
 import List.Extra as List
 import Lobby
 import Process
+import Settings
 import Task
 
 
@@ -256,9 +256,9 @@ port analyzed : (String -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.batch
-        [ gameLoaded
+        ([ gameLoaded
             (\json ->
                 let
                     decoded =
@@ -271,7 +271,7 @@ subscriptions _ =
                     _ ->
                         NoOp
             )
-        , analyzed
+         , analyzed
             (\json ->
                 if json == "null" then
                     GotGameMsg Game.EndTurn
@@ -284,7 +284,15 @@ subscriptions _ =
                         Err _ ->
                             GotGameMsg Game.EndTurn
             )
-        ]
+         ]
+            ++ (case model.page of
+                    Lobby lobby ->
+                        [ Sub.map GotLobbyMsg (Lobby.subscriptions lobby) ]
+
+                    _ ->
+                        []
+               )
+        )
 
 
 

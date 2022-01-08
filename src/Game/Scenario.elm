@@ -43,50 +43,7 @@ type alias Model =
 decoder : Decoder Model
 decoder =
     Decode.succeed Model
-        |> Decode.required "scenarioType"
-            (Decode.string
-                |> Decode.dict
-                |> Decode.andThen
-                    (\t ->
-                        case Dict.get "scenarioName" t of
-                            Nothing ->
-                                Decode.fail "scenarioName not found"
-
-                            Just name ->
-                                case name of
-                                    "conquest" ->
-                                        Decode.succeed Conquest
-
-                                    "scoreReached" ->
-                                        case Dict.get "score" t of
-                                            Nothing ->
-                                                Decode.fail "score not found"
-
-                                            Just strScore ->
-                                                case String.toInt strScore of
-                                                    Nothing ->
-                                                        Decode.fail "score not an integer"
-
-                                                    Just score ->
-                                                        Decode.succeed (ScoreReached score)
-
-                                    "numberOfTurns" ->
-                                        case Dict.get "turns" t of
-                                            Nothing ->
-                                                Decode.fail "turns not found"
-
-                                            Just strTurns ->
-                                                case String.toInt strTurns of
-                                                    Nothing ->
-                                                        Decode.fail "turns not an integer"
-
-                                                    Just turns ->
-                                                        Decode.succeed (NumberOfTurns turns)
-
-                                    _ ->
-                                        Decode.fail "unknown scenarioName"
-                    )
-            )
+        |> Decode.required "scenarioType" scenarioTypeDecoder
         |> Decode.required "maxX" Decode.int
         |> Decode.required "maxY" Decode.int
         |> Decode.required "currentX" Decode.int
@@ -105,17 +62,7 @@ encoder : Model -> Encode.Value
 encoder model =
     Encode.object
         [ ( "scenarioType"
-          , Encode.object
-                (case model.scenarioType of
-                    Conquest ->
-                        [ ( "scenarioName", Encode.string "conquest" ) ]
-
-                    ScoreReached score ->
-                        [ ( "scenarioName", Encode.string "scoreReached" ), ( "score", Encode.string (String.fromInt score) ) ]
-
-                    NumberOfTurns turns ->
-                        [ ( "scenarioName", Encode.string "numberOfTurns" ), ( "turns", Encode.string (String.fromInt turns) ) ]
-                )
+          , scenarioTypeEncoder model.scenarioType
           )
         , ( "maxX", Encode.int model.maxX )
         , ( "maxY", Encode.int model.maxY )
@@ -130,6 +77,67 @@ encoder model =
         , ( "nextId", Encode.int model.nextId )
         , ( "activePlayerId", Encode.int model.activePlayerId )
         ]
+
+
+scenarioTypeDecoder : Decoder ScenarioType
+scenarioTypeDecoder =
+    Decode.string
+        |> Decode.dict
+        |> Decode.andThen
+            (\t ->
+                case Dict.get "scenarioName" t of
+                    Nothing ->
+                        Decode.fail "scenarioName not found"
+
+                    Just name ->
+                        case name of
+                            "conquest" ->
+                                Decode.succeed Conquest
+
+                            "scoreReached" ->
+                                case Dict.get "score" t of
+                                    Nothing ->
+                                        Decode.fail "score not found"
+
+                                    Just strScore ->
+                                        case String.toInt strScore of
+                                            Nothing ->
+                                                Decode.fail "score not an integer"
+
+                                            Just score ->
+                                                Decode.succeed (ScoreReached score)
+
+                            "numberOfTurns" ->
+                                case Dict.get "turns" t of
+                                    Nothing ->
+                                        Decode.fail "turns not found"
+
+                                    Just strTurns ->
+                                        case String.toInt strTurns of
+                                            Nothing ->
+                                                Decode.fail "turns not an integer"
+
+                                            Just turns ->
+                                                Decode.succeed (NumberOfTurns turns)
+
+                            _ ->
+                                Decode.fail "unknown scenarioName"
+            )
+
+
+scenarioTypeEncoder : ScenarioType -> Encode.Value
+scenarioTypeEncoder scenarioType =
+    Encode.object
+        (case scenarioType of
+            Conquest ->
+                [ ( "scenarioName", Encode.string "conquest" ) ]
+
+            ScoreReached score ->
+                [ ( "scenarioName", Encode.string "scoreReached" ), ( "score", Encode.string (String.fromInt score) ) ]
+
+            NumberOfTurns turns ->
+                [ ( "scenarioName", Encode.string "numberOfTurns" ), ( "turns", Encode.string (String.fromInt turns) ) ]
+        )
 
 
 type alias Flags =
@@ -306,7 +314,9 @@ update msg scenario =
                 Just realCell ->
                     let
                         minDistanceBetweenPlayers =
-                            0--scenario.maxX * scenario.maxY // scenario.playerCount // 3
+                            0
+
+                        --scenario.maxX * scenario.maxY // scenario.playerCount // 3
                     in
                     if Game.Grid.distanceToEnemy scenario.grid realCell.loc player.id <= minDistanceBetweenPlayers then
                         update (RollStartingLocX player nextPlayers) scenario

@@ -34,6 +34,19 @@ subscribe("loadGame", () => {
     }
 })
 
+// Save/load lobby settings
+subscribe("saveLobby", (settings: string) => {
+    console.log("saving lobby settings", settings)
+    localStorage.setItem("lobbySettings", settings)
+})
+subscribe("loadLobby", () => {
+    console.log("Here!")
+    const settings = localStorage.getItem("lobbySettings")
+    if (settings) {
+        send("lobbyLoaded", settings)
+    }
+})
+
 // Analyzer
 subscribe("analyze", (game: string) => analyzerWorker.postMessage(game))
 analyzerWorker.onmessage = (e: any) => {

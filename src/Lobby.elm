@@ -1,14 +1,40 @@
-module Lobby exposing (..)
+port module Lobby exposing (..)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
+import Game.NewPlayer
 import Game.Player exposing (NewPlayer)
 import Game.PlayerColor exposing (PlayerColor)
 import Game.Scenario exposing (ScenarioType(..))
 import Html exposing (Html, button, div, h1, input, label, option, select, text)
 import Html.Attributes exposing (checked, class, placeholder, selected, type_, value)
 import Html.Events exposing (onClick, onInput)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Pipeline as Decode
+import Json.Encode as Encode
 import List.Extra as List
 import Random
+
+
+port loadLobby : () -> Cmd msg
+
+
+port saveLobby : String -> Cmd msg
+
+
+port lobbyLoaded : (String -> msg) -> Sub msg
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    lobbyLoaded
+        (\json ->
+            case Decode.decodeString decoder json of
+                Ok lobby ->
+                    LoadLobby lobby
+
+                Err _ ->
+                    NoOp
+        )
 
 
 type alias Model =
@@ -21,8 +47,32 @@ type alias Model =
     }
 
 
+decoder : Decoder Model
+decoder =
+    Decode.succeed Model
+        |> Decode.required "newPlayerList" (Decode.list Game.NewPlayer.decoder)
+        |> Decode.required "nextId" Decode.int
+        |> Decode.required "aiSpeed" (Decode.nullable Decode.float)
+        |> Decode.required "scenarioType" Game.Scenario.scenarioTypeDecoder
+        |> Decode.required "maxX" (Decode.nullable Decode.int)
+        |> Decode.required "maxY" (Decode.nullable Decode.int)
+
+
+encoder : Model -> Encode.Value
+encoder model =
+    Encode.object
+        [ ( "newPlayerList", Encode.list Game.NewPlayer.encoder model.newPlayerList )
+        , ( "nextId", Encode.int model.nextId )
+        , ( "aiSpeed", Encode.float (Maybe.withDefault 250 model.aiSpeed) )
+        , ( "scenarioType", Game.Scenario.scenarioTypeEncoder model.scenarioType )
+        , ( "maxX", Encode.int (Maybe.withDefault 9 model.maxX) )
+        , ( "maxY", Encode.int (Maybe.withDefault 9 model.maxY) )
+        ]
+
+
 type Msg
-    = UpdateName Int String
+    = LoadLobby Model
+    | UpdateName Int String
     | UpdateHumanity Int Bool
     | UpdateColor Int String
     | UpdateAnalyzer Int String
@@ -33,6 +83,7 @@ type Msg
     | AddPlayer
     | AddPlayerName Int Int
     | RemovePlayer Int
+    | NoOp
 
 
 nameList : List String
@@ -81,7 +132,7 @@ init =
       , maxX = Just 9
       , maxY = Just 9
       }
-    , Cmd.none
+    , loadLobby ()
     )
 
 
@@ -102,52 +153,67 @@ firstAvailableColor colorList selectedColors =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        UpdateName id name ->
-            ( { model
-                | newPlayerList =
-                    List.map
-                        (\newPlayer ->
-                            if newPlayer.id == id then
-                                { newPlayer | name = name }
+        LoadLobby lobby ->
+            ( lobby, Cmd.none )
 
-                            else
-                                newPlayer
-                        )
-                        model.newPlayerList
-              }
-            , Cmd.none
+        UpdateName id name ->
+            let
+                newModel =
+                    { model
+                        | newPlayerList =
+                            List.map
+                                (\newPlayer ->
+                                    if newPlayer.id == id then
+                                        { newPlayer | name = name }
+
+                                    else
+                                        newPlayer
+                                )
+                                model.newPlayerList
+                    }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
 
         UpdateHumanity id isHuman ->
-            ( { model
-                | newPlayerList =
-                    List.map
-                        (\newPlayer ->
-                            if newPlayer.id == id then
-                                { newPlayer | isHuman = isHuman }
+            let
+                newModel =
+                    { model
+                        | newPlayerList =
+                            List.map
+                                (\newPlayer ->
+                                    if newPlayer.id == id then
+                                        { newPlayer | isHuman = isHuman }
 
-                            else
-                                newPlayer
-                        )
-                        model.newPlayerList
-              }
-            , Cmd.none
+                                    else
+                                        newPlayer
+                                )
+                                model.newPlayerList
+                    }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
 
         UpdateColor id color ->
-            ( { model
-                | newPlayerList =
-                    List.map
-                        (\newPlayer ->
-                            if newPlayer.id == id then
-                                { newPlayer | color = Game.PlayerColor.fromString color }
+            let
+                newModel =
+                    { model
+                        | newPlayerList =
+                            List.map
+                                (\newPlayer ->
+                                    if newPlayer.id == id then
+                                        { newPlayer | color = Game.PlayerColor.fromString color }
 
-                            else
-                                newPlayer
-                        )
-                        model.newPlayerList
-              }
-            , Cmd.none
+                                    else
+                                        newPlayer
+                                )
+                                model.newPlayerList
+                    }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
 
         UpdateAnalyzer id analyzerName ->
@@ -184,28 +250,45 @@ update msg model =
                                 player
                         )
                         model.newPlayerList
+
+                newModel =
+                    { model | newPlayerList = newPlayerList }
             in
-            ( { model | newPlayerList = newPlayerList }, Cmd.none )
+            ( newModel
+            , saveLobbySettings newModel
+            )
 
         UpdateAiSpeed speed ->
-            ( { model
-                | aiSpeed = String.toFloat speed
-              }
-            , Cmd.none
+            let
+                newModel =
+                    { model
+                        | aiSpeed = String.toFloat speed
+                    }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
 
         UpdateMaxX maxX ->
-            ( { model
-                | maxX = String.toInt maxX
-              }
-            , Cmd.none
+            let
+                newModel =
+                    { model
+                        | maxX = String.toInt maxX
+                    }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
 
         UpdateMaxY maxY ->
-            ( { model
-                | maxY = String.toInt maxY
-              }
-            , Cmd.none
+            let
+                newModel =
+                    { model
+                        | maxY = String.toInt maxY
+                    }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
 
         AddPlayer ->
@@ -223,8 +306,16 @@ update msg model =
 
                     newPlayerList =
                         model.newPlayerList ++ [ newPlayer ]
+
+                    newModel =
+                        { model | newPlayerList = newPlayerList, nextId = nextId }
                 in
-                ( { model | newPlayerList = newPlayerList, nextId = nextId }, Random.generate (AddPlayerName newPlayer.id) (randomDefinedMax (List.length nameList - 1)) )
+                ( newModel
+                , Cmd.batch
+                    [ Random.generate (AddPlayerName newPlayer.id) (randomDefinedMax (List.length nameList - 1))
+                    , saveLobbySettings newModel
+                    ]
+                )
 
             else
                 ( model, Cmd.none )
@@ -256,19 +347,23 @@ update msg model =
                         ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (List.length nameList - 1)) )
 
                     else
-                        ( { model
-                            | newPlayerList =
-                                List.map
-                                    (\player ->
-                                        if player.id == playerId then
-                                            { player | name = name, analyzer = analyzerMode }
+                        let
+                            newModel =
+                                { model
+                                    | newPlayerList =
+                                        List.map
+                                            (\player ->
+                                                if player.id == playerId then
+                                                    { player | name = name, analyzer = analyzerMode }
 
-                                        else
-                                            player
-                                    )
-                                    model.newPlayerList
-                          }
-                        , Cmd.none
+                                                else
+                                                    player
+                                            )
+                                            model.newPlayerList
+                                }
+                        in
+                        ( newModel
+                        , saveLobbySettings newModel
                         )
 
                 Nothing ->
@@ -278,16 +373,26 @@ update msg model =
             let
                 newPlayerList =
                     List.filter (\newPlayer -> newPlayer.id /= id) model.newPlayerList
+
+                newModel =
+                    { model | newPlayerList = newPlayerList }
             in
-            ( { model | newPlayerList = newPlayerList }, Cmd.none )
+            ( newModel, saveLobbySettings newModel )
 
         UpdateScenario scenario ->
             -- For campaign scenarios, fetch the config for the given scenario and load it into the lobby settings
             -- Also need to disable manipulation of the player settings somehow
             -- Otherwise, just set the scenario type
-            ( { model | scenarioType = scenario }
-            , Cmd.none
+            let
+                newModel =
+                    { model | scenarioType = scenario }
+            in
+            ( newModel
+            , saveLobbySettings newModel
             )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 view : Model -> { startGame : Model -> msg, returnHome : msg, toMsg : Msg -> msg } -> Html msg
@@ -485,3 +590,8 @@ newPlayerInput selectedColors player =
                 )
             ]
         ]
+
+
+saveLobbySettings : Model -> Cmd Msg
+saveLobbySettings model =
+    model |> encoder |> Encode.encode 0 |> saveLobby
