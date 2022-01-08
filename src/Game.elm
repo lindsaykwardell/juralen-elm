@@ -108,10 +108,8 @@ view model =
         , activePlayerCard model
         , div [ class "flex flex-col lg:flex-row" ]
             [ div [ class "w-full lg:w-3/5 p-3" ]
-                [ lazy
-                    (Grid.view
-                        model.grid
-                    )
+                [ Grid.view
+                    model.grid
                     { isInRange = isInRange model
                     , selectedCell = model.selectedCell
                     , getCellColor = \cell -> Game.Cell.getColorClass cell model.players
@@ -128,7 +126,7 @@ view model =
                 , --zoomButtons [ class "mt-1 flex justify-end" ] []
                   div [ class "flex" ]
                     [ Scoreboard.view model
-                    , zoomButtons [ class "mt-1 flex justify-end" ] []
+                    , zoomButtons [] []
                     ]
                 ]
             , div [ class "hidden lg:block lg:w-2/5 p-3 flex flex-col" ]
@@ -258,7 +256,7 @@ activePlayerCard model =
 
 selectedCellCard : Game.Core.Model -> Html Msg
 selectedCellCard model =
-    div [ class "mt-4 border-2 rounded" ]
+    div [ class "mt-4 border-2" ]
         [ div
             [ class
                 ("p-3 "
@@ -340,7 +338,7 @@ buildableUnitList model =
         (List.map
             (\buildableUnit ->
                 button
-                    [ class "bg-blue-400 hover:bg-blue-200 py-2 px-3 rounded m-2"
+                    [ class "bg-blue-400 hover:bg-blue-200 py-2 px-3 m-2"
                     , onClick (BuildUnit buildableUnit)
                     ]
                     [ text ("Build " ++ Game.UnitType.toString buildableUnit { showCost = True }) ]
@@ -381,12 +379,12 @@ upgradeCellList model =
                 (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)
                     < Game.Structure.initDef (Game.Cell.atLoc model.grid model.selectedCell |> .structure)
               then
-                button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Action.RepairDefense) ] [ text "Repair Defense (1)" ]
+                button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 m-2", onClick (UpgradeCell Game.Action.RepairDefense) ] [ text "Repair Defense (1)" ]
 
               else
                 text ""
-            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Action.BuildFarm) ] [ text "Build Farm (2)" ]
-            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 rounded m-2", onClick (UpgradeCell Game.Action.BuildTower) ] [ text "Build Tower (2)" ]
+            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 m-2", onClick (UpgradeCell Game.Action.BuildFarm) ] [ text "Build Farm (2)" ]
+            , button [ class "bg-green-400 hover:bg-green-200 py-2 px-3 m-2", onClick (UpgradeCell Game.Action.BuildTower) ] [ text "Build Tower (2)" ]
             ]
         )
 
@@ -398,7 +396,7 @@ unitsInCellList model =
             (\unit ->
                 div
                     [ class
-                        ("flex p-2 my-2 rounded text-white pointer"
+                        ("flex p-2 my-2 text-white pointer"
                             ++ (if Game.Unit.isSelected model.selectedUnits unit.id then
                                     " bg-blue-700 hover:bg-blue-600"
 
@@ -428,7 +426,7 @@ unitsInCellList model =
 techTreeButton : TechDescription -> Html Msg
 techTreeButton tech =
     button
-        [ class "bg-yellow-400 hover:bg-yellow-200 py-2 px-3 rounded m-2"
+        [ class "bg-yellow-400 hover:bg-yellow-200 py-2 px-3 m-2"
         , onClick (ResearchTech tech)
         ]
         [ text (tech.name ++ " (" ++ String.fromInt tech.cost ++ ")")
@@ -439,7 +437,7 @@ techTreeButton tech =
 
 historyView : List History -> Html Msg
 historyView history =
-    div [ class "w-full italic text-left text-gray-300 bg-gray-800 rounded p-2 overflow-y-scroll h-[200px]" ]
+    div [ class "w-full italic text-left text-gray-300 bg-gray-800 p-2 overflow-y-scroll h-[200px]" ]
         (history
             -- |> List.take 5
             |> List.map

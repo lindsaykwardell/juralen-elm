@@ -12,16 +12,14 @@ import Html.Events exposing (onClick)
 
 view :
     Cell
-    ->
-        { isInRange : Bool
-        , isSelected : Bool
-        , cellColor : String
-        , onCellClick : msg
-        , units : List Unit
-        , selectedUnits : List Int
-        }
+    -> Bool
+    -> Bool
+    -> String
+    -> msg
+    -> List Unit
+    -> List Int
     -> Html msg
-view cell { isInRange, isSelected, cellColor, onCellClick, units, selectedUnits } =
+view cell isInRange isSelected cellColor onCellClick units selectedUnits =
     td []
         [ div
             [ class

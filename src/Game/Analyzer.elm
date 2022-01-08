@@ -664,7 +664,7 @@ scoreOption model option =
                                     -1000
 
                                 else
-                                    1
+                                    1 + Game.Grid.distanceToEnemy model.grid option.loc model.activePlayer
                         }
 
                     Action.BuildTower ->
@@ -674,7 +674,7 @@ scoreOption model option =
                                     -1000
 
                                 else
-                                    1
+                                    1 + Game.Grid.distanceToEnemy model.grid option.loc model.activePlayer
                         }
 
             _ ->

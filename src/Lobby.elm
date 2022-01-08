@@ -296,9 +296,9 @@ view model { startGame, returnHome, toMsg } =
         [ h1 [ class "text-white" ] [ text "Juralen" ]
         , div []
             [ div [ class "flex justify-end" ]
-                [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600 rounded-t", onClick AddPlayer ] [ text "Add Player" ] ]
+                [ div [ class "w-1/3 lg:w-1/5" ] [ button [ class "p-3 w-full bg-gray-400 hover:bg-gray-600", onClick AddPlayer ] [ text "Add Player" ] ]
                 ]
-            , div [ class "bg-gray-700 p-2 shadow rounded-tl rounded-b" ]
+            , div [ class "bg-gray-700 p-2 shadow" ]
                 (List.concat
                     [ model.newPlayerList
                         |> List.map
@@ -309,7 +309,7 @@ view model { startGame, returnHome, toMsg } =
                             [ label [ class "text-white" ]
                                 [ text "Scenario"
                                 , select
-                                    [ class "text-black px-2 py-1 mx-3 rounded"
+                                    [ class "text-black px-2 py-1 mx-3"
                                     , onInput
                                         (\val ->
                                             UpdateScenario <| Game.Scenario.onSelectScenario val
@@ -341,7 +341,7 @@ view model { startGame, returnHome, toMsg } =
                                     label [ class "text-white" ]
                                         [ text "Max Score"
                                         , input
-                                            [ class "w-16 text-black px-2 py-1 mx-3 rounded"
+                                            [ class "w-16 text-black px-2 py-1 mx-3"
                                             , value (String.fromInt score)
                                             , onInput (\val -> UpdateScenario <| ScoreReached <| Maybe.withDefault 0 <| String.toInt val)
                                             ]
@@ -352,7 +352,7 @@ view model { startGame, returnHome, toMsg } =
                                     label [ class "text-white" ]
                                         [ text "Max Score"
                                         , input
-                                            [ class "w-16 text-black px-2 py-1 mx-3 rounded"
+                                            [ class "w-16 text-black px-2 py-1 mx-3"
                                             , value (String.fromInt turns)
                                             , onInput (\val -> UpdateScenario <| NumberOfTurns <| Maybe.withDefault 0 <| String.toInt val)
                                             ]
@@ -361,7 +361,7 @@ view model { startGame, returnHome, toMsg } =
                             , label [ class "text-white" ]
                                 [ text "Width"
                                 , input
-                                    [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
+                                    [ class "w-16 bg-white mx-3 text-black px-2 py-1"
                                     , type_ "number"
                                     , value
                                         (case model.maxX of
@@ -379,7 +379,7 @@ view model { startGame, returnHome, toMsg } =
                             , label [ class "text-white" ]
                                 [ text "Height"
                                 , input
-                                    [ class "w-16 bg-white rounded mx-3 text-black px-2 py-1"
+                                    [ class "w-16 bg-white mx-3 text-black px-2 py-1"
                                     , type_ "number"
                                     , value
                                         (case model.maxY of
@@ -397,7 +397,7 @@ view model { startGame, returnHome, toMsg } =
                             , label [ class "text-white" ]
                                 [ text "AI Speed"
                                 , input
-                                    [ class "w-16 bg-white rounded ml-3 text-black px-2 py-1"
+                                    [ class "w-16 bg-white ml-3 text-black px-2 py-1"
                                     , type_ "number"
                                     , value
                                         (case model.aiSpeed of
@@ -419,8 +419,8 @@ view model { startGame, returnHome, toMsg } =
             ]
             |> Html.map toMsg
         , div [ class "flex justify-center gap-4" ]
-            [ button [ class "bg-green-600 p-2 rounded hover:bg-green-500 transition duration-150 mt-6", onClick (startGame model) ] [ text "Start Game" ]
-            , button [ class "bg-blue-600 p-2 rounded hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick returnHome ] [ text "Return to Home" ]
+            [ button [ class "bg-green-600 p-2 hover:bg-green-500 transition duration-150 mt-6", onClick (startGame model) ] [ text "Start Game" ]
+            , button [ class "bg-blue-600 p-2 hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick returnHome ] [ text "Return to Home" ]
             ]
         ]
 
@@ -429,10 +429,10 @@ newPlayerInput : List PlayerColor -> NewPlayer -> Html Msg
 newPlayerInput selectedColors player =
     div [ class "flex flex-col lg:flex-row py-2 items-center" ]
         [ div [ class "flex-shrink mr-3" ]
-            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 rounded hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
+            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
                 [ text "Remove Player" ]
             ]
-        , div [ class "flex-grow w-full lg:w-auto" ] [ input [ class "p-2 rounded w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
+        , div [ class "flex-grow w-full lg:w-auto" ] [ input [ class "p-2 w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]
         , div [ class "flex-1" ]
             [ label [ class "text-white" ]
                 [ text "Is Human"
@@ -441,7 +441,7 @@ newPlayerInput selectedColors player =
             ]
         , div [ class "flex-1 flex flex-col lg:flex-row items-center mx-1 w-full lg:w-auto" ]
             [ label [ class "text-white" ] [ text "Analyzer" ]
-            , select [ class "p-2 lg:ml-3 rounded w-full lg:w-auto", onInput (UpdateAnalyzer player.id) ]
+            , select [ class "p-2 lg:ml-3 w-full lg:w-auto", onInput (UpdateAnalyzer player.id) ]
                 [ option [ value "DEFAULT", selected (player.analyzer == Game.AnalyzerMode.Default) ] [ text "Default" ]
                 , option [ value "AGGRESSIVE", selected (player.analyzer == Game.AnalyzerMode.Aggressive) ] [ text "Aggressive" ]
                 , option [ value "DEFENSIVE", selected (player.analyzer == Game.AnalyzerMode.Defensive) ] [ text "Defensive" ]
@@ -454,7 +454,7 @@ newPlayerInput selectedColors player =
                 [ text "Color" ]
             , select
                 [ class
-                    ("p-2 lg:mx-3 rounded w-32 w-full "
+                    ("p-2 lg:mx-3 w-32 w-full "
                         ++ Game.PlayerColor.toClass player.color
                         ++ (if Game.PlayerColor.isDark player.color then
                                 ""
