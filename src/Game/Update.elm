@@ -162,6 +162,7 @@ update msg model =
                                 , turn = model.turn
                                 , loc = model.selectedCell
                                 , action = Action.BuildUnit unitType
+                                , scores = Core.getPlayerRankings model
                                 }
                 in
                 ( newModel, runAiAction newModel )
@@ -271,6 +272,7 @@ update msg model =
                                             model.units
                                         )
                                         cell.loc
+                                , scores = Core.getPlayerRankings model
                                 }
                 in
                 if initCombat then
@@ -344,6 +346,7 @@ update msg model =
                                 , turn = model.turn
                                 , loc = model.selectedCell
                                 , action = Action.Research tech
+                                , scores = Core.getPlayerRankings model
                                 }
                 in
                 ( newModel, runAiAction newModel )
@@ -391,6 +394,7 @@ update msg model =
                                         , turn = model.turn
                                         , loc = model.selectedCell
                                         , action = Action.Upgrade Action.BuildFarm
+                                        , scores = Core.getPlayerRankings model
                                         }
                         in
                         ( newModel, runAiAction newModel )
@@ -432,6 +436,7 @@ update msg model =
                                         , turn = model.turn
                                         , loc = model.selectedCell
                                         , action = Action.Upgrade Action.BuildTower
+                                        , scores = Core.getPlayerRankings model
                                         }
                         in
                         ( newModel, runAiAction newModel )
@@ -481,6 +486,7 @@ update msg model =
                                         , turn = model.turn
                                         , loc = model.selectedCell
                                         , action = Action.Upgrade Action.RepairDefense
+                                        , scores = Core.getPlayerRankings model
                                         }
                         in
                         ( newModel, runAiAction newModel )

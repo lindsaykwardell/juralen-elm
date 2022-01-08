@@ -1,9 +1,12 @@
 module Game.History exposing (..)
 
+import Dict
 import Game.Action as Action exposing (Action)
 import Game.Loc as Loc exposing (Loc)
+import Game.Player exposing (Player)
+import Game.PlayerScore exposing (PlayerScore)
 import Game.Structure as Structure
-import Game.UnitType as UnitType
+import Game.UnitType as UnitType exposing (UnitType)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
@@ -14,6 +17,7 @@ type alias History =
     , turn : Int
     , loc : Loc
     , action : Action
+    , scores : List PlayerScore
     }
 
 
@@ -24,6 +28,13 @@ decoder =
         |> Decode.required "turn" Decode.int
         |> Decode.required "loc" Loc.decoder
         |> Decode.required "action" Action.decoder
+        |> Decode.required "scores"
+            (Decode.list
+                (Decode.succeed PlayerScore
+                    |> Decode.required "playerId" Decode.int
+                    |> Decode.required "score" Decode.int
+                )
+            )
 
 
 encoder : History -> Encode.Value
@@ -33,6 +44,16 @@ encoder history =
         , ( "turn", Encode.int history.turn )
         , ( "loc", Loc.encoder history.loc )
         , ( "action", Action.encoder history.action )
+        , ( "scores"
+          , Encode.list
+                (\score ->
+                    Encode.object
+                        [ ( "playerId", Encode.int score.playerId )
+                        , ( "score", Encode.int score.score )
+                        ]
+                )
+                history.scores
+          )
         ]
 
 
@@ -104,3 +125,143 @@ toString history =
                 ++ (Loc.getX history.loc |> String.fromInt)
                 ++ ","
                 ++ (Loc.getY history.loc |> String.fromInt)
+
+
+mostAggressivePlayer : List Player -> List History -> Player
+mostAggressivePlayer players history =
+    let
+        attacksByPlayers : List { id : Int, attacks : Int }
+        attacksByPlayers =
+            List.map
+                (\player ->
+                    { id = player.id
+                    , attacks =
+                        List.length
+                            (List.filter
+                                (\action ->
+                                    case action.action of
+                                        Action.Attack _ _ ->
+                                            action.player == player.name
+
+                                        _ ->
+                                            False
+                                )
+                                history
+                            )
+                    }
+                )
+                players
+    in
+    List.foldl
+        (\selectedPlayer player ->
+            if player.attacks > selectedPlayer.attacks then
+                player
+
+            else
+                selectedPlayer
+        )
+        { id = -1, attacks = -1 }
+        attacksByPlayers
+        |> .id
+        |> Game.Player.get players
+
+
+leastAggressivePlayer : List Player -> List History -> Player
+leastAggressivePlayer players history =
+    let
+        attacksByPlayers : List { id : Int, attacks : Int }
+        attacksByPlayers =
+            List.map
+                (\player ->
+                    { id = player.id
+                    , attacks =
+                        List.length
+                            (List.filter
+                                (\action ->
+                                    case action.action of
+                                        Action.Attack _ _ ->
+                                            action.player == player.name
+
+                                        _ ->
+                                            False
+                                )
+                                history
+                            )
+                    }
+                )
+                players
+    in
+    List.foldl
+        (\selectedPlayer player ->
+            if player.attacks < selectedPlayer.attacks then
+                player
+
+            else
+                selectedPlayer
+        )
+        { id = -1, attacks = 1000 }
+        attacksByPlayers
+        |> .id
+        |> Game.Player.get players
+
+
+
+-- favoriteUnit : List History -> UnitType
+
+
+favoriteUnit : List History -> String
+favoriteUnit history =
+    history
+        |> List.foldl
+            (\action unitCounts ->
+                case action.action of
+                    Action.BuildUnit unitType ->
+                        let
+                            strType =
+                                UnitType.toString unitType { showCost = False }
+                        in
+                        case Dict.get strType unitCounts of
+                            Nothing ->
+                                Dict.insert strType 1 unitCounts
+
+                            Just val ->
+                                Dict.insert strType (val + 1) unitCounts
+
+                    _ ->
+                        unitCounts
+            )
+            Dict.empty
+        |> Dict.toList
+        |> List.sortBy (\( _, v ) -> v)
+        |> List.head
+        |> Maybe.map (\( k, _ ) -> k)
+        |> Maybe.withDefault ""
+
+
+mostCommonResearch : List History -> String
+mostCommonResearch history =
+    history
+        |> List.foldl
+            (\action researchCounts ->
+                case action.action of
+                    Action.Research techDescription ->
+                        let
+                            strType =
+                                techDescription.name
+                        in
+                        case Dict.get strType researchCounts of
+                            Nothing ->
+                                Dict.insert strType 1 researchCounts
+
+                            Just val ->
+                                Dict.insert strType (val + 1) researchCounts
+
+                    _ ->
+                        researchCounts
+            )
+            Dict.empty
+        |> Dict.toList
+        |> List.sortBy (\( _, v ) -> v)
+        |> List.head
+        |> Maybe.map (\( k, _ ) -> k)
+        |> Maybe.withDefault ""

@@ -87,7 +87,7 @@ view model =
 
             Combat combatModel ->
                 CombatModal.view combatModel
-        , div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row" ]
+        , div [ class "p-3 lg:fixed bottom-0 left-0 flex lg:flex-row bg-[#333]" ]
             [ button
                 [ class "py-1 w-2/3 mx-2 lg:p-2 w-full lg:w-[150px] bg-green-500 hover:bg-green-200 disabled:bg-green-300 disabled:hover:bg-green-300 disabled:cursor-default"
                 , disabled <| not <| .isHuman <| Game.Player.get model.players model.activePlayer
@@ -213,6 +213,16 @@ view model =
                     ]
                 ]
             ]
+        , if model.activePlayer == -1 then
+            div [ class "mb-20 text-white"]
+                [ div [ class "h-[30vh] p-3 border border-2 border-white" ]
+                    [ Scoreboard.graph model
+                    ]
+                , Scoreboard.stats model
+                ]
+
+          else
+            text ""
         ]
 
 

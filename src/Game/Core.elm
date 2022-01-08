@@ -8,6 +8,7 @@ import Game.Grid exposing (Grid)
 import Game.History exposing (History)
 import Game.Loc exposing (Loc)
 import Game.Player exposing (Player)
+import Game.PlayerScore exposing (PlayerScore)
 import Game.Scenario
 import Game.TechTree exposing (TechTree)
 import Game.Unit exposing (Unit)
@@ -145,12 +146,6 @@ getPlayerScore model playerId =
             playerStats model playerId
     in
     stats.farms + stats.towns + stats.units
-
-
-type alias PlayerScore =
-    { playerId : Int
-    , score : Int
-    }
 
 
 getPlayerRankings : Model -> List PlayerScore
