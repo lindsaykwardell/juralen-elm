@@ -13,23 +13,21 @@ import Html.Events exposing (onClick)
 
 
 view :
-    { show : Bool
-    , model : Combat.Model
-    }
+    Combat.Model
     -> Html Msg
-view config =
+view model =
     let
         attackingUnits =
-            List.filter (\u -> u.controlledBy == config.model.attackingPlayer.id) config.model.units
+            List.filter (\u -> u.controlledBy == model.attackingPlayer.id) model.units
 
         defendingUnits =
-            List.filter (\u -> u.controlledBy == config.model.defendingPlayer.id) config.model.units
+            List.filter (\u -> u.controlledBy == model.defendingPlayer.id) model.units
 
         combatEnded =
             List.length attackingUnits <= 0 || List.length defendingUnits <= 0
     in
     Modal.view
-        { show = config.show
+        { show = True
         , onClose =
             if combatEnded then
                 GotCombatMsg Combat.ExitCombat
@@ -37,24 +35,24 @@ view config =
             else
                 NoOp
         , content =
-            div [ class ("text-white p-2 " ++ Game.CellType.getColorClass config.model.cell.cellType) ]
+            div [ class ("text-white p-2 " ++ Game.CellType.getColorClass model.cell.cellType) ]
                 [ h1 []
                     [ text "( "
-                    , text (String.fromInt (Loc.getX config.model.cell.loc))
+                    , text (String.fromInt (Loc.getX model.cell.loc))
                     , text ", "
-                    , text (String.fromInt (Loc.getY config.model.cell.loc))
+                    , text (String.fromInt (Loc.getY model.cell.loc))
                     , text " )"
                     ]
                 , div [ class "flex" ]
-                    [ unitListDisplay attackingUnits config.model.attacker
-                    , unitListDisplay defendingUnits config.model.defender
+                    [ unitListDisplay attackingUnits model.attacker
+                    , unitListDisplay defendingUnits model.defender
                     ]
                 , if List.length attackingUnits <= 0 then
                     h2 [ class "text-center" ]
-                        [ text <| config.model.defendingPlayer.name ++ " wins!" ]
+                        [ text <| model.defendingPlayer.name ++ " wins!" ]
 
                   else if List.length defendingUnits <= 0 then
-                    h2 [ class "text-center" ] [ text <| config.model.attackingPlayer.name ++ " wins!" ]
+                    h2 [ class "text-center" ] [ text <| model.attackingPlayer.name ++ " wins!" ]
 
                   else
                     text ""
