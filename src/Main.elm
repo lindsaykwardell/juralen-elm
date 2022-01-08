@@ -91,21 +91,23 @@ update msg model =
             ( { model | inTransition = True }, delay 1000 (ChangePage page) )
 
         ChangePage page ->
+            let
+                resetModel =
+                    { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame }
+            in
             case page of
                 Splash ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, Cmd.none )
+                    ( { resetModel | page = Splash }, Cmd.none )
 
                 Home ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Home }, playThemeMusic () )
+                    ( { resetModel | page = Home }, playThemeMusic () )
 
                 Lobby lobby ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Lobby lobby }, Cmd.batch [ Cmd.map GotLobbyMsg (Tuple.second Lobby.init), playThemeMusic () ] )
+                    ( { resetModel | page = Lobby lobby }, Cmd.batch [ Cmd.map GotLobbyMsg (Tuple.second Lobby.init), playThemeMusic () ] )
 
                 Game game ->
-                    ( { model
-                        | inTransition = False
-                        , showSettings = False
-                        , gameStatus = Core.ActiveGame
+                    ( { resetModel
+                        | gameStatus = Core.ActiveGame
                         , page = Game game
                       }
                     , Cmd.batch
