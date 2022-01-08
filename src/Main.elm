@@ -19,7 +19,6 @@ import Html exposing (button, div, hr, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Json.Decode as Decode
-import Json.Encode as Encode
 import List.Extra as List
 import Lobby
 import Process
@@ -54,7 +53,7 @@ init _ =
       , showSettings = False
       , newPlayers = []
       }
-    , Cmd.none
+    , delay 2000 (InitChangePage Home)
     )
 
 
@@ -73,9 +72,7 @@ delay time msg =
 
 
 type Msg
-    = Login
-    | UpdateAuthStatus Bool
-    | InitChangePage Page
+    = InitChangePage Page
     | ChangePage Page
     | StartGame Lobby.Model
     | ReturnHome
@@ -90,19 +87,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Login ->
-            ( model, login () )
-
-        UpdateAuthStatus currentAuthStatus ->
-            if currentAuthStatus then
-                update (InitChangePage Home) model
-
-            else if model.page /= Splash then
-                update (InitChangePage Splash) model
-
-            else
-                ( model, login () )
-
         InitChangePage page ->
             ( { model | inTransition = True }, delay 1000 (ChangePage page) )
 
@@ -112,7 +96,7 @@ update msg model =
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Splash }, Cmd.none )
 
                 Home ->
-                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Home }, Cmd.none )
+                    ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Home }, playThemeMusic () )
 
                 Lobby lobby ->
                     ( { model | inTransition = False, showSettings = False, gameStatus = Core.NoGame, page = Lobby lobby }, Cmd.batch [ Cmd.map GotLobbyMsg (Tuple.second Lobby.init), playThemeMusic () ] )
@@ -168,9 +152,6 @@ update msg model =
 
         GotSettingsMessage settingsMsg ->
             case settingsMsg of
-                Settings.Logout ->
-                    ( model, logout () )
-
                 Settings.ToggleMute ->
                     ( model, toggleMute () )
 
@@ -250,12 +231,6 @@ update msg model =
 ---- PORTS ----
 
 
-port login : () -> Cmd msg
-
-
-port logout : () -> Cmd msg
-
-
 port playGameMusic : () -> Cmd msg
 
 
@@ -263,9 +238,6 @@ port playThemeMusic : () -> Cmd msg
 
 
 port toggleMute : () -> Cmd msg
-
-
-port authStatus : (Bool -> msg) -> Sub msg
 
 
 port loadGame : () -> Cmd msg
@@ -284,8 +256,7 @@ port analyzed : (String -> msg) -> Sub msg
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ authStatus UpdateAuthStatus
-        , gameLoaded
+        [ gameLoaded
             (\json ->
                 let
                     decoded =
@@ -348,7 +319,7 @@ view model =
         , div [ class "flex flex-col h-screen" ]
             [ case model.page of
                 Splash ->
-                    div [ onClick Login ]
+                    div []
                         [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ], hr [] [] ]
                         , div [ class "splash" ] []
                         ]

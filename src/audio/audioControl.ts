@@ -49,6 +49,11 @@ class AudioControl {
         })
     }
 
+    isSongPlaying(song: string) {
+        const loc = song.split(":")
+        return this.audio.src.includes(this.music[loc[0]][Number(loc[1])])
+    }
+
     selectSong(song: string) {
         const loc = song.split(":")
         this.audio.src = this.music[loc[0]][Number(loc[1])]

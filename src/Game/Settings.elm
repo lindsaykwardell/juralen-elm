@@ -13,8 +13,7 @@ type alias DisplaySettings =
 
 
 type Msg
-    = Logout
-    | ToggleMute
+    = ToggleMute
     | ExitGame
     | ReturnHome
 
