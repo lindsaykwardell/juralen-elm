@@ -96,3 +96,16 @@ getCellClass structure =
 
         None ->
             ""
+
+
+maxUpgradeCount : Structure -> Int
+maxUpgradeCount structure =
+    case structure of
+        Citadel ->
+            6
+
+        Town ->
+            4
+
+        None ->
+            0

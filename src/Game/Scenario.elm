@@ -398,8 +398,8 @@ isEndConditionReached :
     -> Model
     -> Bool
 isEndConditionReached config model =
-    case model.scenarioType of
-        Conquest ->
+    let
+        onePlayerLeft =
             List.length
                 (List.filter
                     (\player ->
@@ -408,13 +408,17 @@ isEndConditionReached config model =
                     config.players
                 )
                 == 1
+    in
+    case model.scenarioType of
+        Conquest ->
+            onePlayerLeft
 
         ScoreReached winningScore ->
-            config.getPlayerScore config.nextActivePlayer.id
+            onePlayerLeft || config.getPlayerScore config.nextActivePlayer.id
                 >= winningScore
 
         NumberOfTurns numberOfTurns ->
-            config.turn >= numberOfTurns
+            onePlayerLeft || config.turn >= numberOfTurns * List.length config.players
 
 
 onSelectScenario : String -> ScenarioType
@@ -427,7 +431,7 @@ onSelectScenario scenarioName =
             ScoreReached 50
 
         "TURN" ->
-            NumberOfTurns 100
+            NumberOfTurns 10
 
         _ ->
             Conquest

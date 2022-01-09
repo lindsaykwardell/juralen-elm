@@ -455,7 +455,7 @@ view model { startGame, returnHome, toMsg } =
 
                                 NumberOfTurns turns ->
                                     label [ class "text-white" ]
-                                        [ text "Max Score"
+                                        [ text "Turns (per player)"
                                         , input
                                             [ class "w-16 text-black px-2 py-1 mx-3"
                                             , value (String.fromInt turns)

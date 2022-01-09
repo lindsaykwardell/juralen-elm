@@ -114,7 +114,11 @@ stats model =
             Just playerScore ->
                 statCard
                     { title = "Winner"
-                    , content = playerScore.playerId |> Game.Player.get model.players |> .name |> text
+                    , content =
+                        span []
+                            [ playerScore.playerId |> Game.Player.get model.players |> .name |> text
+                            , text <| " (" ++ String.fromInt playerScore.score ++ ")"
+                            ]
                     , size = Reg
                     }
 

@@ -660,21 +660,40 @@ scoreOption model option =
                     Action.BuildFarm ->
                         { option
                             | score =
-                                if stats.gold < 2 then
+                                if stats.gold < 2 || (cell.farms + cell.towers) >= Structure.maxUpgradeCount cell.structure then
                                     -1000
 
                                 else
-                                    1 + Game.Grid.distanceToEnemy model.grid option.loc model.activePlayer
+                                    1
+                                        - cell.farms
+                                        + Game.Grid.distanceToEnemy model.grid option.loc model.activePlayer
+                                        + (if analyzer == Defensive then
+                                            2
+
+                                           else if analyzer == Passive then
+                                            5
+
+                                           else
+                                            0
+                                          )
                         }
 
                     Action.BuildTower ->
                         { option
                             | score =
-                                if stats.gold < 2 then
+                                if stats.gold < 2 || (cell.farms + cell.towers) >= Structure.maxUpgradeCount cell.structure then
                                     -1000
 
                                 else
-                                    1 + Game.Grid.distanceToEnemy model.grid option.loc model.activePlayer
+                                    1
+                                        - cell.towers
+                                        + Game.Grid.distanceToEnemy model.grid option.loc model.activePlayer
+                                        + (if analyzer == Aggressive || analyzer == Expansionist then
+                                            2
+
+                                           else
+                                            0
+                                          )
                         }
 
             _ ->
