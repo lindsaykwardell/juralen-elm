@@ -270,3 +270,33 @@ mostCommonResearch history =
         |> List.head
         |> Maybe.map (\( k, _ ) -> k)
         |> Maybe.withDefault ""
+
+
+unitsBuilt : List History -> Int
+unitsBuilt history =
+    history
+        |> List.foldl
+            (\action unitCounts ->
+                case action.action of
+                    Action.BuildUnit _ ->
+                        unitCounts + 1
+
+                    _ ->
+                        unitCounts
+            )
+            0
+
+
+totalCombats : List History -> Int
+totalCombats history =
+    history
+        |> List.filter
+            (\action ->
+                case action.action of
+                    Action.Attack _ _ ->
+                        True
+
+                    _ ->
+                        False
+            )
+        |> List.length

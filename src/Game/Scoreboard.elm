@@ -104,11 +104,18 @@ graphCol model scores =
 stats : Model -> Html msg
 stats model =
     div [ class "flex justify-around gap-8 flex-wrap p-4 w-full" ]
-        [ case model |> getPlayerRankings |> List.head of
+        [ case
+            model
+                |> getPlayerRankings
+                |> List.sortBy (\rank -> rank.score)
+                |> List.reverse
+                |> List.head
+          of
             Just playerScore ->
                 statCard
                     { title = "Winner"
                     , content = playerScore.playerId |> Game.Player.get model.players |> .name |> text
+                    , size = Reg
                     }
 
             _ ->
@@ -122,6 +129,7 @@ stats model =
                         model.actionHistory
                         |> .name
                     )
+            , size = Reg
             }
         , statCard
             { title = "Least Aggressive Player"
@@ -132,21 +140,48 @@ stats model =
                         model.actionHistory
                         |> .name
                     )
+            , size = Reg
             }
         , statCard
             { title = "Favorite Unit"
             , content = text (Game.History.favoriteUnit model.actionHistory)
+            , size = Sm
             }
         , statCard
             { title = "Most Common Research"
             , content = text (Game.History.mostCommonResearch model.actionHistory)
+            , size = Sm
+            }
+        , statCard
+            { title = "Units Built"
+            , content = text ((String.fromInt <| Game.History.unitsBuilt model.actionHistory) ++ " units")
+            , size = Sm
+            }
+        , statCard
+            { title = "Total Attacks"
+            , content = text ((String.fromInt <| Game.History.totalCombats model.actionHistory) ++ " attacks")
+            , size = Sm
             }
         ]
 
 
-statCard : { title : String, content : Html msg } -> Html msg
-statCard { title, content } =
-    div [ class "lg:w-1/4 md:w-1/3 w-full bg-gray-600 p-3 flex flex-col gap-3" ]
+type StatCardSize
+    = Sm
+    | Reg
+
+
+statCard : { size : StatCardSize, title : String, content : Html msg } -> Html msg
+statCard { size, title, content } =
+    let
+        cardClass =
+            case size of
+                Sm ->
+                    "lg:w-1/5 md:w-1/4"
+
+                Reg ->
+                    "lg:w-1/4 md:w-1/3"
+    in
+    div [ class <| cardClass ++ " w-full bg-gray-600 p-3 flex flex-col gap-3" ]
         [ span [ class "text-2xl" ] [ text title ]
         , content
         ]
