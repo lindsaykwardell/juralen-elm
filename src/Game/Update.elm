@@ -118,12 +118,29 @@ update msg model =
                             , activePlayer = nextActivePlayer.id
                             , players = updatedPlayers
                             , units = updatedUnits
+                            , selectedCell =
+                                if Game.Player.get model.players model.activePlayer |> .isHuman then
+                                    model.openCell
+
+                                else
+                                    model.selectedCell
                         }
                 in
                 ( newModel, runAiAction newModel )
 
         SelectCell loc ->
-            ( { model | selectedCell = loc, selectedUnits = [] }, Cmd.none )
+            ( { model
+                | openCell = loc
+                , selectedCell =
+                    if Game.Player.get model.players model.activePlayer |> .isHuman then
+                        loc
+
+                    else
+                        model.selectedCell
+                , selectedUnits = []
+              }
+            , Cmd.none
+            )
 
         BuildUnit unitType ->
             let
@@ -250,7 +267,19 @@ update msg model =
                         shouldCombatStart (Game.Unit.inCell newModel.units newModel.selectedCell) []
 
                     newModel =
-                        { model | grid = newGrid, players = newPlayerList, units = newUnitList, selectedCell = newSelectedCell, selectedUnits = [] }
+                        { model
+                            | grid = newGrid
+                            , players = newPlayerList
+                            , units = newUnitList
+                            , selectedCell = newSelectedCell
+                            , openCell =
+                                if Game.Player.get model.players model.activePlayer |> .isHuman then
+                                    newSelectedCell
+
+                                else
+                                    model.openCell
+                            , selectedUnits = []
+                        }
 
                     modelWithRecordedAction =
                         newModel

@@ -41,6 +41,7 @@ type alias Model =
     { nextId : Int
     , turn : Int
     , grid : Grid
+    , openCell : Loc
     , selectedCell : Loc
     , selectedUnits : List Int
     , players : List Player
@@ -60,6 +61,7 @@ decoder =
         |> Decode.required "nextId" Decode.int
         |> Decode.required "turn" Decode.int
         |> Decode.required "grid" Game.Grid.decoder
+        |> Decode.required "openCell" Game.Loc.decoder
         |> Decode.required "selectedCell" Game.Loc.decoder
         |> Decode.required "selectedUnits" (Decode.list Decode.int)
         |> Decode.required "players" (Decode.list Game.Player.decoder)
@@ -78,6 +80,7 @@ encoder model =
         [ ( "nextId", Encode.int model.nextId )
         , ( "turn", Encode.int model.turn )
         , ( "grid", Game.Grid.encoder model.grid )
+        , ( "openCell", Game.Loc.encoder model.openCell )
         , ( "selectedCell", Game.Loc.encoder model.selectedCell )
         , ( "selectedUnits", Encode.list Encode.int model.selectedUnits )
         , ( "players", Encode.list Game.Player.encoder model.players )

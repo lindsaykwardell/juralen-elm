@@ -40,6 +40,7 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
         { nextId = 1
         , turn = 0
         , grid = []
+        , openCell = Loc.at 0 0
         , selectedCell = Loc.at 0 0
         , players = []
         , activePlayer = 0
@@ -113,7 +114,7 @@ view model =
                 [ Grid.view
                     model.grid
                     { isInRange = isInRange model
-                    , selectedCell = model.selectedCell
+                    , selectedCell = model.openCell
                     , getCellColor = \cell -> Game.Cell.getColorClass cell model.players
                     , onCellClick =
                         \cell ->
@@ -134,9 +135,13 @@ view model =
             , div [ class "hidden lg:block lg:w-2/5 p-3 flex flex-col" ]
                 [ selectedCellCard model
                 , div [ class "flex flex-wrap h-36 xl:h-20" ]
-                    (buildableUnitList model
-                        ++ researchTechList model
-                        ++ upgradeCellList model
+                    (if Game.Player.get model.players model.activePlayer |> .isHuman then
+                        buildableUnitList model
+                            ++ researchTechList model
+                            ++ upgradeCellList model
+
+                     else
+                        []
                     )
                 , unitsInCellList model
                 , historyView model.actionHistory
@@ -259,12 +264,12 @@ selectedCellCard model =
         [ div
             [ class
                 ("p-3 "
-                    ++ (case Game.Cell.find model.grid model.selectedCell of
+                    ++ (case Game.Cell.find model.grid model.openCell of
                             Nothing ->
                                 ""
 
-                            Just selectedCell ->
-                                Game.Cell.getColorClass selectedCell model.players
+                            Just openCell ->
+                                Game.Cell.getColorClass openCell model.players
                        )
                     ++ (if
                             Game.Player.get model.players model.activePlayer
@@ -278,37 +283,37 @@ selectedCellCard model =
                        )
                 )
             ]
-            [ text (String.fromInt <| Loc.getX model.selectedCell)
+            [ text (String.fromInt <| Loc.getX model.openCell)
             , text ", "
-            , text (String.fromInt <| Loc.getY model.selectedCell)
+            , text (String.fromInt <| Loc.getY model.openCell)
             , br [] []
             , div [ class "flex" ]
                 [ div [ class "flex-1" ]
                     [ text
-                        (case Game.Cell.find model.grid model.selectedCell of
+                        (case Game.Cell.find model.grid model.openCell of
                             Nothing ->
                                 ""
 
-                            Just selectedCell ->
-                                Game.CellType.toString selectedCell.cellType
-                                    ++ (case selectedCell.structure of
+                            Just openCell ->
+                                Game.CellType.toString openCell.cellType
+                                    ++ (case openCell.structure of
                                             Game.Structure.None ->
                                                 ""
 
                                             _ ->
-                                                " [" ++ Game.Structure.toString selectedCell.structure ++ "]"
+                                                " [" ++ Game.Structure.toString openCell.structure ++ "]"
                                        )
                         )
                     ]
                 , div [ class "flex-1 italic" ]
                     [ text
-                        (case Game.Cell.find model.grid model.selectedCell of
+                        (case Game.Cell.find model.grid model.openCell of
                             Nothing ->
                                 "Not Controlled"
 
-                            Just selectedCell ->
+                            Just openCell ->
                                 "("
-                                    ++ (case selectedCell.controlledBy of
+                                    ++ (case openCell.controlledBy of
                                             Nothing ->
                                                 "Not Controlled"
 
@@ -321,11 +326,11 @@ selectedCellCard model =
                 ]
             , div [ class "flex" ]
                 [ div [ class "flex-1" ]
-                    [ text ("Defense Bonus: " ++ String.fromInt (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)) ]
+                    [ text ("Defense Bonus: " ++ String.fromInt (Game.Cell.atLoc model.grid model.openCell |> .defBonus)) ]
                 , div [ class "flex-1" ]
-                    [ text ("Farms: " ++ String.fromInt (Game.Cell.atLoc model.grid model.selectedCell |> .farms)) ]
+                    [ text ("Farms: " ++ String.fromInt (Game.Cell.atLoc model.grid model.openCell |> .farms)) ]
                 , div [ class "flex-1" ]
-                    [ text ("Towers: " ++ String.fromInt (Game.Cell.atLoc model.grid model.selectedCell |> .towers)) ]
+                    [ text ("Towers: " ++ String.fromInt (Game.Cell.atLoc model.grid model.openCell |> .towers)) ]
                 ]
             ]
         ]
@@ -345,12 +350,12 @@ buildableUnitList model =
                 , onClick = BuildUnit buildableUnit
                 }
         )
-        (case Game.Cell.find model.grid model.selectedCell of
+        (case Game.Cell.find model.grid model.openCell of
             Nothing ->
                 []
 
-            Just selectedCell ->
-                case selectedCell.controlledBy of
+            Just openCell ->
+                case openCell.controlledBy of
                     Nothing ->
                         []
 
@@ -359,7 +364,7 @@ buildableUnitList model =
                             []
 
                         else
-                            Game.Structure.canBuild selectedCell.structure (currentPlayerStats model |> .techTree)
+                            Game.Structure.canBuild openCell.structure (currentPlayerStats model |> .techTree)
         )
 
 
@@ -374,13 +379,13 @@ researchTechList model =
 
 upgradeCellList : Game.Core.Model -> List (Html Msg)
 upgradeCellList model =
-    if (Game.Cell.atLoc model.grid model.selectedCell |> .controlledBy) /= Just model.activePlayer then
+    if (Game.Cell.atLoc model.grid model.openCell |> .controlledBy) /= Just model.activePlayer then
         []
 
     else
         (if
-            (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)
-                < Game.Structure.initDef (Game.Cell.atLoc model.grid model.selectedCell |> .structure)
+            (Game.Cell.atLoc model.grid model.openCell |> .defBonus)
+                < Game.Structure.initDef (Game.Cell.atLoc model.grid model.openCell |> .structure)
          then
             PurchaseButton.green
                 { icon = "/img/repair-defense.png"
@@ -392,7 +397,7 @@ upgradeCellList model =
          else
             text ""
         )
-            :: (if Game.Cell.atLoc model.grid model.selectedCell |> .structure >> (/=) Game.Structure.None then
+            :: (if Game.Cell.atLoc model.grid model.openCell |> .structure >> (/=) Game.Structure.None then
                     [ PurchaseButton.green
                         { icon = "/img/farm.svg"
                         , description = "Build Farm"
@@ -442,7 +447,7 @@ unitsInCellList model =
                     , div [ class "flex-1" ] [ text "Moves: ", text (String.fromInt unit.movesLeft) ]
                     ]
             )
-            (Game.Unit.inCell model.units model.selectedCell)
+            (Game.Unit.inCell model.units model.openCell)
         )
 
 
