@@ -348,6 +348,7 @@ buildableUnitList model =
                             buildableUnit
                 , cost = Game.UnitType.cost buildableUnit
                 , onClick = BuildUnit buildableUnit
+                , disabled = Game.UnitType.cost buildableUnit > (currentPlayerStats model |> .gold)
                 }
         )
         (case Game.Cell.find model.grid model.openCell of
@@ -374,47 +375,46 @@ researchTechList model =
         []
 
     else
-        Game.Core.getPlayerTechTree model.players model.activePlayer |> TechTree.nextAvailableTech |> List.map techTreeButton
+        Game.Core.getPlayerTechTree model.players model.activePlayer |> TechTree.nextAvailableTech |> List.map (techTreeButton model)
 
 
 upgradeCellList : Game.Core.Model -> List (Html Msg)
 upgradeCellList model =
-    if (Game.Cell.atLoc model.grid model.openCell |> .controlledBy) /= Just model.activePlayer then
+    let
+        cell =
+            Game.Cell.atLoc model.grid model.openCell
+    in
+    if cell.controlledBy /= Just model.activePlayer then
         []
 
+    else if cell.structure /= Game.Structure.None then
+        [ PurchaseButton.green
+            { icon = "/img/repair-defense.png"
+            , description = "Repair Defense"
+            , cost = 1
+            , onClick = UpgradeCell Game.Action.RepairDefense
+            , disabled =
+                cell.defBonus
+                    >= Game.Structure.initDef cell.structure || (currentPlayerStats model |> .gold) < 1
+            }
+        , PurchaseButton.green
+            { icon = "/img/farm.svg"
+            , description = "Build Farm"
+            , cost = 2
+            , onClick = UpgradeCell Game.Action.BuildFarm
+            , disabled = (cell.towers + cell.farms) >= Game.Structure.maxUpgradeCount cell.structure || (currentPlayerStats model |> .gold) < 2
+            }
+        , PurchaseButton.green
+            { icon = "/img/tower.png"
+            , description = "Build Tower"
+            , cost = 2
+            , onClick = UpgradeCell Game.Action.BuildTower
+            , disabled = (cell.towers + cell.farms) >= Game.Structure.maxUpgradeCount cell.structure || (currentPlayerStats model |> .gold) < 2
+            }
+        ]
+
     else
-        (if
-            (Game.Cell.atLoc model.grid model.openCell |> .defBonus)
-                < Game.Structure.initDef (Game.Cell.atLoc model.grid model.openCell |> .structure)
-         then
-            PurchaseButton.green
-                { icon = "/img/repair-defense.png"
-                , description = "Repair Defense"
-                , cost = 1
-                , onClick = UpgradeCell Game.Action.RepairDefense
-                }
-
-         else
-            text ""
-        )
-            :: (if Game.Cell.atLoc model.grid model.openCell |> .structure >> (/=) Game.Structure.None then
-                    [ PurchaseButton.green
-                        { icon = "/img/farm.svg"
-                        , description = "Build Farm"
-                        , cost = 2
-                        , onClick = UpgradeCell Game.Action.BuildFarm
-                        }
-                    , PurchaseButton.green
-                        { icon = "/img/tower.png"
-                        , description = "Build Tower"
-                        , cost = 2
-                        , onClick = UpgradeCell Game.Action.BuildTower
-                        }
-                    ]
-
-                else
-                    []
-               )
+        []
 
 
 unitsInCellList : Game.Core.Model -> Html Msg
@@ -451,13 +451,14 @@ unitsInCellList model =
         )
 
 
-techTreeButton : TechDescription -> Html Msg
-techTreeButton tech =
+techTreeButton : Model -> TechDescription -> Html Msg
+techTreeButton model tech =
     PurchaseButton.yellow
         { icon = tech.icon
         , description = tech.name ++ ". " ++ tech.description
         , cost = tech.cost
         , onClick = ResearchTech tech
+        , disabled = (currentPlayerStats model |> .gold) < tech.cost
         }
 
 
