@@ -248,3 +248,29 @@ button {
         border-left: 20px solid var(--player-gray);
     }
 }
+
+/* Tooltip container */
+.purchase-button {
+    & .tooltip {
+        visibility: hidden;
+        & .tooltip-arrow {
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 20px solid black;
+
+            @media (max-width: 768px) {
+                top: -15px;
+                right: 40%;
+            }
+        }
+    }
+
+    &:hover .tooltip {
+        visibility: visible;
+    }
+}

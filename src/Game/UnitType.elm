@@ -139,37 +139,29 @@ threat unitType =
             4
 
 
-toString : UnitType -> { showCost : Bool } -> String
-toString unitType { showCost } =
-    let
-        costString =
-            if showCost then
-                " (" ++ String.fromInt (cost unitType) ++ ")"
-
-            else
-                ""
-    in
+toString : UnitType -> String
+toString unitType =
     case unitType of
         Soldier ->
-            "Soldier" ++ costString
+            "Soldier"
 
         Warrior ->
-            "Warrior" ++ costString
+            "Warrior"
 
         Archer ->
-            "Archer" ++ costString
+            "Archer"
 
         Knight ->
-            "Knight" ++ costString
+            "Knight"
 
         Rogue ->
-            "Rogue" ++ costString
+            "Rogue"
 
         Wizard ->
-            "Wizard" ++ costString
+            "Wizard"
 
         Priest ->
-            "Priest" ++ costString
+            "Priest"
 
 
 short : UnitType -> String

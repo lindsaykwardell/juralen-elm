@@ -33,8 +33,7 @@ type CombatStatus
 
 type MobileTab
     = UnitsTab
-    | TechTreeTab
-    | BuildOptionsTab
+    | PurchaseTab
     | DetailsTab
 
 

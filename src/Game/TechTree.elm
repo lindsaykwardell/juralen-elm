@@ -354,7 +354,7 @@ techDescription level =
         LevelTwo levelTwo ->
             case levelTwo of
                 BuildWarriors ->
-                    { name = "Build Warriors"
+                    { name = "Research Warriors"
                     , description = "Advanced unit that deals more damage."
                     , cost = techCost level
                     , tech = level
@@ -362,7 +362,7 @@ techDescription level =
                     }
 
                 BuildArchers ->
-                    { name = "Build Archers"
+                    { name = "Research Archers"
                     , description = "Advanced unit that attacks at range."
                     , cost = techCost level
                     , tech = level
@@ -372,7 +372,7 @@ techDescription level =
         LevelThree levelThree ->
             case levelThree of
                 BuildKnights ->
-                    { name = "Build Knights"
+                    { name = "Research Knights"
                     , description = "Mobile unit that deals high damage."
                     , cost = techCost level
                     , tech = level
@@ -380,7 +380,7 @@ techDescription level =
                     }
 
                 BuildRogues ->
-                    { name = "Build Rogues"
+                    { name = "Research Rogues"
                     , description = "Advanced unit with high damage, but is weaker."
                     , cost = techCost level
                     , tech = level
@@ -390,7 +390,7 @@ techDescription level =
         LevelFour levelFour ->
             case levelFour of
                 BuildWizards ->
-                    { name = "Build Wizards"
+                    { name = "Research Wizards"
                     , description = "Advanced unit with lower movement cost."
                     , cost = techCost level
                     , tech = level
@@ -398,7 +398,7 @@ techDescription level =
                     }
 
                 BuildPriests ->
-                    { name = "Build Priests"
+                    { name = "Research Priests"
                     , description = "Advanced unit that heals other units over time."
                     , cost = techCost level
                     , tech = level

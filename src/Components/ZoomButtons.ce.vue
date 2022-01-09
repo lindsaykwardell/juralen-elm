@@ -29,13 +29,13 @@ function getCurrentZoom() {
 function zoomIn() {
     const currentZoom = getCurrentZoom()
 
-    updateZoom(currentZoom + 15)
+    updateZoom(currentZoom + 5)
 }
 
 function zoomOut() {
     const currentZoom = getCurrentZoom()
 
-    updateZoom(currentZoom - 15)
+    updateZoom(currentZoom - 5)
 }
 
 function updateZoom(zoom) {

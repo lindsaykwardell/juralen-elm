@@ -90,7 +90,7 @@ unitListDisplay units focusedUnit =
                         )
                     ]
                     [ img [ class "w-8", src (Game.UnitType.icon unit.unitType), class "unit" ] []
-                    , text (Game.UnitType.toString unit.unitType { showCost = False })
+                    , text (Game.UnitType.toString unit.unitType)
                     , div [ class "h-2 flex w-full m-2" ]
                         [ div [ class "bg-green-500", style "width" (String.fromFloat (100 * (toFloat unit.health / maxHp)) ++ "%") ]
                             []

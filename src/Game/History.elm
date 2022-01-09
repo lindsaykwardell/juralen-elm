@@ -89,7 +89,7 @@ toString history =
         Action.BuildUnit unitType ->
             history.player
                 ++ " built a "
-                ++ UnitType.toString unitType { showCost = False }
+                ++ UnitType.toString unitType
                 ++ " in "
                 ++ (Loc.getX history.loc |> String.fromInt)
                 ++ ","
@@ -222,7 +222,7 @@ favoriteUnit history =
                         else
                             let
                                 strType =
-                                    UnitType.toString unitType { showCost = False }
+                                    UnitType.toString unitType
                             in
                             case Dict.get strType unitCounts of
                                 Nothing ->

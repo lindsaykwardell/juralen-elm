@@ -1,6 +1,8 @@
 module Game exposing (..)
 
 import Components.ZoomButtons exposing (zoomButtons)
+import FontAwesome.Icon as Icon
+import FontAwesome.Solid as Icon
 import Game.Action
 import Game.Cell
 import Game.CellType
@@ -19,7 +21,8 @@ import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Game.View.CombatModal as CombatModal
 import Game.View.Grid as Grid
-import Html exposing (Attribute, Html, br, button, div, img, text, h2)
+import Game.View.PurchaseButton as PurchaseButton
+import Html exposing (Attribute, Html, br, button, div, h2, img, span, text)
 import Html.Attributes exposing (class, disabled, src, title)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
@@ -143,19 +146,17 @@ view model =
                     UnitsTab ->
                         unitsInCellList model
 
-                    TechTreeTab ->
-                        div [] (researchTechList model)
-
-                    BuildOptionsTab ->
+                    PurchaseTab ->
                         div []
-                            (upgradeCellList model
-                                ++ buildableUnitList model
+                            (buildableUnitList model
+                                ++ researchTechList model
+                                ++ upgradeCellList model
                             )
 
                     DetailsTab ->
                         selectedCellCard model
                 ]
-            , div [ class "lg:hidden flex bg-gray-700 text-white p-1 fixed bottom-0 w-full" ]
+            , div [ class "lg:hidden flex bg-gray-700 text-white p-1 fixed bottom-[20px] w-full" ]
                 [ button
                     [ class
                         ("flex-1 p-1"
@@ -173,30 +174,16 @@ view model =
                 , button
                     [ class
                         ("flex-1 p-1"
-                            ++ (if model.mobileTab == TechTreeTab then
+                            ++ (if model.mobileTab == PurchaseTab then
                                     " bg-gray-500 "
 
                                 else
                                     ""
                                )
                         )
-                    , onClick (UpdateMobileTab TechTreeTab)
+                    , onClick (UpdateMobileTab PurchaseTab)
                     ]
-                    [ text "Research"
-                    ]
-                , button
-                    [ class
-                        ("flex-1 p-1"
-                            ++ (if model.mobileTab == BuildOptionsTab then
-                                    " bg-gray-500 "
-
-                                else
-                                    ""
-                               )
-                        )
-                    , onClick (UpdateMobileTab BuildOptionsTab)
-                    ]
-                    [ text "Build"
+                    [ text "Purchase"
                     ]
                 , button
                     [ class
@@ -216,7 +203,7 @@ view model =
             ]
         , if model.activePlayer == -1 then
             div [ class "mb-20 text-white w-11/12 m-auto border-t border-white my-4" ]
-                [ h2 [ class "text-3xl py-4" ] [ text "Game Overview"]
+                [ h2 [ class "text-3xl py-4" ] [ text "Game Overview" ]
                 , div [ class "h-[175px] md:h-[300px] p-3 border border-2 border-white" ]
                     [ Scoreboard.graph model
                     ]
@@ -348,22 +335,15 @@ buildableUnitList : Game.Core.Model -> List (Html Msg)
 buildableUnitList model =
     List.map
         (\buildableUnit ->
-            button
-                [ class "border border-blue-400 bg-blue-800 hover:bg-blue-200 py-2 px-3 m-2 w-16 h-16"
-                , onClick (BuildUnit buildableUnit)
-                ]
-                [ img
-                    [ src <|
-                        Game.UnitType.icon buildableUnit
-                    , title
-                        ("Build "
-                            ++ Game.UnitType.toString
-                                buildableUnit
-                                { showCost = True }
-                        )
-                    ]
-                    []
-                ]
+            PurchaseButton.blue
+                { icon = Game.UnitType.icon buildableUnit
+                , description =
+                    "Build "
+                        ++ Game.UnitType.toString
+                            buildableUnit
+                , cost = Game.UnitType.cost buildableUnit
+                , onClick = BuildUnit buildableUnit
+                }
         )
         (case Game.Cell.find model.grid model.selectedCell of
             Nothing ->
@@ -402,14 +382,29 @@ upgradeCellList model =
             (Game.Cell.atLoc model.grid model.selectedCell |> .defBonus)
                 < Game.Structure.initDef (Game.Cell.atLoc model.grid model.selectedCell |> .structure)
          then
-            button [ class "border border-green-400 bg-green-800 hover:bg-green-200 py-2 px-3 m-2 w-16 h-16", onClick (UpgradeCell Game.Action.RepairDefense) ] [ img [ src "/img/repair-defense.png", title "Repair Defense (1)" ] [] ]
+            PurchaseButton.green
+                { icon = "/img/repair-defense.png"
+                , description = "Repair Defense"
+                , cost = 1
+                , onClick = UpgradeCell Game.Action.RepairDefense
+                }
 
          else
             text ""
         )
             :: (if Game.Cell.atLoc model.grid model.selectedCell |> .structure >> (/=) Game.Structure.None then
-                    [ button [ class "border border-green-400 bg-green-800 hover:bg-green-200 py-2 px-3 m-2 w-16 h-16", onClick (UpgradeCell Game.Action.BuildFarm) ] [ img [ src "/img/farm.svg", title "Build Farm (2)" ] [] ]
-                    , button [ class "border border-green-400 bg-green-800 hover:bg-green-200 py-2 px-3 m-2 w-16 h-16", onClick (UpgradeCell Game.Action.BuildTower) ] [ img [ src "/img/tower.png", title "Build Tower (2)" ] [] ]
+                    [ PurchaseButton.green
+                        { icon = "/img/farm.svg"
+                        , description = "Build Farm"
+                        , cost = 2
+                        , onClick = UpgradeCell Game.Action.BuildFarm
+                        }
+                    , PurchaseButton.green
+                        { icon = "/img/tower.png"
+                        , description = "Build Tower"
+                        , cost = 2
+                        , onClick = UpgradeCell Game.Action.BuildTower
+                        }
                     ]
 
                 else
@@ -438,9 +433,9 @@ unitsInCellList model =
                         [ div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         , div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
                         ]
-                    , div [ class "w-1/3 text-left" ]
-                        [ text (Game.UnitType.toString unit.unitType { showCost = False })
-                        , text (String.repeat (Game.Level.currentLevel unit.level) "*")
+                    , div [ class "w-1/3 text-left flex items-center" ]
+                        [ span [ class "w-16" ] [ text (Game.UnitType.toString unit.unitType) ]
+                        , span [ class "text-yellow-400 text-xs flex" ] (List.repeat (Game.Level.currentLevel unit.level) (Icon.viewIcon Icon.star))
                         ]
                     , div [ class "flex-1" ] [ text "Atk: ", text (String.fromInt unit.attack) ]
                     , div [ class "flex-1" ] [ text "HP: ", text (String.fromInt unit.health) ]
@@ -453,11 +448,12 @@ unitsInCellList model =
 
 techTreeButton : TechDescription -> Html Msg
 techTreeButton tech =
-    button
-        [ class "text-white hover:text-black border border-yellow-400 bg-yellow-800 hover:bg-yellow-200 py-2 px-3 m-2 w-16 h-16"
-        , onClick (ResearchTech tech)
-        ]
-        [ img [ src tech.icon, title (tech.name ++ " (" ++ String.fromInt tech.cost ++ ") - " ++ tech.description) ] [] ]
+    PurchaseButton.yellow
+        { icon = tech.icon
+        , description = tech.name ++ ". " ++ tech.description
+        , cost = tech.cost
+        , onClick = ResearchTech tech
+        }
 
 
 historyView : List History -> Html Msg

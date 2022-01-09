@@ -337,7 +337,7 @@ view model =
                 Home ->
                     div [ class "sm:flex-grow flex flex-col justify-center items-center h-screen w-screen" ]
                         [ Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ]
-                        , div [ class "flex justify-center items-center gap-8 w-full h-full sm:h-[50vh]" ]
+                        , div [ class "flex justify-center items-center gap-8 w-full h-[70%] sm:h-[50vh]" ]
                             [ button
                                 [ class "border-2 bg-blue-600 hover:bg-blue-700 p-3 w-full xl:w-2/5 md:w-1/3 sm:w-2/3 h-full text-white text-3xl"
                                 , onClick (InitChangePage (Lobby (Tuple.first Lobby.init)))
