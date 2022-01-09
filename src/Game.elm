@@ -22,8 +22,8 @@ import Game.Update exposing (Msg(..), update)
 import Game.View.CombatModal as CombatModal
 import Game.View.Grid as Grid
 import Game.View.PurchaseButton as PurchaseButton
-import Html exposing (Attribute, Html, br, button, div, h2, img, span, text)
-import Html.Attributes exposing (class, disabled, src, title)
+import Html exposing (Attribute, Html, br, button, div, h2, span, text)
+import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 
@@ -395,7 +395,9 @@ upgradeCellList model =
             , onClick = UpgradeCell Game.Action.RepairDefense
             , disabled =
                 cell.defBonus
-                    >= Game.Structure.initDef cell.structure || (currentPlayerStats model |> .gold) < 1
+                    >= Game.Structure.initDef cell.structure
+                    || (currentPlayerStats model |> .gold)
+                    < 1
             }
         , PurchaseButton.green
             { icon = "/img/farm.svg"
