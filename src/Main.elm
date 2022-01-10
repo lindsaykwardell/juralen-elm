@@ -210,7 +210,24 @@ update msg model =
                             update ToggleSettings model
 
                         Game.EndGame ->
-                            update ToggleSettings { model | gameStatus = Core.CompletedGame }
+                            -- update ToggleSettings
+                            let
+                                newModel =
+                                    { model | gameStatus = Core.CompletedGame }
+                            in
+                            ( newModel
+                            , Cmd.batch
+                                [ Task.succeed Cmd.none |> Task.perform (\_ -> ToggleSettings)
+                                , playEndGameSfx
+                                    (Core.getPlayerRankings gameModel
+                                        |> List.sortBy (\rank -> rank.score)
+                                        |> List.reverse
+                                        |> List.head
+                                        |> Maybe.map (\player -> Game.Player.get gameModel.players player.playerId |> .isHuman)
+                                        |> Maybe.withDefault False
+                                    )
+                                ]
+                            )
 
                         _ ->
                             let
@@ -237,6 +254,9 @@ port playGameMusic : () -> Cmd msg
 
 
 port playThemeMusic : () -> Cmd msg
+
+
+port playEndGameSfx : Bool -> Cmd msg
 
 
 port toggleMute : () -> Cmd msg
