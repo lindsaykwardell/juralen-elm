@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
 @tailwind base;
 
 @tailwind components;
@@ -47,8 +49,9 @@
 }
 
 body {
-    font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
-        "Bitstream Vera Sans", "Helvetica Neue", sans-serif;
+    /* font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
+        "Bitstream Vera Sans", "Helvetica Neue", sans-serif; */
+    @apply font-vt323;
     margin: 0;
     text-align: center;
     background: var(--bg) none repeat scroll 0% 0%;
@@ -169,7 +172,7 @@ body {
 }
 
 h1 {
-    font-size: 2rem;
+    font-size: 4rem;
 }
 
 h2 {
@@ -201,7 +204,7 @@ hr {
 button {
     /* @apply py-2 px-3 m-2 rounded; */
 
-    transition: 0.3s;
+    /* transition: 0.3s; */
 
     &.build-unit {
         @apply bg-blue-500;

@@ -524,8 +524,8 @@ view model { startGame, returnHome, toMsg } =
             ]
             |> Html.map toMsg
         , div [ class "flex justify-center gap-4" ]
-            [ button [ class "bg-green-600 p-2 hover:bg-green-500 transition duration-150 mt-6", onClick (startGame model) ] [ text "Start Game" ]
-            , button [ class "bg-blue-600 p-2 hover:bg-blue-500 transition duration-150 mt-6 text-white", onClick returnHome ] [ text "Return to Home" ]
+            [ button [ class "bg-green-600 p-2 hover:bg-green-500 mt-6", onClick (startGame model) ] [ text "Start Game" ]
+            , button [ class "bg-blue-600 p-2 hover:bg-blue-500 mt-6 text-white", onClick returnHome ] [ text "Return to Home" ]
             ]
         ]
 
@@ -534,7 +534,7 @@ newPlayerInput : List PlayerColor -> NewPlayer -> Html Msg
 newPlayerInput selectedColors player =
     div [ class "flex flex-col lg:flex-row py-2 items-center" ]
         [ div [ class "flex-shrink mr-3" ]
-            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 hover:bg-red-500 text-white transition duration-200", onClick (RemovePlayer player.id) ]
+            [ button [ class "bg-gray-700 border-red-500 border-2 py-1 px-1 m-2 lg:m-0 hover:bg-red-500 text-white", onClick (RemovePlayer player.id) ]
                 [ text "Remove Player" ]
             ]
         , div [ class "flex-grow w-full lg:w-auto" ] [ input [ class "p-2 w-full", type_ "text", value player.name, onInput (UpdateName player.id) ] [] ]

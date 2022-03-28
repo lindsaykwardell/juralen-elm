@@ -58,7 +58,7 @@ view model =
                     text ""
                 , if combatEnded then
                     div [ class "text-center" ]
-                        [ button [ class "px-6 py-2 bg-gray-700 hover:bg-gray-800 transition duration-50", onClick (GotCombatMsg Combat.ExitCombat) ] [ text "Close" ] ]
+                        [ button [ class "px-6 py-2 bg-gray-700 hover:bg-gray-800", onClick (GotCombatMsg Combat.ExitCombat) ] [ text "Close" ] ]
 
                   else
                     text ""

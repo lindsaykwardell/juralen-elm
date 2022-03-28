@@ -16,8 +16,9 @@ module.exports = {
                 "terrain-plains": "rgb(155, 118, 83)",
             },
             fontFamily: {
-              stoke: "'Stoke', serif"
-            }
+                stoke: "'Stoke', serif",
+                vt323: ["VT323", "monospace"],
+            },
         },
     },
     plugins: [],

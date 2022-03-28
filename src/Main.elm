@@ -350,13 +350,13 @@ view model =
             [ case model.page of
                 Splash ->
                     div []
-                        [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ], hr [] [] ]
+                        [ div [ class "fixed h-screen w-screen flex flex-col justify-center items-center bg-black-75" ] [ hr [] [], Html.h1 [ class "text-white my-4" ] [ text "JURALEN" ], hr [] [] ]
                         , div [ class "splash" ] []
                         ]
 
                 Home ->
                     div [ class "sm:flex-grow flex flex-col justify-center items-center h-screen w-screen" ]
-                        [ Html.h1 [ class "text-white font-stoke my-4" ] [ text "JURALEN" ]
+                        [ Html.h1 [ class "text-white my-4" ] [ text "JURALEN" ]
                         , div [ class "flex justify-center items-center gap-8 w-full h-[70%] sm:h-[50vh]" ]
                             [ button
                                 [ class "border-2 bg-blue-600 hover:bg-blue-700 p-3 w-full xl:w-2/5 md:w-1/3 sm:w-2/3 h-full text-white text-3xl"
