@@ -1,15 +1,14 @@
 module Game.View.Grid exposing (..)
 
 import Game.Cell exposing (Cell)
-import Game.Loc exposing (Loc)
 import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
+import Game.Loc exposing (Loc)
 import Game.Unit exposing (Unit)
 import Game.View.Cell as Cell
 import Html exposing (Html, div, table, tr)
 import Html.Attributes exposing (class)
-import Html.Lazy exposing (lazy)
-import Html.Lazy exposing (lazy6)
+import Html.Lazy exposing (lazy, lazy6)
 
 
 view :
@@ -38,12 +37,11 @@ view grid { isInRange, selectedCell, getCellColor, onCellClick, unitsInCell, sel
                                     (getCellColor cell)
                                     (onCellClick cell)
                                     (unitsInCell cell)
-                                    (selectedUnits)
-                                
+                                    selectedUnits
                             )
                             row
                         )
                 )
-                grid
+                (Game.Grid.toMatrix grid)
             )
         ]

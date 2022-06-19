@@ -7,6 +7,7 @@ import Game.Action
 import Game.Cell
 import Game.CellType
 import Game.Core exposing (..)
+import Game.Grid
 import Game.History as History exposing (History)
 import Game.Level
 import Game.Loc as Loc
@@ -26,6 +27,7 @@ import Html exposing (Attribute, Html, br, button, div, h2, span, text)
 import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
+import Sort.Dict
 
 
 init :
@@ -39,7 +41,7 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
     update InitializeScenario
         { nextId = 1
         , turn = 0
-        , grid = []
+        , grid = Sort.Dict.empty Game.Grid.sorter
         , openCell = Loc.at 0 0
         , selectedCell = Loc.at 0 0
         , players = []
@@ -264,7 +266,7 @@ selectedCellCard model =
         [ div
             [ class
                 ("p-3 "
-                    ++ (case Game.Cell.find model.grid model.openCell of
+                    ++ (case Sort.Dict.get model.openCell model.grid of
                             Nothing ->
                                 ""
 
@@ -290,7 +292,7 @@ selectedCellCard model =
             , div [ class "flex" ]
                 [ div [ class "flex-1" ]
                     [ text
-                        (case Game.Cell.find model.grid model.openCell of
+                        (case Sort.Dict.get model.openCell model.grid of
                             Nothing ->
                                 ""
 
@@ -307,7 +309,7 @@ selectedCellCard model =
                     ]
                 , div [ class "flex-1 italic" ]
                     [ text
-                        (case Game.Cell.find model.grid model.openCell of
+                        (case Sort.Dict.get model.openCell model.grid of
                             Nothing ->
                                 "Not Controlled"
 
@@ -326,11 +328,11 @@ selectedCellCard model =
                 ]
             , div [ class "flex" ]
                 [ div [ class "flex-1" ]
-                    [ text ("Defense Bonus: " ++ String.fromInt (Game.Cell.atLoc model.grid model.openCell |> .defBonus)) ]
+                    [ text ("Defense Bonus: " ++ String.fromInt (Sort.Dict.get model.openCell model.grid |> Maybe.map .defBonus |> Maybe.withDefault 0)) ]
                 , div [ class "flex-1" ]
-                    [ text ("Farms: " ++ String.fromInt (Game.Cell.atLoc model.grid model.openCell |> .farms)) ]
+                    [ text ("Farms: " ++ String.fromInt (Sort.Dict.get model.openCell model.grid |> Maybe.map .farms |> Maybe.withDefault 0)) ]
                 , div [ class "flex-1" ]
-                    [ text ("Towers: " ++ String.fromInt (Game.Cell.atLoc model.grid model.openCell |> .towers)) ]
+                    [ text ("Towers: " ++ String.fromInt (Sort.Dict.get model.openCell model.grid |> Maybe.map .towers |> Maybe.withDefault 0)) ]
                 ]
             ]
         ]
@@ -351,7 +353,7 @@ buildableUnitList model =
                 , disabled = Game.UnitType.cost buildableUnit > (currentPlayerStats model |> .gold)
                 }
         )
-        (case Game.Cell.find model.grid model.openCell of
+        (case Sort.Dict.get model.openCell model.grid of
             Nothing ->
                 []
 
@@ -380,43 +382,44 @@ researchTechList model =
 
 upgradeCellList : Game.Core.Model -> List (Html Msg)
 upgradeCellList model =
-    let
-        cell =
-            Game.Cell.atLoc model.grid model.openCell
-    in
-    if cell.controlledBy /= Just model.activePlayer then
-        []
+    Sort.Dict.get model.openCell model.grid
+        |> Maybe.map
+            (\cell ->
+                if cell.controlledBy /= Just model.activePlayer then
+                    []
 
-    else if cell.structure /= Game.Structure.None then
-        [ PurchaseButton.green
-            { icon = "/img/repair-defense.png"
-            , description = "Repair Defense"
-            , cost = 1
-            , onClick = UpgradeCell Game.Action.RepairDefense
-            , disabled =
-                cell.defBonus
-                    >= Game.Structure.initDef cell.structure
-                    || (currentPlayerStats model |> .gold)
-                    < 1
-            }
-        , PurchaseButton.green
-            { icon = "/img/farm.svg"
-            , description = "Build Farm"
-            , cost = 2
-            , onClick = UpgradeCell Game.Action.BuildFarm
-            , disabled = (cell.towers + cell.farms) >= Game.Structure.maxUpgradeCount cell.structure || (currentPlayerStats model |> .gold) < 2
-            }
-        , PurchaseButton.green
-            { icon = "/img/tower.png"
-            , description = "Build Tower"
-            , cost = 2
-            , onClick = UpgradeCell Game.Action.BuildTower
-            , disabled = (cell.towers + cell.farms) >= Game.Structure.maxUpgradeCount cell.structure || (currentPlayerStats model |> .gold) < 2
-            }
-        ]
+                else if cell.structure /= Game.Structure.None then
+                    [ PurchaseButton.green
+                        { icon = "/img/repair-defense.png"
+                        , description = "Repair Defense"
+                        , cost = 1
+                        , onClick = UpgradeCell Game.Action.RepairDefense
+                        , disabled =
+                            cell.defBonus
+                                >= Game.Structure.initDef cell.structure
+                                || (currentPlayerStats model |> .gold)
+                                < 1
+                        }
+                    , PurchaseButton.green
+                        { icon = "/img/farm.svg"
+                        , description = "Build Farm"
+                        , cost = 2
+                        , onClick = UpgradeCell Game.Action.BuildFarm
+                        , disabled = (cell.towers + cell.farms) >= Game.Structure.maxUpgradeCount cell.structure || (currentPlayerStats model |> .gold) < 2
+                        }
+                    , PurchaseButton.green
+                        { icon = "/img/tower.png"
+                        , description = "Build Tower"
+                        , cost = 2
+                        , onClick = UpgradeCell Game.Action.BuildTower
+                        , disabled = (cell.towers + cell.farms) >= Game.Structure.maxUpgradeCount cell.structure || (currentPlayerStats model |> .gold) < 2
+                        }
+                    ]
 
-    else
-        []
+                else
+                    []
+            )
+        |> Maybe.withDefault []
 
 
 unitsInCellList : Game.Core.Model -> Html Msg

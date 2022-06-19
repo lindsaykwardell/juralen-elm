@@ -1,7 +1,7 @@
 module Game.Core exposing (..)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
-import Game.Cell exposing (Cell, getBorderCells, getGroupBorderingPlayers, groupNeighbors, ofType)
+import Game.Cell exposing (Cell, groupNeighbors)
 import Game.CellType
 import Game.Combat
 import Game.Grid exposing (Grid)
@@ -17,6 +17,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 import Process
+import Sort.Dict
 import Task
 
 
@@ -223,21 +224,16 @@ isInRange model cell =
 
 allCellsInRange : Model -> List Cell
 allCellsInRange model =
-    List.foldl
-        (\row collection ->
-            List.foldl
-                (\cell cells ->
-                    if isInRange model cell then
-                        cell :: cells
+    Sort.Dict.toList model.grid
+        |> List.foldl
+            (\( _, cell ) cells ->
+                if isInRange model cell then
+                    cell :: cells
 
-                    else
-                        cells
-                )
-                collection
-                row
-        )
-        []
-        model.grid
+                else
+                    cells
+            )
+            []
 
 
 delay : Float -> msg -> Cmd msg
@@ -251,7 +247,7 @@ targetCellIsBordering model cell =
     let
         borderingCells : List (Maybe Cell)
         borderingCells =
-            getBorderCells model.grid cell.loc
+            Game.Grid.getBorderCells model.grid cell.loc
     in
     List.filter
         (\borderCell ->
@@ -265,7 +261,7 @@ targetCellIsBordering model cell =
                             let
                                 borderingForests : List (Maybe Cell)
                                 borderingForests =
-                                    getBorderCells model.grid cell.loc
+                                    Game.Grid.getBorderCells model.grid cell.loc
                                         |> List.filter
                                             (\maybeCell ->
                                                 case maybeCell of
@@ -285,9 +281,9 @@ targetCellIsBordering model cell =
 
                                                 Just f ->
                                                     (model.grid
-                                                        |> ofType Game.CellType.Forest
+                                                        |> Game.Grid.ofType Game.CellType.Forest
                                                         |> groupNeighbors
-                                                        |> getGroupBorderingPlayers model.grid f.loc
+                                                        |> Game.Grid.getGroupBorderingPlayers model.grid f.loc
                                                     )
                                                         ++ players
                                         )
@@ -319,9 +315,9 @@ targetCellIsBordering model cell =
                                     let
                                         borderingPlayers =
                                             model.grid
-                                                |> ofType c.cellType
+                                                |> Game.Grid.ofType c.cellType
                                                 |> groupNeighbors
-                                                |> getGroupBorderingPlayers model.grid cell.loc
+                                                |> Game.Grid.getGroupBorderingPlayers model.grid cell.loc
                                     in
                                     List.any
                                         (\player ->

@@ -13,6 +13,7 @@ import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
 import List.Extra as List
+import Sort.Dict
 
 
 
@@ -52,7 +53,7 @@ analyzeUpgrades model =
         targetCells =
             List.filter
                 (\cell -> cell.controlledBy == Just model.activePlayer && cell.structure /= Structure.None)
-                (List.foldl (\row rows -> row ++ rows) [] model.grid)
+                (model.grid |> Sort.Dict.toList |> List.map Tuple.second)
 
         -- levelOneTech : Maybe TechTree.LevelOne
         -- levelOneTech =
@@ -130,18 +131,15 @@ analyzeMoves model =
         cellsWithUnits : List Cell
         cellsWithUnits =
             model.grid
+                |> Sort.Dict.toList
+                |> List.map Tuple.second
                 |> List.foldl
-                    (\row collection ->
-                        List.foldl
-                            (\cell cells ->
-                                if Game.Unit.inCell myUnits cell.loc /= [] then
-                                    cell :: cells
+                    (\cell cells ->
+                        if Game.Unit.inCell myUnits cell.loc /= [] then
+                            cell :: cells
 
-                                else
-                                    cells
-                            )
-                            collection
-                            row
+                        else
+                            cells
                     )
                     []
     in
@@ -226,7 +224,9 @@ analyzeBuildUnits model =
     let
         cellsWithStructures : List Cell
         cellsWithStructures =
-            List.foldl (\row collection -> row ++ collection) [] model.grid
+            model.grid
+                |> Sort.Dict.toList
+                |> List.map Tuple.second
                 |> List.filter
                     (\cell ->
                         cell.structure
@@ -301,7 +301,8 @@ scoreOption model option =
             Action.Move units toLoc ->
                 let
                     targetCell =
-                        Game.Cell.atLoc model.grid toLoc
+                        Sort.Dict.get toLoc model.grid
+                            |> Maybe.withDefault Game.Cell.empty
 
                     isAttack =
                         case targetCell.controlledBy of
@@ -626,7 +627,7 @@ scoreOption model option =
             Action.Upgrade upgradeType ->
                 let
                     cell =
-                        Game.Cell.atLoc model.grid option.loc
+                        Sort.Dict.get option.loc model.grid |> Maybe.withDefault Game.Cell.empty
                 in
                 case upgradeType of
                     Action.RepairDefense ->

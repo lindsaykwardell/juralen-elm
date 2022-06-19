@@ -109,57 +109,6 @@ empty =
     }
 
 
-find : List (List Cell) -> Loc -> Maybe Cell
-find grid loc =
-    let
-        findInRow : List (List Cell) -> Maybe Cell
-        findInRow rows =
-            case rows of
-                [] ->
-                    Nothing
-
-                row :: rest ->
-                    case List.find (\cell -> cell.loc == loc) row of
-                        Nothing ->
-                            findInRow rest
-
-                        found ->
-                            found
-    in
-    findInRow grid
-
-
-atLoc : List (List Cell) -> Loc -> Cell
-atLoc cellList loc =
-    Maybe.withDefault empty (find cellList loc)
-
-
-ofType : CellType -> List (List Cell) -> List Cell
-ofType cellType grid =
-    List.filter
-        (\cell -> cell.cellType == cellType)
-        (List.concat grid)
-
-
-validStartingCell : List (List Cell) -> Loc -> Maybe Cell
-validStartingCell grid loc =
-    Maybe.andThen
-        (\row ->
-            List.head
-                (List.filter (\innerCell -> innerCell.loc == loc) row)
-        )
-        (List.head
-            (List.filter
-                (\row ->
-                    List.length
-                        (List.filter (\innerCell -> innerCell.loc == loc && hasStructure innerCell == False) row)
-                        > 0
-                )
-                grid
-            )
-        )
-
-
 hasStructure : Cell -> Bool
 hasStructure cell =
     cell.structure /= Structure.None
@@ -189,37 +138,6 @@ getColorClass cell players =
             Game.Player.get players playerId
                 |> .color
                 |> Game.PlayerColor.toClass
-
-
-getBorderCells : List (List Cell) -> Loc -> List (Maybe Cell)
-getBorderCells grid loc =
-    let
-        north =
-            Loc.diff loc 0 -1
-
-        south =
-            Loc.diff loc 0 1
-
-        east =
-            Loc.diff loc 1 0
-
-        west =
-            Loc.diff loc -1 0
-    in
-    [ find grid north
-    , find grid south
-    , find grid east
-    , find grid west
-    ]
-
-
-getBorderingPlayers : List (List Cell) -> Loc -> List (Maybe Int)
-getBorderingPlayers grid loc =
-    let
-        borderingCells =
-            getBorderCells grid loc
-    in
-    getBorderingPlayer borderingCells []
 
 
 getBorderingPlayer : List (Maybe Cell) -> List (Maybe Int) -> List (Maybe Int)
@@ -301,18 +219,3 @@ groupNeighbors cells =
 getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
 getGroup groups loc =
     List.find (\g -> List.find (\cell -> cell.loc == loc) g /= Nothing) groups
-
-
-getGroupBorderingPlayers : List (List Cell) -> Loc -> List (List Cell) -> List (Maybe Int)
-getGroupBorderingPlayers grid loc groups =
-    case getGroup groups loc of
-        Nothing ->
-            []
-
-        Just cells ->
-            List.foldl
-                (\cell players ->
-                    getBorderingPlayers grid cell.loc ++ players
-                )
-                []
-                cells

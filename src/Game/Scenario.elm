@@ -14,6 +14,7 @@ import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 import List.Extra as List
 import Random
+import Sort.Dict
 import Task
 
 
@@ -173,7 +174,7 @@ init flags =
     , newPlayers = flags.players
     , players = []
     , units = []
-    , grid = []
+    , grid = Sort.Dict.empty Game.Grid.sorter
     , nextId = 1
     , activePlayerId = 0
     }
@@ -212,19 +213,8 @@ update msg scenario =
                     if finished == True then
                         scenario.grid
 
-                    else if scenario.currentY == 0 then
-                        scenario.grid ++ [ [ Game.Cell.generate loc roll ] ]
-
                     else
-                        List.map
-                            (\row ->
-                                if List.length row > scenario.maxY then
-                                    row
-
-                                else
-                                    row ++ [ Game.Cell.generate loc roll ]
-                            )
-                            scenario.grid
+                        Sort.Dict.insert loc (Game.Cell.generate loc roll) scenario.grid
 
                 newScenario =
                     { scenario
@@ -305,7 +295,7 @@ update msg scenario =
             let
                 cell : Maybe Cell
                 cell =
-                    Game.Cell.validStartingCell scenario.grid loc
+                    Game.Grid.validStartingCell scenario.grid loc
             in
             case cell of
                 Nothing ->
@@ -414,7 +404,8 @@ isEndConditionReached config model =
             onePlayerLeft
 
         ScoreReached winningScore ->
-            onePlayerLeft || config.getPlayerScore config.nextActivePlayer.id
+            onePlayerLeft
+                || config.getPlayerScore config.nextActivePlayer.id
                 >= winningScore
 
         NumberOfTurns numberOfTurns ->

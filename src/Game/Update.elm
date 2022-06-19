@@ -18,6 +18,7 @@ import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
 import Json.Encode as Encode
+import Sort.Dict
 
 
 port analyze : String -> Cmd msg
@@ -314,7 +315,7 @@ update msg model =
                             , defender = Game.Unit.empty
                             , attackingPlayer = Game.Player.get modelWithRecordedAction.players modelWithRecordedAction.activePlayer
                             , defendingPlayer =
-                                case Game.Cell.find modelWithRecordedAction.grid modelWithRecordedAction.selectedCell of
+                                case Sort.Dict.get modelWithRecordedAction.selectedCell modelWithRecordedAction.grid of
                                     Nothing ->
                                         Game.Player.empty
 
@@ -328,7 +329,7 @@ update msg model =
                             , whoGoesFirst = Game.Combat.Attacker
                             , defBonus = 0
                             , cell =
-                                Game.Cell.find modelWithRecordedAction.grid modelWithRecordedAction.selectedCell
+                                Sort.Dict.get modelWithRecordedAction.selectedCell modelWithRecordedAction.grid
                                     |> Maybe.withDefault Game.Cell.empty
                             }
 
@@ -405,7 +406,7 @@ update msg model =
 
                             cell : Maybe Cell
                             cell =
-                                Game.Cell.find model.grid model.selectedCell
+                                Sort.Dict.get model.selectedCell model.grid
 
                             grid : Grid
                             grid =
@@ -447,7 +448,7 @@ update msg model =
 
                             cell : Maybe Cell
                             cell =
-                                Game.Cell.find model.grid model.selectedCell
+                                Sort.Dict.get model.selectedCell model.grid
 
                             grid : Grid
                             grid =
@@ -489,7 +490,7 @@ update msg model =
 
                             cell : Maybe Cell
                             cell =
-                                Game.Cell.find model.grid model.selectedCell
+                                Sort.Dict.get model.selectedCell model.grid
 
                             grid : Grid
                             grid =
@@ -560,45 +561,73 @@ update msg model =
                                     else
                                         combat.defendingPlayer
 
-                                updatedGrid : List (List Cell)
+                                updatedGrid : Grid
                                 updatedGrid =
-                                    List.map
-                                        (\row ->
-                                            List.map
-                                                (\cell ->
-                                                    if cell.loc == model.selectedCell then
-                                                        let
-                                                            conquered =
-                                                                cell.controlledBy /= Just winner.id
-                                                        in
-                                                        { cell
-                                                            | controlledBy = Just winner.id
-                                                            , farms =
-                                                                if conquered then
-                                                                    0
+                                    Sort.Dict.update model.selectedCell
+                                        (Maybe.map
+                                            (\cell ->
+                                                let
+                                                    conquered =
+                                                        cell.controlledBy /= Just winner.id
+                                                in
+                                                { cell
+                                                    | controlledBy = Just winner.id
+                                                    , farms =
+                                                        if conquered then
+                                                            0
 
-                                                                else
-                                                                    cell.farms
-                                                            , towers =
-                                                                if conquered then
-                                                                    0
+                                                        else
+                                                            cell.farms
+                                                    , towers =
+                                                        if conquered then
+                                                            0
 
-                                                                else
-                                                                    cell.towers
-                                                            , defBonus =
-                                                                if combat.defBonus < 0 then
-                                                                    0
+                                                        else
+                                                            cell.towers
+                                                    , defBonus =
+                                                        if combat.defBonus < 0 then
+                                                            0
 
-                                                                else
-                                                                    combat.defBonus
-                                                        }
-
-                                                    else
-                                                        cell
-                                                )
-                                                row
+                                                        else
+                                                            combat.defBonus
+                                                }
+                                            )
                                         )
                                         model.grid
+
+                                -- List.map
+                                --     (\row ->
+                                --         List.map
+                                --             (\cell ->
+                                --                 if cell.loc == model.selectedCell then
+                                --                     let
+                                --                         conquered =
+                                --                             cell.controlledBy /= Just winner.id
+                                --                     in
+                                --                     { cell
+                                --                         | controlledBy = Just winner.id
+                                --                         , farms =
+                                --                             if conquered then
+                                --                                 0
+                                --                             else
+                                --                                 cell.farms
+                                --                         , towers =
+                                --                             if conquered then
+                                --                                 0
+                                --                             else
+                                --                                 cell.towers
+                                --                         , defBonus =
+                                --                             if combat.defBonus < 0 then
+                                --                                 0
+                                --                             else
+                                --                                 combat.defBonus
+                                --                     }
+                                --                 else
+                                --                     cell
+                                --             )
+                                --             row
+                                --     )
+                                --     model.grid
                             in
                             ( { model
                                 | units = newUnits
@@ -623,7 +652,7 @@ update msg model =
                             List.map (\unit -> unit.id) units
 
                         toCell =
-                            Game.Cell.find model.grid toLoc
+                            Sort.Dict.get toLoc model.grid
                     in
                     case toCell of
                         Nothing ->
@@ -638,7 +667,7 @@ update msg model =
                             List.map (\unit -> unit.id) units
 
                         toCell =
-                            Game.Cell.find model.grid toLoc
+                            Sort.Dict.get toLoc model.grid
                     in
                     case toCell of
                         Nothing ->
@@ -701,26 +730,24 @@ update msg model =
                 healedUnits =
                     healUnits capturedUnits priestLocs
 
-                capturedGrid : List (List Cell)
+                capturedGrid : Grid
                 capturedGrid =
-                    List.map
-                        (\row ->
-                            List.map
-                                (\cell ->
-                                    case cell.controlledBy of
-                                        Nothing ->
-                                            cell
+                    model.grid
+                        |> Sort.Dict.toList
+                        |> List.map
+                            (\( loc, cell ) ->
+                                case cell.controlledBy of
+                                    Nothing ->
+                                        ( loc, cell )
 
-                                        Just someone ->
-                                            if List.foldl (\player thisPlayer -> thisPlayer || someone == player.id) False deadPlayers then
-                                                { cell | controlledBy = Just model.activePlayer, farms = 0, towers = 0 }
+                                    Just someone ->
+                                        if List.foldl (\player thisPlayer -> thisPlayer || someone == player.id) False deadPlayers then
+                                            ( loc, { cell | controlledBy = Just model.activePlayer, farms = 0, towers = 0 } )
 
-                                            else
-                                                cell
-                                )
-                                row
-                        )
-                        model.grid
+                                        else
+                                            ( loc, cell )
+                            )
+                        |> Sort.Dict.fromList Game.Grid.sorter
 
                 newModel =
                     { model | activePlayer = nextActivePlayer.id, units = healedUnits, grid = capturedGrid }
