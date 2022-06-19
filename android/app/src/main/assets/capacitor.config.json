@@ -1,0 +1,11 @@
+{
+	"appId": "com.lindsaykwardell.juralen",
+	"appName": "Juralen",
+	"webDir": "./dist",
+	"bundledWebRuntime": false,
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 0
+		}
+	}
+}
