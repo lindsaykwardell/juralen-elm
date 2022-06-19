@@ -16,7 +16,7 @@ import Game.Scenario as Scenario
 import Game.Scoreboard as Scoreboard
 import Game.Structure
 import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
-import Game.Unit
+import Game.Unit exposing (controlledBy)
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Game.View.CombatModal as CombatModal
@@ -273,9 +273,12 @@ selectedCellCard model =
                                 Game.Cell.getColorClass openCell model.players
                        )
                     ++ (if
-                            Game.Player.get model.players model.activePlayer
-                                |> .color
-                                |> Game.PlayerColor.isDark
+                            Sort.Dict.get model.openCell model.grid
+                                |> Maybe.andThen .controlledBy
+                                |> Maybe.map (Game.Player.get model.players)
+                                |> Maybe.map .color
+                                |> Maybe.map Game.PlayerColor.isDark
+                                |> Maybe.withDefault False
                         then
                             " text-white"
 
