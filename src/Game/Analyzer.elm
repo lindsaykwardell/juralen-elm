@@ -452,6 +452,10 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                         -- -10
                                         -100
 
+                                    else if Game.Grid.townCountControlledBy model.grid playerId == 0 then
+                                        -- if the player has no towns, don't bother attacking (you'll inherit their stuff, no need to kill it)
+                                        -1000
+
                                     else
                                         abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
                                             + (if List.length (Game.Unit.inCell model.units targetCell.loc) > 0 then
