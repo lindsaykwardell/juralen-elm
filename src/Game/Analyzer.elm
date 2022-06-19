@@ -8,6 +8,7 @@ import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
 import Game.Grid exposing (ofType)
 import Game.Loc as Loc exposing (Loc)
 import Game.Option exposing (Option)
+import Game.Player exposing (Player)
 import Game.Structure as Structure
 import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)
@@ -162,87 +163,61 @@ analyzeMoves model =
         cellsInRangeDict =
             Sort.Dict.empty cellsInRangeSorter
     in
-    List.foldl
-        (\cell opt ->
-            case
-                ( List.head opt
-                , List.subsequences (Game.Unit.inCell myUnits cell.loc)
-                    |> List.foldl
-                        (\units combinations ->
-                            combinations ++ [ { unitOptions = units, cell = cell } ]
-                        )
-                        []
-                    |> List.foldl
-                        (\combination ( combinations, cellsInRange ) ->
-                            ( combination :: combinations
-                            , case
-                                Sort.Dict.get
-                                    ( combination.cell.loc
-                                    , List.length combination.unitOptions
-                                    )
-                                    cellsInRange
-                              of
-                                Nothing ->
-                                    allCellsInRange
-                                        { model
-                                            | selectedCell = combination.cell.loc
-                                            , selectedUnits = List.map (\unit -> unit.id) combination.unitOptions
-                                        }
-                                        |> (\cells ->
-                                                Sort.Dict.insert
-                                                    ( combination.cell.loc
-                                                    , List.length combination.unitOptions
-                                                    )
-                                                    cells
-                                                    cellsInRange
-                                           )
-
-                                Just _ ->
-                                    cellsInRange
-                            )
-                        )
-                        ( [], cellsInRangeDict )
-                    |> (\( combinations, cellsInRange ) ->
-                            List.map
-                                (\combination ->
-                                    getMoveOptions
-                                        (Sort.Dict.get
-                                            ( combination.cell.loc
-                                            , List.length combination.unitOptions
-                                            )
-                                            cellsInRange
-                                            |> Maybe.withDefault []
-                                        )
-                                        combination.cell.loc
-                                        combination.unitOptions
-                                )
-                                combinations
-                       )
-                    |> List.foldl (\options unitOption -> options ++ unitOption)
-                        []
-                    |> scoreOptions model
-                    |> List.filter (\option -> option.score > 0)
-                    |> sortByScore
-                    |> List.head
-                )
-            of
-                ( Nothing, Nothing ) ->
+    List.concatMap
+        (\cell ->
+            List.subsequences (Game.Unit.inCell myUnits cell.loc)
+                |> List.foldl
+                    (\units combinations ->
+                        combinations ++ [ { unitOptions = units, cell = cell } ]
+                    )
                     []
+                |> List.foldl
+                    (\combination ( combinations, cellsInRange ) ->
+                        ( combination :: combinations
+                        , case
+                            Sort.Dict.get
+                                ( combination.cell.loc
+                                , List.length combination.unitOptions
+                                )
+                                cellsInRange
+                          of
+                            Nothing ->
+                                allCellsInRange
+                                    { model
+                                        | selectedCell = combination.cell.loc
+                                        , selectedUnits = List.map (\unit -> unit.id) combination.unitOptions
+                                    }
+                                    |> (\cells ->
+                                            Sort.Dict.insert
+                                                ( combination.cell.loc
+                                                , List.length combination.unitOptions
+                                                )
+                                                cells
+                                                cellsInRange
+                                       )
 
-                ( Just option, Nothing ) ->
-                    [ option ]
-
-                ( Nothing, Just newOption ) ->
-                    [ newOption ]
-
-                ( Just option, Just newOption ) ->
-                    if option.score >= newOption.score then
-                        [ option ]
-
-                    else
-                        [ newOption ]
+                            Just _ ->
+                                cellsInRange
+                        )
+                    )
+                    ( [], cellsInRangeDict )
+                |> (\( combinations, cellsInRange ) ->
+                        List.concatMap
+                            (\combination ->
+                                getMoveOptions
+                                    (Sort.Dict.get
+                                        ( combination.cell.loc
+                                        , List.length combination.unitOptions
+                                        )
+                                        cellsInRange
+                                        |> Maybe.withDefault []
+                                    )
+                                    combination.cell.loc
+                                    combination.unitOptions
+                            )
+                            combinations
+                   )
         )
-        []
         cellsWithUnits
 
 
@@ -312,7 +287,7 @@ getUnitOptions stats cells options =
                             )
                             (List.filter
                                 (\unitType ->
-                                    Game.UnitType.cost unitType <= stats.gold && stats.units < stats.farms
+                                    Game.UnitType.cost unitType <= stats.gold && stats.units < stats.farms ()
                                 )
                                 (Structure.canBuild cell.structure stats.techTree)
                             )
@@ -322,11 +297,6 @@ getUnitOptions stats cells options =
 
 scoreOptions : Core.Model -> List Option -> List Option
 scoreOptions model options =
-    List.map (scoreOption model) options
-
-
-scoreOption : Core.Model -> Option -> Option
-scoreOption model option =
     let
         analyzer =
             Core.playerAnalyzer model.players model.activePlayer
@@ -346,6 +316,30 @@ scoreOption model option =
         livingPlayers =
             List.filter (\player -> not <| Game.Grid.townCountControlledBy model.grid player.id <= 0) model.players
     in
+    List.map
+        (scoreOption model
+            { analyzer = analyzer
+            , stats = stats
+            , isTopHalf = isTopHalf
+            , isBottomHalf = isBottomHalf
+            , livingPlayers = livingPlayers
+            }
+        )
+        options
+
+
+scoreOption :
+    Core.Model
+    ->
+        { analyzer : AnalyzerMode
+        , stats : PlayerStats
+        , isTopHalf : Bool
+        , isBottomHalf : Bool
+        , livingPlayers : List Player
+        }
+    -> Option
+    -> Option
+scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } option =
     if List.length livingPlayers <= 1 then
         { option | score = -1000 }
 
@@ -540,7 +534,7 @@ scoreOption model option =
                 option
 
             Action.Research research ->
-                if stats.gold <= research.cost || stats.farms == stats.units || analyzer == Passive then
+                if stats.gold <= research.cost || stats.farms () == stats.units || analyzer == Passive then
                     { option | score = -1000 }
 
                 else
@@ -663,7 +657,7 @@ scoreOption model option =
                                     { option
                                         | score =
                                             500
-                                                + (if stats.farms > 15 then
+                                                + (if stats.farms () > 15 then
                                                     500
 
                                                    else
@@ -691,7 +685,7 @@ scoreOption model option =
 
                                 else
                                     0
-                                        + (if stats.units < round (toFloat stats.farms / 2) then
+                                        + (if stats.units < round (toFloat (stats.farms ()) / 2) then
                                             -100
 
                                            else

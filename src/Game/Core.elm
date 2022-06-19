@@ -104,8 +104,8 @@ encoder model =
 type alias PlayerStats =
     { gold : Int
     , actions : Float
-    , farms : Int
-    , towns : Int
+    , farms : () -> Int
+    , towns : () -> Int
     , units : Int
     , techTree : TechTree
     }
@@ -120,8 +120,8 @@ playerStats : Model -> Int -> PlayerStats
 playerStats model playerId =
     { gold = Game.Player.get model.players playerId |> .resources |> .gold
     , actions = Game.Player.get model.players playerId |> .resources |> .actions
-    , farms = Game.Grid.farmCountControlledBy model.grid playerId
-    , towns = Game.Grid.townCountControlledBy model.grid playerId
+    , farms = \_ -> Game.Grid.farmCountControlledBy model.grid playerId
+    , towns = \_ -> Game.Grid.townCountControlledBy model.grid playerId
     , units = List.length (List.filter (\unit -> unit.controlledBy == playerId) model.units)
     , techTree = getPlayerTechTree model.players playerId
     }
@@ -148,7 +148,7 @@ getPlayerScore model playerId =
         stats =
             playerStats model playerId
     in
-    stats.farms + stats.towns + stats.units
+    stats.farms () + stats.towns () + stats.units
 
 
 getPlayerRankings : Model -> List PlayerScore
@@ -186,12 +186,13 @@ getPlayerTechTree players playerId =
 
 getMoveCost : Model -> Float
 getMoveCost model =
-    List.foldl
-        (\id cost ->
-            cost + Game.UnitType.moveCost (Game.Unit.fromId model.units id).unitType
-        )
-        0
-        model.selectedUnits
+    -- List.foldl
+    --     (\id cost ->
+    --         cost + Game.UnitType.moveCost (Game.Unit.fromId model.units id).unitType
+    --     )
+    --     0
+    --     model.selectedUnits
+    List.length model.selectedUnits |> toFloat
 
 
 canAfford : Model -> UnitType -> Bool
@@ -203,7 +204,7 @@ canAfford model unitType =
         unitCost =
             Game.UnitType.cost unitType
     in
-    stats.units < stats.farms && unitCost <= stats.gold
+    stats.units < stats.farms () && unitCost <= stats.gold
 
 
 isInRange : Model -> Cell -> Bool
@@ -224,16 +225,72 @@ isInRange model cell =
 
 allCellsInRange : Model -> List Cell
 allCellsInRange model =
-    Sort.Dict.toList model.grid
-        |> List.foldl
-            (\( _, cell ) cells ->
-                if isInRange model cell then
-                    cell :: cells
+    let
+        selectedLoc =
+            model.selectedCell
 
-                else
-                    cells
-            )
-            []
+        ( selectedX, selectedY ) =
+            Game.Loc.coords selectedLoc
+
+        allCellsFromDistance : Int -> List Cell -> List Cell
+        allCellsFromDistance distance cells =
+            allCellsAtDistance distance
+                |> (\newCells ->
+                        case newCells of
+                            [] ->
+                                cells
+
+                            _ ->
+                                allCellsFromDistance (distance + 1) (newCells ++ cells)
+                   )
+
+        allCellsAtDistance : Int -> List Cell
+        allCellsAtDistance distance =
+            let
+                minX =
+                    selectedX - distance
+
+                maxX =
+                    selectedX + distance
+
+                minY =
+                    selectedY - distance
+
+                maxY =
+                    selectedY + distance
+
+                xRange =
+                    List.range minX maxX
+
+                yRange =
+                    List.range minY maxY
+
+                locsAtDistance : List Loc
+                locsAtDistance =
+                    List.concat
+                        [ List.map (\y -> Game.Loc.at minX y) yRange
+                        , List.map (\y -> Game.Loc.at maxX y) yRange
+                        , List.map (\x -> Game.Loc.at x minY) xRange
+                        , List.map (\x -> Game.Loc.at x maxY) xRange
+                        ]
+            in
+            locsAtDistance
+                |> List.filterMap (\loc -> Sort.Dict.get loc model.grid)
+                |> List.filter (isInRange model)
+    in
+    allCellsFromDistance 1 []
+
+
+
+-- Sort.Dict.toList model.grid
+--     |> List.foldl
+--         (\( _, cell ) cells ->
+--             if isInRange model cell then
+--                 cell :: cells
+--             else
+--                 cells
+--         )
+--         []
 
 
 delay : Float -> msg -> Cmd msg

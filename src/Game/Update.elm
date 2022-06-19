@@ -783,12 +783,12 @@ gainResources : PlayerStats -> Resources -> Resources
 gainResources stats resources =
     let
         gold =
-            resources.gold + stats.farms
+            resources.gold + stats.farms ()
 
         actions =
             let
                 newActions =
-                    Basics.toFloat stats.towns + resources.actions
+                    Basics.toFloat (stats.towns ()) + resources.actions
             in
             3 + newActions
     in
