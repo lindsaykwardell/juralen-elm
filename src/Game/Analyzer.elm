@@ -5,7 +5,7 @@ import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell)
 import Game.CellType
 import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
-import Game.Grid
+import Game.Grid exposing (ofType)
 import Game.Loc as Loc exposing (Loc)
 import Game.Option exposing (Option)
 import Game.Structure as Structure
@@ -13,6 +13,7 @@ import Game.TechTree as TechTree exposing (TechLevel(..))
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
 import List.Extra as List
+import Sort
 import Sort.Dict
 
 
@@ -142,6 +143,24 @@ analyzeMoves model =
                             cells
                     )
                     []
+
+        cellsInRangeSorter : Sort.Sorter ( Loc, Int )
+        cellsInRangeSorter =
+            Sort.custom
+                (\( _, unitCountA ) ( _, unitCountB ) ->
+                    if unitCountA > unitCountB then
+                        GT
+
+                    else if unitCountA < unitCountB then
+                        LT
+
+                    else
+                        EQ
+                )
+
+        cellsInRangeDict : Sort.Dict.Dict ( Loc, Int ) (List Cell)
+        cellsInRangeDict =
+            Sort.Dict.empty cellsInRangeSorter
     in
     List.foldl
         (\cell opt ->
@@ -153,10 +172,52 @@ analyzeMoves model =
                             combinations ++ [ { unitOptions = units, cell = cell } ]
                         )
                         []
-                    |> List.map
-                        (\combination ->
-                            getMoveOptions model combination.cell.loc combination.unitOptions
+                    |> List.foldl
+                        (\combination ( combinations, cellsInRange ) ->
+                            ( combination :: combinations
+                            , case
+                                Sort.Dict.get
+                                    ( combination.cell.loc
+                                    , List.length combination.unitOptions
+                                    )
+                                    cellsInRange
+                              of
+                                Nothing ->
+                                    allCellsInRange
+                                        { model
+                                            | selectedCell = combination.cell.loc
+                                            , selectedUnits = List.map (\unit -> unit.id) combination.unitOptions
+                                        }
+                                        |> (\cells ->
+                                                Sort.Dict.insert
+                                                    ( combination.cell.loc
+                                                    , List.length combination.unitOptions
+                                                    )
+                                                    cells
+                                                    cellsInRange
+                                           )
+
+                                Just _ ->
+                                    cellsInRange
+                            )
                         )
+                        ( [], cellsInRangeDict )
+                    |> (\( combinations, cellsInRange ) ->
+                            List.map
+                                (\combination ->
+                                    getMoveOptions
+                                        (Sort.Dict.get
+                                            ( combination.cell.loc
+                                            , List.length combination.unitOptions
+                                            )
+                                            cellsInRange
+                                            |> Maybe.withDefault []
+                                        )
+                                        combination.cell.loc
+                                        combination.unitOptions
+                                )
+                                combinations
+                       )
                     |> List.foldl (\options unitOption -> options ++ unitOption)
                         []
                     |> scoreOptions model
@@ -185,16 +246,8 @@ analyzeMoves model =
         cellsWithUnits
 
 
-getMoveOptions : Model -> Loc -> List Unit -> List Option
-getMoveOptions model fromLoc units =
-    let
-        cellsInRange =
-            allCellsInRange
-                { model
-                    | selectedCell = fromLoc
-                    , selectedUnits = List.map (\unit -> unit.id) units
-                }
-    in
+getMoveOptions : List Cell -> Loc -> List Unit -> List Option
+getMoveOptions cellsInRange fromLoc units =
     List.map
         (\cell ->
             { loc = fromLoc
