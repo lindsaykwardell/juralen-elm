@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Stoke:wght@300&display=swap');
 
 @tailwind base;
 
@@ -51,7 +52,8 @@
 body {
     /* font-family: "Source Sans Pro", "Trebuchet MS", "Lucida Grande",
         "Bitstream Vera Sans", "Helvetica Neue", sans-serif; */
-    @apply font-vt323;
+    @apply font-stoke;
+    font-size: 0.85rem;
     margin: 0;
     text-align: center;
     background: var(--bg) none repeat scroll 0% 0%;
@@ -171,8 +173,12 @@ body {
     }
 }
 
+h1, h2, h3, h4, h5, h6 {
+    @apply font-kaushan;
+}
+
 h1 {
-    font-size: 4rem;
+    font-size: 2rem;
 }
 
 h2 {
@@ -202,9 +208,9 @@ hr {
 }
 
 button {
-    /* @apply py-2 px-3 m-2 rounded; */
+    @apply py-1 px-2 rounded;
 
-    /* transition: 0.3s; */
+    transition: 0.3s;
 
     &.build-unit {
         @apply bg-blue-500;

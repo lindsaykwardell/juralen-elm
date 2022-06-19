@@ -186,6 +186,6 @@ statCard { size, title, content } =
                     "lg:w-1/4 md:w-1/3"
     in
     div [ class <| cardClass ++ " w-full bg-gray-600 p-3 flex flex-col gap-3" ]
-        [ span [ class "text-2xl" ] [ text title ]
+        [ span [ class "text-xl" ] [ text title ]
         , content
         ]

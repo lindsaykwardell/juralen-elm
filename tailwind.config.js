@@ -17,7 +17,8 @@ module.exports = {
             },
             fontFamily: {
                 stoke: "'Stoke', serif",
-                vt323: ["VT323", "monospace"],
+                'kaushan': "'Kaushan Script', cursive",
+                // vt323: ["VT323", "monospace"],
             },
         },
     },
