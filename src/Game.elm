@@ -375,7 +375,7 @@ buildableUnitList model =
 
 researchTechList : Game.Core.Model -> List (Html Msg)
 researchTechList model =
-    if model.activePlayer == -1 then
+    if not <| .isHuman <| Game.Player.get model.players model.activePlayer then
         []
 
     else
