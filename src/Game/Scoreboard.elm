@@ -20,7 +20,7 @@ view model =
                 0
                 model.players
     in
-    div [ class "flex w-5/6 m-2 h-8" ]
+    div [ class "flex w-full m-2 h-8" ]
         (List.filterMap
             (\player ->
                 let

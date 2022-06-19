@@ -42,6 +42,8 @@ type Msg
     | SaveGame
     | OpenSettings
     | UpdateMobileTab MobileTab
+    | ZoomIn
+    | ZoomOut
     | NoOp
 
 
@@ -594,40 +596,6 @@ update msg model =
                                             )
                                         )
                                         model.grid
-
-                                -- List.map
-                                --     (\row ->
-                                --         List.map
-                                --             (\cell ->
-                                --                 if cell.loc == model.selectedCell then
-                                --                     let
-                                --                         conquered =
-                                --                             cell.controlledBy /= Just winner.id
-                                --                     in
-                                --                     { cell
-                                --                         | controlledBy = Just winner.id
-                                --                         , farms =
-                                --                             if conquered then
-                                --                                 0
-                                --                             else
-                                --                                 cell.farms
-                                --                         , towers =
-                                --                             if conquered then
-                                --                                 0
-                                --                             else
-                                --                                 cell.towers
-                                --                         , defBonus =
-                                --                             if combat.defBonus < 0 then
-                                --                                 0
-                                --                             else
-                                --                                 combat.defBonus
-                                --                     }
-                                --                 else
-                                --                     cell
-                                --             )
-                                --             row
-                                --     )
-                                --     model.grid
                             in
                             ( { model
                                 | units = newUnits
@@ -691,15 +659,6 @@ update msg model =
         PerformAiTurn ->
             ( model, model |> Core.encoder |> Encode.encode 0 |> analyze )
 
-        -- let
-        --     analysisResults =
-        --         analyze model
-        -- in
-        -- case analysisResults of
-        --     Nothing ->
-        --         update EndTurn model
-        --     Just option ->
-        --         update (PerformAction option) model
         EndTurn ->
             let
                 livingPlayers : List Player
@@ -765,6 +724,12 @@ update msg model =
 
         UpdateMobileTab tab ->
             ( { model | mobileTab = tab }, Cmd.none )
+
+        ZoomIn ->
+            ( model, zoomIn () )
+
+        ZoomOut ->
+            ( model, zoomOut () )
 
         NoOp ->
             ( model, Cmd.none )
@@ -932,3 +897,9 @@ recordAction action model =
 
 
 port saveGame : String -> Cmd msg
+
+
+port zoomIn : () -> Cmd msg
+
+
+port zoomOut : () -> Cmd msg

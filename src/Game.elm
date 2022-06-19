@@ -1,6 +1,5 @@
 module Game exposing (..)
 
-import Components.ZoomButtons exposing (zoomButtons)
 import FontAwesome.Icon as Icon
 import FontAwesome.Solid as Icon
 import Game.Action
@@ -127,11 +126,11 @@ view model =
                                 SelectCell cell.loc
                     , unitsInCell = \cell -> Game.Unit.inCell model.units cell.loc
                     , selectedUnits = model.selectedUnits
+                    , zoomIn = ZoomIn
+                    , zoomOut = ZoomOut
                     }
-                , --zoomButtons [ class "mt-1 flex justify-end" ] []
-                  div [ class "flex" ]
+                , div [ class "flex pt-2" ]
                     [ Scoreboard.view model
-                    , zoomButtons [] []
                     ]
                 ]
             , div [ class "hidden lg:block lg:w-2/5 p-3 flex flex-col" ]

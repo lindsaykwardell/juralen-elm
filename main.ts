@@ -1,11 +1,12 @@
 import "./style.css"
-import "./src/Components"
 import { send, subscribe } from "./src/app"
 import { audioControl, sfxControl } from "./src/audio/audioControl"
 // @ts-ignore
 import { registerSW } from "virtual:pwa-register"
 // @ts-ignore
 import Worker from "./src/worker?worker"
+
+const root = document.documentElement
 
 registerSW()
 const analyzerWorker = new Worker()
@@ -69,3 +70,34 @@ subscribe("analyze", (game: string) => analyzerWorker.postMessage(game))
 analyzerWorker.onmessage = (e: any) => {
     send("analyzed", e.data)
 }
+
+// Zooming in and out of the game board
+function getCurrentZoom() {
+    return parseInt(
+        root.style.getPropertyValue("--cell-size")?.replace("px", ""),
+        10
+    )
+}
+
+function updateZoom(zoom: number) {
+    localStorage.setItem("zoom", zoom.toString())
+    root.style.setProperty("--cell-size", `${zoom}px`)
+}
+
+function zoomIn() {
+    const currentZoom = getCurrentZoom()
+
+    updateZoom(currentZoom + 5)
+}
+
+function zoomOut() {
+    const currentZoom = getCurrentZoom()
+
+    updateZoom(currentZoom - 5)
+}
+
+subscribe("zoomIn", zoomIn)
+subscribe("zoomOut", zoomOut)
+
+const zoom = parseInt(localStorage.getItem("zoom") || "", 10) || 85
+updateZoom(zoom)
