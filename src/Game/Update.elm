@@ -329,7 +329,7 @@ update msg model =
                                             Just defendingPlayerId ->
                                                 Game.Player.get modelWithRecordedAction.players defendingPlayerId
                             , whoGoesFirst = Game.Combat.Attacker
-                            , defBonus = 0
+                            , defBonus = cell.defBonus
                             , cell =
                                 Sort.Dict.get modelWithRecordedAction.selectedCell modelWithRecordedAction.grid
                                     |> Maybe.withDefault Game.Cell.empty

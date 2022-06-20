@@ -45,6 +45,36 @@ view model =
                     ]
                 , div [ class "flex" ]
                     [ unitListDisplay attackingUnits model.attacker
+                    , if model.defBonus > 0 then
+                        div [ class "flex" ]
+                            (List.range 0 model.defBonus
+                                |> List.map
+                                    (\i ->
+                                        div [ class "w-2 odd:bg-gray-800 bg-gray-700 flex flex-col" ]
+                                            (List.range 0 ((List.length model.units + List.length model.deadUnits) * 6)
+                                                |> List.map
+                                                    (\j ->
+                                                        div
+                                                            [ class <|
+                                                                "flex-1 "
+                                                                    ++ (if i == 0 then
+                                                                            "bg-gray-800 odd:bg-gray-700"
+
+                                                                        else if modBy i j == 0 then
+                                                                            "bg-gray-600"
+
+                                                                        else
+                                                                            ""
+                                                                       )
+                                                            ]
+                                                            []
+                                                    )
+                                            )
+                                    )
+                            )
+
+                      else
+                        text ""
                     , unitListDisplay defendingUnits model.defender
                     ]
                 , if List.length attackingUnits <= 0 then
