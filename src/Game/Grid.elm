@@ -1,4 +1,4 @@
-module Game.Grid exposing (Grid, decoder, distanceToEnemy, encoder, farmCountControlledBy, getBorderCells, getGroupBorderingPlayers, ofType, replaceCell, sorter, toMatrix, townCountControlledBy, validStartingCell)
+module Game.Grid exposing (Grid, decoder, distanceToEnemy, encoder, farmCountControlledBy, getBorderCells, getGroupBorderingPlayers, getGroups, ofType, replaceCell, sorter, toMatrix, townCountControlledBy, validStartingCell)
 
 import Dict
 import Game.Cell exposing (Cell)
@@ -7,6 +7,8 @@ import Game.Loc exposing (Loc, getDistance)
 import Game.Structure as Structure
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import List.Extra as List
+import Maybe.Extra as Maybe
 import Sort
 import Sort.Dict
 
@@ -215,7 +217,7 @@ getBorderingPlayers grid loc =
 
 getGroupBorderingPlayers : Grid -> Loc -> List (List Cell) -> List (Maybe Int)
 getGroupBorderingPlayers grid loc groups =
-    case Game.Cell.getGroup groups loc of
+    case getGroup groups loc of
         Nothing ->
             []
 
@@ -228,9 +230,111 @@ getGroupBorderingPlayers grid loc groups =
                 cells
 
 
-ofType : Game.CellType.CellType -> Grid -> List Cell
+ofType : Game.CellType.CellType -> Grid -> Grid
 ofType cellType =
     Sort.Dict.toList
-        >> List.map Tuple.second
         >> List.filter
-            (\cell -> cell.cellType == cellType)
+            (\( _, cell ) ->
+                cell.cellType == cellType
+            )
+        >> Sort.Dict.fromList sorter
+
+
+groupSorter : Sort.Sorter (Maybe Int)
+groupSorter =
+    Sort.custom
+        (\playerA playerB ->
+            if playerA == playerB then
+                EQ
+
+            else
+                case ( playerA, playerB ) of
+                    ( Nothing, _ ) ->
+                        LT
+
+                    ( _, Nothing ) ->
+                        GT
+
+                    ( Just a, Just b ) ->
+                        if a == b then
+                            EQ
+
+                        else if a < b then
+                            LT
+
+                        else
+                            GT
+        )
+
+
+groupByController : Grid -> Sort.Dict.Dict (Maybe Int) (List Cell)
+groupByController =
+    Sort.Dict.toList
+        >> List.foldl
+            (\( _, cell ) dict ->
+                Sort.Dict.update
+                    cell.controlledBy
+                    (\maybeGroup ->
+                        case maybeGroup of
+                            Nothing ->
+                                Just [ cell ]
+
+                            Just group ->
+                                Just (cell :: group)
+                    )
+                    dict
+            )
+            (Sort.Dict.empty
+                groupSorter
+            )
+
+
+getGroups : Grid -> List (List Cell)
+getGroups grid =
+    grid
+        |> groupByController
+        |> Sort.Dict.toList
+        |> List.map Tuple.second
+        |> List.concatMap
+            (List.foldl
+                (\cell cells ->
+                    if List.isEmpty cells then
+                        [ [ cell ] ]
+
+                    else
+                        let
+                            borderingCells : List Cell
+                            borderingCells =
+                                getBorderCells grid cell.loc
+                                    |> Maybe.values
+                                    |> List.filter (.controlledBy >> (==) cell.controlledBy)
+
+                            groupContainsBorderingCells : List Cell -> Bool
+                            groupContainsBorderingCells =
+                                List.any (\c -> List.member c borderingCells)
+
+                            existingGroup : Maybe Int
+                            existingGroup =
+                                List.findIndex
+                                    groupContainsBorderingCells
+                                    cells
+                        in
+                        case existingGroup of
+                            Just groupIndex ->
+                                List.updateAt
+                                    groupIndex
+                                    (\group ->
+                                        cell :: group
+                                    )
+                                    cells
+
+                            Nothing ->
+                                [ cell ] :: cells
+                )
+                []
+            )
+
+
+getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
+getGroup groups loc =
+    List.find (\g -> List.find (\cell -> cell.loc == loc) g /= Nothing) groups

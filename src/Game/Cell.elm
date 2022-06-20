@@ -1,4 +1,4 @@
-module Game.Cell exposing (Cell, buildStructure, decoder, empty, encoder, generate, getBorderingPlayer, getColorClass, getGroup, groupNeighbors, hasStructure, updateControl)
+module Game.Cell exposing (Cell, buildStructure, decoder, empty, encoder, generate, getBorderingPlayer, getColorClass, hasStructure, updateControl)
 
 import Game.CellType exposing (CellType)
 import Game.Loc as Loc exposing (Loc)
@@ -8,7 +8,6 @@ import Game.Structure as Structure exposing (Structure)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
-import List.Extra as List
 
 
 type alias Cell =
@@ -157,65 +156,3 @@ getBorderingPlayer cells players =
 
                     else
                         getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
-
-
-groupNeighbors : List Cell -> List (List Cell)
-groupNeighbors cells =
-    List.foldl
-        (\cell groups ->
-            case groups of
-                [] ->
-                    [ [ cell ] ]
-
-                _ ->
-                    let
-                        groupIndex : Maybe Int
-                        groupIndex =
-                            List.findIndex
-                                (\group ->
-                                    List.find
-                                        (\cellInGroup ->
-                                            let
-                                                loc =
-                                                    cell.loc
-
-                                                groupLoc =
-                                                    cellInGroup.loc
-
-                                                north =
-                                                    Loc.diff loc 0 -1
-
-                                                south =
-                                                    Loc.diff loc 0 1
-
-                                                east =
-                                                    Loc.diff loc 1 0
-
-                                                west =
-                                                    Loc.diff loc -1 0
-                                            in
-                                            cell.controlledBy == cellInGroup.controlledBy && ((loc == groupLoc) || (north == groupLoc) || (south == groupLoc) || (east == groupLoc) || (west == groupLoc))
-                                        )
-                                        group
-                                        /= Nothing
-                                )
-                                groups
-                    in
-                    case groupIndex of
-                        Nothing ->
-                            groups ++ [ [ cell ] ]
-
-                        Just id ->
-                            let
-                                group =
-                                    List.getAt id groups
-                            in
-                            List.setAt id (Maybe.withDefault [] group ++ [ cell ]) groups
-        )
-        []
-        cells
-
-
-getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
-getGroup groups loc =
-    List.find (\g -> List.find (\cell -> cell.loc == loc) g /= Nothing) groups

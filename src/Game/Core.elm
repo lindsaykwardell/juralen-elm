@@ -1,7 +1,7 @@
 module Game.Core exposing (CombatStatus(..), GameStatus(..), MobileTab(..), Model, PlayerStats, allCellsInRange, canAfford, currentPlayerStats, decoder, delay, encoder, getMoveCost, getPlayerRanking, getPlayerRankings, getPlayerScore, getPlayerTechTree, isInRange, playerAnalyzer)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
-import Game.Cell exposing (Cell, groupNeighbors)
+import Game.Cell exposing (Cell)
 import Game.CellType
 import Game.Combat
 import Game.Grid exposing (Grid)
@@ -16,6 +16,7 @@ import Game.UnitType exposing (UnitType)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
+import Maybe.Extra as Maybe
 import Process
 import Sort.Dict
 import Task
@@ -281,18 +282,6 @@ allCellsInRange model =
     allCellsFromDistance 1 []
 
 
-
--- Sort.Dict.toList model.grid
---     |> List.foldl
---         (\( _, cell ) cells ->
---             if isInRange model cell then
---                 cell :: cells
---             else
---                 cells
---         )
---         []
-
-
 delay : Float -> msg -> Cmd msg
 delay time msg =
     Process.sleep time
@@ -302,90 +291,87 @@ delay time msg =
 targetCellIsBordering : Model -> Cell -> Bool
 targetCellIsBordering model cell =
     let
-        borderingCells : List (Maybe Cell)
+        borderingCells : List Cell
         borderingCells =
             Game.Grid.getBorderCells model.grid cell.loc
+                |> Maybe.values
     in
     List.filter
         (\borderCell ->
-            case borderCell of
-                Nothing ->
-                    False
-
-                Just c ->
-                    case c.controlledBy of
-                        Just playerId ->
-                            let
-                                borderingForests : List (Maybe Cell)
-                                borderingForests =
-                                    Game.Grid.getBorderCells model.grid cell.loc
-                                        |> List.filter
-                                            (\maybeCell ->
-                                                case maybeCell of
-                                                    Nothing ->
-                                                        False
-
-                                                    Just f ->
-                                                        f.cellType == Game.CellType.Forest
-                                            )
-
-                                borderingPlayers =
-                                    List.foldl
-                                        (\maybeCell players ->
-                                            case maybeCell of
-                                                Nothing ->
-                                                    players
-
-                                                Just f ->
-                                                    (model.grid
-                                                        |> Game.Grid.ofType Game.CellType.Forest
-                                                        |> groupNeighbors
-                                                        |> Game.Grid.getGroupBorderingPlayers model.grid f.loc
-                                                    )
-                                                        ++ players
-                                        )
-                                        []
-                                        borderingForests
-                            in
-                            playerId
-                                == model.activePlayer
-                                || List.any
-                                    (\player ->
-                                        case player of
-                                            Just pid ->
-                                                pid == model.activePlayer
-
+            case borderCell.controlledBy of
+                Just playerId ->
+                    let
+                        borderingForests : List (Maybe Cell)
+                        borderingForests =
+                            Game.Grid.getBorderCells model.grid cell.loc
+                                |> List.filter
+                                    (\maybeCell ->
+                                        case maybeCell of
                                             Nothing ->
                                                 False
+
+                                            Just f ->
+                                                f.cellType == Game.CellType.Forest
                                     )
-                                    borderingPlayers
 
-                        Nothing ->
-                            case c.cellType of
-                                Game.CellType.Mountain ->
-                                    False
+                        borderingPlayers =
+                            List.foldl
+                                (\maybeCell players ->
+                                    case maybeCell of
+                                        Nothing ->
+                                            players
 
-                                Game.CellType.Plains ->
-                                    True
+                                        Just f ->
+                                            (model.grid
+                                                |> Game.Grid.ofType Game.CellType.Forest
+                                                |> Game.Grid.getGroups
+                                                |> Game.Grid.getGroupBorderingPlayers model.grid f.loc
+                                            )
+                                                ++ players
+                                )
+                                []
+                                borderingForests
+                    in
+                    playerId
+                        == model.activePlayer
+                        || List.any
+                            (\player ->
+                                case player of
+                                    Just pid ->
+                                        pid == model.activePlayer
 
-                                _ ->
-                                    let
-                                        borderingPlayers =
-                                            model.grid
-                                                |> Game.Grid.ofType c.cellType
-                                                |> groupNeighbors
-                                                |> Game.Grid.getGroupBorderingPlayers model.grid cell.loc
-                                    in
-                                    List.any
-                                        (\player ->
-                                            case player of
-                                                Just playerId ->
-                                                    playerId == model.activePlayer
+                                    Nothing ->
+                                        False
+                            )
+                            borderingPlayers
 
-                                                Nothing ->
-                                                    False
-                                        )
-                                        borderingPlayers
+                Nothing ->
+                    case borderCell.cellType of
+                        Game.CellType.Mountain ->
+                            False
+
+                        -- Game.CellType.Plains ->
+                        --     True
+
+                        _ ->
+                            let
+                                borderingPlayers =
+                                    model.grid
+                                        |> Game.Grid.ofType borderCell.cellType
+                                        |> Game.Grid.getGroups
+                                        |> Game.Grid.getGroupBorderingPlayers model.grid cell.loc
+                            in
+                            List.any
+                                (\player ->
+                                    case player of
+                                        Just playerId ->
+                                            playerId == model.activePlayer
+
+                                        Nothing ->
+                                            False
+                                )
+                                borderingPlayers
+                            -- False
         )
         borderingCells
         /= []
