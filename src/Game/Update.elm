@@ -14,7 +14,7 @@ import Game.Player exposing (Player)
 import Game.Resources exposing (Resources)
 import Game.Scenario exposing (Msg)
 import Game.Structure
-import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
+import Game.TechTree as TechTree exposing (TechDescription)
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
 import Json.Encode as Encode
@@ -151,17 +151,6 @@ update msg model =
                 newResources =
                     Game.Resources.spend (Game.Player.get model.players model.activePlayer |> .resources) (Game.UnitType.cost unitType)
 
-                newUnit : Unit
-                newUnit =
-                    Game.Unit.buildUnit unitType model.activePlayer model.selectedCell model.nextId
-
-                nextId : Int
-                nextId =
-                    model.nextId + 1
-
-                newUnitList =
-                    model.units ++ [ newUnit ]
-
                 newPlayerList =
                     List.map
                         (\player ->
@@ -175,6 +164,17 @@ update msg model =
             in
             if canAfford model unitType then
                 let
+                    newUnit : Unit
+                    newUnit =
+                        Game.Unit.buildUnit unitType model.activePlayer model.selectedCell model.nextId
+
+                    newUnitList =
+                        model.units ++ [ newUnit ]
+
+                    nextId : Int
+                    nextId =
+                        model.nextId + 1
+
                     newModel =
                         { model | nextId = nextId, units = newUnitList, players = newPlayerList }
                             |> recordAction
@@ -768,9 +768,6 @@ shouldCombatStart units playerIdList =
         firstUnit =
             List.head units
 
-        remainingUnits =
-            List.tail units
-
         newPlayerIdList =
             case firstUnit of
                 Nothing ->
@@ -787,6 +784,10 @@ shouldCombatStart units playerIdList =
         True
 
     else
+        let
+            remainingUnits =
+                List.tail units
+        in
         case remainingUnits of
             Nothing ->
                 False
@@ -889,11 +890,8 @@ recordAction action model =
         actionList : List History
         actionList =
             action :: model.actionHistory
-
-        newModel =
-            { model | actionHistory = actionList }
     in
-    newModel
+    { model | actionHistory = actionList }
 
 
 port saveGame : String -> Cmd msg

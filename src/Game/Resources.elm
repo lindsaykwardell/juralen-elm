@@ -1,4 +1,4 @@
-module Game.Resources exposing (..)
+module Game.Resources exposing (Resources, decoder, encoder, spend, useActions)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
@@ -24,11 +24,6 @@ encoder resources =
         [ ( "actions", Encode.float resources.actions )
         , ( "gold", Encode.int resources.gold )
         ]
-
-
-empty : Resources
-empty =
-    { actions = 0, gold = 0 }
 
 
 spend : Resources -> Int -> Resources

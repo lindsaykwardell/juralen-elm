@@ -1,4 +1,4 @@
-module Game exposing (..)
+module Game exposing (init, view)
 
 import FontAwesome.Icon as Icon
 import FontAwesome.Solid as Icon
@@ -15,17 +15,16 @@ import Game.PlayerColor
 import Game.Scenario as Scenario
 import Game.Scoreboard as Scoreboard
 import Game.Structure
-import Game.TechTree as TechTree exposing (TechDescription, TechLevel(..))
-import Game.Unit exposing (controlledBy)
+import Game.TechTree as TechTree exposing (TechDescription)
+import Game.Unit
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Game.View.CombatModal as CombatModal
 import Game.View.Grid as Grid
 import Game.View.PurchaseButton as PurchaseButton
-import Html exposing (Attribute, Html, br, button, div, h2, span, text)
+import Html exposing (Html, br, button, div, h2, span, text)
 import Html.Attributes exposing (class, disabled)
-import Html.Events exposing (onClick, preventDefaultOn)
-import Json.Decode as Decode
+import Html.Events exposing (onClick)
 import Sort.Dict
 
 
@@ -75,11 +74,6 @@ init { newPlayerList, aiSpeed, size, scenarioType } =
         , mobileTab = DetailsTab
         , actionHistory = []
         }
-
-
-onContextMenu : msg -> Attribute msg
-onContextMenu msg =
-    preventDefaultOn "contextmenu" (Decode.succeed ( msg, True ))
 
 
 view : Model -> Html Msg

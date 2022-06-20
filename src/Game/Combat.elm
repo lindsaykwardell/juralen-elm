@@ -1,4 +1,4 @@
-module Game.Combat exposing (..)
+module Game.Combat exposing (CombatRole(..), Model, Msg(..), StatUpgrade(..), decoder, encoder, update)
 
 import Game.Cell exposing (Cell)
 import Game.Level exposing (XP)

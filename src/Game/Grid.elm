@@ -1,4 +1,4 @@
-module Game.Grid exposing (..)
+module Game.Grid exposing (Grid, decoder, distanceToEnemy, encoder, farmCountControlledBy, getBorderCells, getGroupBorderingPlayers, ofType, replaceCell, sorter, toMatrix, townCountControlledBy, validStartingCell)
 
 import Dict
 import Game.Cell exposing (Cell)
@@ -6,7 +6,6 @@ import Game.CellType
 import Game.Loc exposing (Loc, getDistance)
 import Game.Structure as Structure
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 import Sort
 import Sort.Dict

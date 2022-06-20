@@ -1,9 +1,8 @@
-module Game.Structure exposing (..)
+module Game.Structure exposing (Structure(..), canBuild, decoder, encoder, getCellClass, initDef, maxUpgradeCount, toString)
 
 import Game.TechTree exposing (TechTree)
 import Game.UnitType exposing (UnitType(..))
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
 

@@ -1,4 +1,4 @@
-module Game.TechTree exposing (..)
+module Game.TechTree exposing (LevelFour(..), LevelOne(..), LevelThree(..), LevelTwo(..), TechDescription, TechLevel(..), TechTree, decoder, empty, encoder, nextAvailableTech, research, researchedUnits, techDescriptionDecoder, techDescriptionEncoder)
 
 import Game.UnitType exposing (UnitType(..))
 import Json.Decode as Decode exposing (Decoder)

@@ -1,14 +1,8 @@
-port module Main exposing (main)
+port module Main exposing (Model, Msg, Page, main)
 
 import Browser exposing (Document)
 import Components.Modal as Modal
-import FontAwesome.Attributes as Icon
-import FontAwesome.Brands as Icon
-import FontAwesome.Icon as Icon
-import FontAwesome.Layering as Icon
-import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
-import FontAwesome.Transforms as Icon
 import Game
 import Game.Core as Core
 import Game.Option as Analysis

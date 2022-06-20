@@ -1,7 +1,6 @@
 module Game.Loc exposing (Loc, at, coords, decoder, diff, encoder, fromString, getDistance, getX, getY)
 
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 import List.Extra as List
 

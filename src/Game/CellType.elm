@@ -1,7 +1,6 @@
-module Game.CellType exposing (..)
+module Game.CellType exposing (CellType(..), decoder, encoder, getColorClass, isPassable, toString)
 
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
 

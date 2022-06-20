@@ -1,7 +1,6 @@
-module Game.AnalyzerMode exposing (..)
+module Game.AnalyzerMode exposing (AnalyzerMode(..), decoder, encoder)
 
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
 

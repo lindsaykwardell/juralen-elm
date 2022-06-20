@@ -1,7 +1,6 @@
-module Game.PlayerColor exposing (..)
+module Game.PlayerColor exposing (PlayerColor(..), decoder, encoder, fromString, isDark, toClass, toList, toString, toTextClass)
 
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
 

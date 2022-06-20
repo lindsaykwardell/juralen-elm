@@ -1,4 +1,4 @@
-module Game.NewPlayer exposing (..)
+module Game.NewPlayer exposing (decoder, encoder)
 
 import Game.AnalyzerMode
 import Game.Player exposing (NewPlayer)

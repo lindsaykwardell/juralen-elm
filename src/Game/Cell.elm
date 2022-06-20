@@ -1,4 +1,4 @@
-module Game.Cell exposing (..)
+module Game.Cell exposing (Cell, buildStructure, decoder, empty, encoder, generate, getBorderingPlayer, getColorClass, getGroup, groupNeighbors, hasStructure, updateControl)
 
 import Game.CellType exposing (CellType)
 import Game.Loc as Loc exposing (Loc)

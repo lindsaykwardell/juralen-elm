@@ -1,7 +1,6 @@
-module Game.UnitType exposing (..)
+module Game.UnitType exposing (InitialValues, UnitType(..), cost, decoder, encoder, icon, initialValues, threat, toString)
 
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
 
@@ -105,15 +104,6 @@ cost unitType =
             6
 
 
-moveCost : UnitType -> Float
-moveCost unitType =
-    case unitType of
-        -- Wizard ->
-        --     0.25
-        _ ->
-            1
-
-
 threat : UnitType -> Int
 threat unitType =
     case unitType of
@@ -162,31 +152,6 @@ toString unitType =
 
         Priest ->
             "Priest"
-
-
-short : UnitType -> String
-short unitType =
-    case unitType of
-        Soldier ->
-            "So"
-
-        Warrior ->
-            "Wa"
-
-        Archer ->
-            "Ar"
-
-        Knight ->
-            "Kn"
-
-        Rogue ->
-            "Ro"
-
-        Wizard ->
-            "Wi"
-
-        Priest ->
-            "Pr"
 
 
 icon : UnitType -> String

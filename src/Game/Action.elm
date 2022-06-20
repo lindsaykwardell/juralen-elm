@@ -7,7 +7,6 @@ import Game.TechTree exposing (TechDescription)
 import Game.Unit exposing (Unit)
 import Game.UnitType exposing (UnitType)
 import Json.Decode as Decode exposing (Decoder)
-import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
 
 

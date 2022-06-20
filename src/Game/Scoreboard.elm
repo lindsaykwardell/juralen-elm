@@ -1,4 +1,4 @@
-module Game.Scoreboard exposing (..)
+module Game.Scoreboard exposing (StatCardSize(..), graph, stats, view)
 
 import Game.Core exposing (Model, getPlayerRankings, getPlayerScore)
 import Game.History
@@ -26,21 +26,22 @@ view model =
                 let
                     playerScore =
                         getPlayerScore model player.id
-
-                    scorePercentage =
-                        100 * toFloat playerScore / toFloat totalScore
-
-                    hoverColor =
-                        if isDark player.color then
-                            "hover:text-white "
-
-                        else
-                            "hover:text-black "
                 in
                 if playerScore <= 0 then
                     Nothing
 
                 else
+                    let
+                        hoverColor =
+                            if isDark player.color then
+                                "hover:text-white "
+
+                            else
+                                "hover:text-black "
+
+                        scorePercentage =
+                            100 * toFloat playerScore / toFloat totalScore
+                    in
                     Just
                         (div
                             [ class ("h-2 p-1 hover:h-auto truncate " ++ hoverColor ++ (player.color |> toClass) ++ " " ++ (player.color |> toTextClass))
@@ -81,17 +82,17 @@ graphCol model scores =
          scores
             |> List.map
                 (\playerScore ->
-                    let
-                        playerColor =
-                            Game.Player.get model.players playerScore.playerId |> .color
-
-                        scorePercentage =
-                            100 * toFloat playerScore.score / toFloat totalScore
-                    in
                     if playerScore.score <= 0 then
                         div [] []
 
                     else
+                        let
+                            scorePercentage =
+                                100 * toFloat playerScore.score / toFloat totalScore
+
+                            playerColor =
+                                Game.Player.get model.players playerScore.playerId |> .color
+                        in
                         div
                             [ class ("" ++ (playerColor |> toClass))
                             , style "height" (String.fromFloat scorePercentage ++ "%")

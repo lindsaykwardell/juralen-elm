@@ -2,7 +2,7 @@ module Game.Unit exposing (Unit, buildUnit, controlledBy, decoder, empty, encode
 
 import Game.Level as Level exposing (Level)
 import Game.Loc as Loc exposing (Loc)
-import Game.UnitType exposing (UnitType(..))
+import Game.UnitType exposing (UnitType)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode

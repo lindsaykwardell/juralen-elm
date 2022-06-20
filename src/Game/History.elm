@@ -1,4 +1,4 @@
-module Game.History exposing (..)
+module Game.History exposing (History, decoder, encoder, favoriteUnit, leastAggressivePlayer, mostAggressivePlayer, mostCommonResearch, toString, totalCombats, unitsBuilt)
 
 import Dict
 import Game.Action as Action exposing (Action)

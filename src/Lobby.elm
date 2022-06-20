@@ -1,4 +1,4 @@
-port module Lobby exposing (..)
+port module Lobby exposing (Model, Msg(..), init, subscriptions, update, view)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.NewPlayer
@@ -326,28 +326,28 @@ update msg model =
                     let
                         nameExists =
                             List.length (List.filter (\player -> player.name == name) model.newPlayerList) > 0
-
-                        analyzerMode =
-                            if randomNumber // 2 == 1 then
-                                Game.AnalyzerMode.Expansionist
-
-                            else if randomNumber // 3 == 1 then
-                                Game.AnalyzerMode.Passive
-
-                            else if randomNumber // 4 == 1 then
-                                Game.AnalyzerMode.Defensive
-
-                            else if randomNumber // 5 == 1 then
-                                Game.AnalyzerMode.Aggressive
-
-                            else
-                                Game.AnalyzerMode.Default
                     in
                     if nameExists then
                         ( model, Random.generate (AddPlayerName playerId) (randomDefinedMax (List.length nameList - 1)) )
 
                     else
                         let
+                            analyzerMode =
+                                if randomNumber // 2 == 1 then
+                                    Game.AnalyzerMode.Expansionist
+
+                                else if randomNumber // 3 == 1 then
+                                    Game.AnalyzerMode.Passive
+
+                                else if randomNumber // 4 == 1 then
+                                    Game.AnalyzerMode.Defensive
+
+                                else if randomNumber // 5 == 1 then
+                                    Game.AnalyzerMode.Aggressive
+
+                                else
+                                    Game.AnalyzerMode.Default
+
                             newModel =
                                 { model
                                     | newPlayerList =

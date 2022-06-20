@@ -1,8 +1,7 @@
-module Game.Option exposing (..)
+module Game.Option exposing (Option, decoder, encoder)
 
 import Game.Action as Action exposing (Action)
 import Game.Loc as Loc exposing (Loc)
-import Game.UnitType
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline as Decode
 import Json.Encode as Encode
@@ -30,75 +29,3 @@ encoder option =
         , ( "action", Action.encoder option.action )
         , ( "score", Encode.int option.score )
         ]
-
-
-toString : Option -> String
-toString option =
-    case option.action of
-        Action.Move units loc ->
-            let
-                unitString : String
-                unitString =
-                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
-            in
-            "Move [ "
-                ++ unitString
-                ++ "] from "
-                ++ String.fromInt (Loc.getX option.loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY option.loc)
-                ++ " to "
-                ++ String.fromInt (Loc.getX loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY loc)
-
-        Action.Attack units loc ->
-            let
-                unitString : String
-                unitString =
-                    List.foldl (\unit total -> total ++ Game.UnitType.toString unit.unitType ++ " ") "" units
-            in
-            "Attack - Move [ "
-                ++ unitString
-                ++ "] from "
-                ++ String.fromInt (Loc.getX option.loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY option.loc)
-                ++ " to "
-                ++ String.fromInt (Loc.getX loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY loc)
-
-        Action.BuildUnit unitType ->
-            "Build [ "
-                ++ Game.UnitType.toString unitType
-                ++ " ] in "
-                ++ String.fromInt (Loc.getX option.loc)
-                ++ ", "
-                ++ String.fromInt (Loc.getY option.loc)
-
-        Action.Research tech ->
-            "Research " ++ tech.name
-
-        Action.Upgrade upgrade ->
-            case upgrade of
-                Action.BuildFarm ->
-                    "Build farm in "
-                        ++ String.fromInt (Loc.getX option.loc)
-                        ++ ", "
-                        ++ String.fromInt (Loc.getY option.loc)
-
-                Action.BuildTower ->
-                    "Build tower in "
-                        ++ String.fromInt (Loc.getX option.loc)
-                        ++ ", "
-                        ++ String.fromInt (Loc.getY option.loc)
-
-                Action.RepairDefense ->
-                    "Repair structure in "
-                        ++ String.fromInt (Loc.getX option.loc)
-                        ++ ", "
-                        ++ String.fromInt (Loc.getY option.loc)
-
-        _ ->
-            ""

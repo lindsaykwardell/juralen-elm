@@ -1,4 +1,4 @@
-module Game.Core exposing (..)
+module Game.Core exposing (CombatStatus(..), GameStatus(..), MobileTab(..), Model, PlayerStats, allCellsInRange, canAfford, currentPlayerStats, decoder, delay, encoder, getMoveCost, getPlayerRanking, getPlayerRankings, getPlayerScore, getPlayerTechTree, isInRange, playerAnalyzer)
 
 import Game.AnalyzerMode exposing (AnalyzerMode)
 import Game.Cell exposing (Cell, groupNeighbors)

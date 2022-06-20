@@ -1,11 +1,9 @@
-module Game.View.Grid exposing (..)
+module Game.View.Grid exposing (view)
 
 import Game.Cell exposing (Cell)
-import Game.Core exposing (..)
 import Game.Grid exposing (Grid)
 import Game.Loc exposing (Loc)
 import Game.Unit exposing (Unit)
-import Game.Update exposing (Msg(..))
 import Game.View.Cell as Cell
 import Html exposing (..)
 import Html.Attributes exposing (class)

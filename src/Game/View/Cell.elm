@@ -1,9 +1,8 @@
 module Game.View.Cell exposing (view)
 
 import Game.Cell exposing (Cell)
-import Game.Core exposing (..)
 import Game.Structure
-import Game.Unit exposing (Unit, isSelected)
+import Game.Unit exposing (Unit)
 import Game.UnitType
 import Html exposing (Html, div, img, span, td, text)
 import Html.Attributes exposing (class, src, style)

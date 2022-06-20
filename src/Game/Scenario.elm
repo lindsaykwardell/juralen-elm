@@ -1,4 +1,4 @@
-module Game.Scenario exposing (..)
+module Game.Scenario exposing (Flags, Model, Msg(..), ScenarioType(..), decoder, encoder, init, isEndConditionReached, onSelectScenario, scenarioTypeDecoder, scenarioTypeEncoder, update)
 
 import Dict
 import Game.Cell exposing (Cell)
@@ -200,7 +200,7 @@ update msg scenario =
 
                 nextY =
                     if scenario.currentY == scenario.maxY then
-                        if finished == True then
+                        if finished then
                             scenario.currentY
 
                         else
@@ -210,7 +210,7 @@ update msg scenario =
                         scenario.currentY + 1
 
                 newGrid =
-                    if finished == True then
+                    if finished then
                         scenario.grid
 
                     else

@@ -1,4 +1,4 @@
-module Settings exposing (..)
+module Settings exposing (DisplaySettings, Msg(..), view)
 
 import Game.Core exposing (GameStatus)
 import Html exposing (Html, button, div, h1, text)

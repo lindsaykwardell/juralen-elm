@@ -1,4 +1,4 @@
-module Game.View.PurchaseButton exposing (blue, green, yellow)
+module Game.View.PurchaseButton exposing (Config, blue, green, yellow)
 
 import Html exposing (Html, button, div, img, span, text)
 import Html.Attributes exposing (class, disabled, src, title)

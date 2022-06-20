@@ -1,11 +1,11 @@
-module Game.Analyzer exposing (..)
+module Game.Analyzer exposing (analyze)
 
 import Game.Action as Action exposing (UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell)
 import Game.CellType
-import Game.Core as Core exposing (Model, PlayerStats, allCellsInRange)
-import Game.Grid exposing (ofType)
+import Game.Core as Core exposing (PlayerStats, allCellsInRange)
+import Game.Grid
 import Game.Loc as Loc exposing (Loc)
 import Game.Option exposing (Option)
 import Game.Player exposing (Player)
@@ -40,12 +40,6 @@ analyze model =
         |> List.filter (\option -> option.score > 0)
         |> sortByScore
         |> List.head
-
-
-type alias UnitOption =
-    { unitOptions : List Unit
-    , cell : Cell
-    }
 
 
 analyzeUpgrades : Core.Model -> List Option
@@ -231,11 +225,6 @@ getMoveOptions cellsInRange fromLoc units =
             }
         )
         cellsInRange
-
-
-getMoveCost : List Unit -> Float
-getMoveCost units =
-    List.length units |> toFloat
 
 
 
@@ -473,9 +462,6 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                             List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
                                                                 0
                                                                 (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units targetCell.loc))
-
-                                                        defBonus =
-                                                            targetCell.defBonus
                                                     in
                                                     -- Don't attack if you're weaker than the enemy
                                                     -- Doesn't account for everything, but that's intentional
@@ -483,6 +469,10 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                         -1000
 
                                                     else
+                                                        let
+                                                            defBonus =
+                                                                targetCell.defBonus
+                                                        in
                                                         attackerThreat - defenderThreat - defBonus
 
                                                else if analyzer == Aggressive then
@@ -570,14 +560,11 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 + (if isBottomHalf then
                                                     200
 
+                                                   else if analyzer == Aggressive then
+                                                    200
+
                                                    else
                                                     0
-                                                        + (if analyzer == Aggressive then
-                                                            200
-
-                                                           else
-                                                            0
-                                                          )
                                                   )
                                     }
 
@@ -588,14 +575,11 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 + (if isTopHalf then
                                                     200
 
+                                                   else if analyzer == Defensive then
+                                                    200
+
                                                    else
                                                     0
-                                                        + (if analyzer == Defensive then
-                                                            200
-
-                                                           else
-                                                            0
-                                                          )
                                                   )
                                     }
 
@@ -608,14 +592,11 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 + (if analyzer == Aggressive || analyzer == Expansionist then
                                                     1000
 
+                                                   else if isTopHalf then
+                                                    500
+
                                                    else
                                                     0
-                                                        + (if isTopHalf then
-                                                            500
-
-                                                           else
-                                                            0
-                                                          )
                                                   )
                                     }
 
@@ -626,14 +607,11 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 + (if not isTopHalf then
                                                     300
 
+                                                   else if analyzer == Defensive then
+                                                    300
+
                                                    else
                                                     0
-                                                        + (if analyzer == Defensive then
-                                                            300
-
-                                                           else
-                                                            0
-                                                          )
                                                   )
                                     }
 
@@ -646,14 +624,11 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 + (if analyzer == Expansionist || stats.gold > 25 then
                                                     1000
 
+                                                   else if analyzer == Default then
+                                                    1000
+
                                                    else
                                                     0
-                                                        + (if analyzer == Default then
-                                                            1000
-
-                                                           else
-                                                            0
-                                                          )
                                                   )
                                     }
 
@@ -664,14 +639,11 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 + (if stats.farms () > 15 then
                                                     500
 
+                                                   else if analyzer == Defensive then
+                                                    1000
+
                                                    else
                                                     0
-                                                        + (if analyzer == Defensive then
-                                                            1000
-
-                                                           else
-                                                            0
-                                                          )
                                                   )
                                     }
 
@@ -687,26 +659,17 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                 if stats.gold < 1 then
                                     -1000
 
+                                else if stats.units < round (toFloat (stats.farms ()) / 2) then
+                                    -100
+
+                                else if cell.defBonus <= 0 then
+                                    300
+
+                                else if analyzer /= Aggressive then
+                                    150
+
                                 else
-                                    0
-                                        + (if stats.units < round (toFloat (stats.farms ()) / 2) then
-                                            -100
-
-                                           else
-                                            0
-                                                + (if cell.defBonus <= 0 then
-                                                    300
-
-                                                   else
-                                                    0
-                                                        + (if analyzer /= Aggressive then
-                                                            150
-
-                                                           else
-                                                            25
-                                                          )
-                                                  )
-                                          )
+                                    25
                         }
 
                     Action.BuildFarm ->

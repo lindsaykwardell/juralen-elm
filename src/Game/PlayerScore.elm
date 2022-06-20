@@ -1,4 +1,4 @@
-module Game.PlayerScore exposing (..)
+module Game.PlayerScore exposing (PlayerScore)
 
 
 type alias PlayerScore =
