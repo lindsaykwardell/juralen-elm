@@ -1,5 +1,5 @@
 module.exports = {
-    content: ["src/**/*.elm", "src/**/*.vue"],
+    content: ["src/**/*.elm"],
     theme: {
         extend: {
             colors: {
