@@ -4,9 +4,11 @@ import Components.Modal as Modal
 import Game.CellType
 import Game.Combat as Combat
 import Game.Loc as Loc
+import Game.Player exposing (Player)
 import Game.Unit exposing (Unit)
 import Game.UnitType
 import Game.Update exposing (Msg(..))
+import Game.View.Flag as Flag
 import Html exposing (Html, button, div, h1, h2, img, text)
 import Html.Attributes exposing (class, src, style)
 import Html.Events exposing (onClick)
@@ -44,7 +46,7 @@ view model =
                     , text " )"
                     ]
                 , div [ class "flex" ]
-                    [ unitListDisplay attackingUnits model.attacker
+                    [ unitListDisplay model.attackingPlayer attackingUnits model.attacker
                     , if model.defBonus > 0 then
                         div [ class "flex" ]
                             (List.range 0 model.defBonus
@@ -75,7 +77,7 @@ view model =
 
                       else
                         text ""
-                    , unitListDisplay defendingUnits model.defender
+                    , unitListDisplay model.defendingPlayer defendingUnits model.defender
                     ]
                 , if List.length attackingUnits <= 0 then
                     h2 [ class "text-center" ]
@@ -96,37 +98,40 @@ view model =
         }
 
 
-unitListDisplay : List Unit -> Unit -> Html msg
-unitListDisplay units focusedUnit =
-    div [ class "flex-1 flex flex-col items-center" ]
-        (List.map
-            (\unit ->
-                let
-                    maxHp =
-                        toFloat (Game.UnitType.initialValues unit.unitType |> .health)
+unitListDisplay : Player -> List Unit -> Unit -> Html msg
+unitListDisplay player units focusedUnit =
+    div [ class "flex-1 flex flex-col items-center" ] <|
+        div [ class "flex items-center pb-4"]
+            [ Flag.view player.color
+            , h2 [] [ text player.name ]
+            ]
+            :: List.map
+                (\unit ->
+                    let
+                        maxHp =
+                            toFloat (Game.UnitType.initialValues unit.unitType |> .health)
 
-                    hpLost =
-                        maxHp - toFloat unit.health
-                in
-                div
-                    [ class
-                        ("flex flex-col items-center p-2 w-24"
-                            ++ (if unit.id == focusedUnit.id then
-                                    " bg-juralen-transparent"
+                        hpLost =
+                            maxHp - toFloat unit.health
+                    in
+                    div
+                        [ class
+                            ("flex flex-col items-center p-2 w-24"
+                                ++ (if unit.id == focusedUnit.id then
+                                        " bg-juralen-transparent"
 
-                                else
-                                    " "
-                               )
-                        )
-                    ]
-                    [ img [ class "w-8", src (Game.UnitType.icon unit.unitType), class "unit" ] []
-                    , text (Game.UnitType.toString unit.unitType)
-                    , div [ class "h-2 flex w-full m-2" ]
-                        [ div [ class "bg-green-500", style "width" (String.fromFloat (100 * (toFloat unit.health / maxHp)) ++ "%") ]
-                            []
-                        , div [ class "bg-red-500", style "width" (String.fromFloat (100 * (hpLost / maxHp)) ++ "%") ] []
+                                    else
+                                        " "
+                                   )
+                            )
                         ]
-                    ]
-            )
-            units
-        )
+                        [ img [ class "w-8", src (Game.UnitType.icon unit.unitType), class "unit" ] []
+                        , text (Game.UnitType.toString unit.unitType)
+                        , div [ class "h-2 flex w-full m-2" ]
+                            [ div [ class "bg-green-500", style "width" (String.fromFloat (100 * (toFloat unit.health / maxHp)) ++ "%") ]
+                                []
+                            , div [ class "bg-red-500", style "width" (String.fromFloat (100 * (hpLost / maxHp)) ++ "%") ] []
+                            ]
+                        ]
+                )
+                units

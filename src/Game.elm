@@ -20,6 +20,7 @@ import Game.Unit
 import Game.UnitType
 import Game.Update exposing (Msg(..), update)
 import Game.View.CombatModal as CombatModal
+import Game.View.Flag as Flag
 import Game.View.Grid as Grid
 import Game.View.PurchaseButton as PurchaseButton
 import Html exposing (Html, br, button, div, h2, span, text)
@@ -435,10 +436,7 @@ unitsInCellList model =
                         )
                     , onClick (SelectUnit unit.id)
                     ]
-                    [ div [ class "flex flex-col mr-2" ]
-                        [ div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
-                        , div [ class ("triangle " ++ Game.PlayerColor.toString (Game.Player.get model.players unit.controlledBy |> .color)) ] []
-                        ]
+                    [ Flag.view (Game.Player.get model.players unit.controlledBy |> .color)
                     , div [ class "w-1/3 text-left flex items-center" ]
                         [ span [ class "w-16" ] [ text (Game.UnitType.toString unit.unitType) ]
                         , span [ class "text-yellow-400 text-xs flex" ] (List.repeat (Game.Level.currentLevel unit.level) (Icon.viewIcon Icon.star))
