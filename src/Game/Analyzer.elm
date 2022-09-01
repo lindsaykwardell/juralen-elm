@@ -340,6 +340,16 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                         Sort.Dict.get toLoc model.grid
                             |> Maybe.withDefault Game.Cell.empty
 
+                    fromCell =
+                        Sort.Dict.get option.loc model.grid
+                            |> Maybe.withDefault Game.Cell.empty
+
+                    targetUnitCount =
+                        List.length (Game.Unit.inCell model.units targetCell.loc) - 1
+
+                    fromUnitCount =
+                        List.length (Game.Unit.inCell model.units fromCell.loc) - 1
+
                     isAttack =
                         case targetCell.controlledBy of
                             Nothing ->
@@ -395,12 +405,29 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                         100
 
                                     Just playerId ->
-                                        if playerId == model.activePlayer then
-                                            if List.length (Game.Unit.inCell model.units targetCell.loc) <= 1 then
-                                                120
+                                        if playerId == model.activePlayer && analyzer /= Passive then
+                                            case ( targetCell.structure, fromCell.structure, analyzer ) of
+                                                ( _, _, Aggressive ) ->
+                                                    125
 
-                                            else
-                                                0
+                                                ( Structure.Town, Structure.Town, _ ) ->
+                                                    70 + (40 - (targetUnitCount * 10)) - (fromUnitCount * 10)
+
+                                                ( Structure.Town, Structure.Citadel, _ ) ->
+                                                    70 + (120 - (targetUnitCount * 10)) - (fromUnitCount * 10)
+
+                                                ( Structure.Citadel, Structure.Town, _ ) ->
+                                                    if targetUnitCount <= 1 then
+                                                        140
+
+                                                    else
+                                                        -1000
+
+                                                ( Structure.Citadel, Structure.Citadel, _ ) ->
+                                                    70 + (120 - (targetUnitCount * 10)) - (fromUnitCount * 10)
+
+                                                _ ->
+                                                    80
 
                                         else if analyzer == Aggressive then
                                             125
@@ -446,6 +473,7 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                         -1000
 
                                     else
+                                        -- This is where we encourage the AI to get violent
                                         abs (Core.getPlayerScore model model.activePlayer - Core.getPlayerScore model playerId)
                                             + (if List.length (Game.Unit.inCell model.units targetCell.loc) > 0 then
                                                 if analyzer == Passive then
@@ -460,7 +488,12 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
 
                                                         defenderThreat =
                                                             List.foldl (\unit threat -> threat + Game.UnitType.threat unit)
-                                                                0
+                                                                (if analyzer == Aggressive then
+                                                                    0
+
+                                                                 else
+                                                                    targetCell.defBonus // 2
+                                                                )
                                                                 (List.map (\unit -> unit.unitType) (Game.Unit.inCell model.units targetCell.loc))
                                                     in
                                                     -- Don't attack if you're weaker than the enemy
@@ -469,11 +502,7 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                         -1000
 
                                                     else
-                                                        let
-                                                            defBonus =
-                                                                targetCell.defBonus
-                                                        in
-                                                        attackerThreat - defenderThreat - defBonus
+                                                        150 + (fromUnitCount * 10) - (targetUnitCount * 10)
 
                                                else if analyzer == Aggressive then
                                                 100
@@ -482,17 +511,25 @@ scoreOption model { analyzer, stats, isTopHalf, isBottomHalf, livingPlayers } op
                                                 50
                                               )
                               )
+                            -- We need a way for the AI to strategize a bit. Some attacks are hard.
+                            -- An easy strategy that should be doable is to see a town or castle,
+                            -- and start "sieging" it by putting a bunch of units next to it.
+                            -- Let's check to see if the cell is neighboring a town or castle,
+                            -- and prioritize moving to one with the most friendly units.
+                            -- This shouldn't override an actual attack or reinforcing move.
+                            + (let
+                                borderingCellHasEnemyStructure : Bool
+                                borderingCellHasEnemyStructure =
+                                    Game.Grid.getBorderCells model.grid targetCell.loc
+                                        |> List.filter (\cell -> cell.controlledBy /= Nothing && cell.controlledBy /= Just model.activePlayer)
+                                        |> List.any (.structure >> (/=) Structure.None)
+                               in
+                               if borderingCellHasEnemyStructure then
+                                50 + (List.length (Game.Unit.inCell model.units targetCell.loc) * 10)
 
-                    -- Should we move everyone in this cell? Do we really need more farms?
-                    -- Defending territory is preferable if we can get away with it
-                    -- + (if List.length (Game.Unit.inCell model.units option.loc) <= List.length units then
-                    --     if stats.farms == stats.units then
-                    --         10
-                    --     else
-                    --         -1000
-                    --    else
-                    --     0
-                    --   )
+                               else
+                                0
+                              )
                 in
                 { option
                     | score = score

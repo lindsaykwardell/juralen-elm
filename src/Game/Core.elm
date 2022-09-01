@@ -294,40 +294,27 @@ targetCellIsBordering model cell =
         borderingCells : List Cell
         borderingCells =
             Game.Grid.getBorderCells model.grid cell.loc
-                |> Maybe.values
     in
     List.filter
         (\borderCell ->
             case borderCell.controlledBy of
                 Just playerId ->
                     let
-                        borderingForests : List (Maybe Cell)
+                        borderingForests : List Cell
                         borderingForests =
                             Game.Grid.getBorderCells model.grid cell.loc
                                 |> List.filter
-                                    (\maybeCell ->
-                                        case maybeCell of
-                                            Nothing ->
-                                                False
-
-                                            Just f ->
-                                                f.cellType == Game.CellType.Forest
-                                    )
+                                    (.cellType >> (==) Game.CellType.Forest)
 
                         borderingPlayers =
                             List.foldl
-                                (\maybeCell players ->
-                                    case maybeCell of
-                                        Nothing ->
-                                            players
-
-                                        Just f ->
-                                            (model.grid
-                                                |> Game.Grid.ofType Game.CellType.Forest
-                                                |> Game.Grid.getGroups
-                                                |> Game.Grid.getGroupBorderingPlayers model.grid f.loc
-                                            )
-                                                ++ players
+                                (\f players ->
+                                    (model.grid
+                                        |> Game.Grid.ofType Game.CellType.Forest
+                                        |> Game.Grid.getGroups
+                                        |> Game.Grid.getGroupBorderingPlayers model.grid f.loc
+                                    )
+                                        ++ players
                                 )
                                 []
                                 borderingForests
@@ -352,7 +339,6 @@ targetCellIsBordering model cell =
 
                         -- Game.CellType.Plains ->
                         --     True
-
                         _ ->
                             let
                                 borderingPlayers =
@@ -371,7 +357,7 @@ targetCellIsBordering model cell =
                                             False
                                 )
                                 borderingPlayers
-                            -- False
+         -- False
         )
         borderingCells
         /= []

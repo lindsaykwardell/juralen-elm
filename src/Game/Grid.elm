@@ -184,7 +184,7 @@ validStartingCell grid loc =
             )
 
 
-getBorderCells : Grid -> Loc -> List (Maybe Cell)
+getBorderCells : Grid -> Loc -> List Cell
 getBorderCells grid loc =
     let
         north =
@@ -204,6 +204,7 @@ getBorderCells grid loc =
     , Sort.Dict.get east grid
     , Sort.Dict.get west grid
     ]
+        |> Maybe.values
 
 
 getBorderingPlayers : Grid -> Loc -> List (Maybe Int)
@@ -306,7 +307,6 @@ getGroups grid =
                             borderingCells : List Cell
                             borderingCells =
                                 getBorderCells grid cell.loc
-                                    |> Maybe.values
                                     |> List.filter (.controlledBy >> (==) cell.controlledBy)
 
                             groupContainsBorderingCells : List Cell -> Bool

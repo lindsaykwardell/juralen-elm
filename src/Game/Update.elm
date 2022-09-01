@@ -573,7 +573,12 @@ update msg model =
                                                         cell.controlledBy /= Just winner.id
                                                 in
                                                 { cell
-                                                    | controlledBy = Just winner.id
+                                                    | controlledBy =
+                                                        if cell.cellType == Game.CellType.Forest then
+                                                            Nothing
+
+                                                        else
+                                                            Just winner.id
                                                     , farms =
                                                         if conquered then
                                                             0

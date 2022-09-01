@@ -139,20 +139,15 @@ getColorClass cell players =
                 |> Game.PlayerColor.toClass
 
 
-getBorderingPlayer : List (Maybe Cell) -> List (Maybe Int) -> List (Maybe Int)
+getBorderingPlayer : List Cell -> List (Maybe Int) -> List (Maybe Int)
 getBorderingPlayer cells players =
     case cells of
         [] ->
             players
 
-        maybeCell :: remainingCells ->
-            case maybeCell of
-                Nothing ->
-                    getBorderingPlayer remainingCells players
+        cell :: remainingCells ->
+            if cell.cellType == Game.CellType.Mountain then
+                getBorderingPlayer remainingCells players
 
-                Just cell ->
-                    if cell.cellType == Game.CellType.Mountain then
-                        getBorderingPlayer remainingCells players
-
-                    else
-                        getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
+            else
+                getBorderingPlayer remainingCells (players ++ [ cell.controlledBy ])
