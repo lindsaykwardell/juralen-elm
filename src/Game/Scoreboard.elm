@@ -7,7 +7,7 @@ import Game.PlayerColor exposing (isDark, toClass, toTextClass)
 import Game.PlayerScore exposing (PlayerScore)
 import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (class, style)
-
+import Sort.Dict as Dict
 
 view : Model -> Html msg
 view model =
@@ -121,7 +121,8 @@ stats model =
                             , text <|
                                 " ("
                                     ++ ((toFloat playerScore.score / toFloat model.turn)
-                                            * (List.length model.players * 100 |> toFloat)
+                                            * (List.length model.players |> toFloat)
+                                            * (Dict.size model.grid |> toFloat)
                                             |> round
                                             |> String.fromInt
                                        )
