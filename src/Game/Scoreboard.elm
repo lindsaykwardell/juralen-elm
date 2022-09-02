@@ -118,7 +118,14 @@ stats model =
                     , content =
                         span []
                             [ playerScore.playerId |> Game.Player.get model.players |> .name |> text
-                            , text <| " (" ++ String.fromInt playerScore.score ++ ")"
+                            , text <|
+                                " ("
+                                    ++ ((toFloat playerScore.score / toFloat model.turn)
+                                            * (List.length model.players * 100 |> toFloat)
+                                            |> round
+                                            |> String.fromInt
+                                       )
+                                    ++ ")"
                             ]
                     , size = Reg
                     }
