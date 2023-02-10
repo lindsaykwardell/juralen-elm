@@ -14,10 +14,10 @@ export default (analyzed: (option: string) => void) => {
     }
 
     function initStallTimeout() {
-        stalledTimeout = setTimeout(() => {
-            console.error("TIMEOUT OCCURRED!")
-            analyzed("[]")
-        }, 2000)
+        // stalledTimeout = setTimeout(() => {
+        //     console.error("TIMEOUT OCCURRED!")
+        //     analyzed("[]")
+        // }, 2000)
     }
 
     const analyze = (game: string) => {
