@@ -211,7 +211,18 @@ update msg model =
                         ( { model | selectedUnits = newSelectedUnitList }, Cmd.none )
 
         MoveSelectedUnits cell ->
-            if isInRange model cell == False then
+            if
+                Game.Grid.isInRange
+                    { selectedUnits = model.selectedUnits
+                    , selectedCell = model.selectedCell
+                    , actions = currentPlayerStats model |> .actions
+                    , moveCost = getMoveCost model
+                    , grid = model.grid
+                    , activePlayer = model.activePlayer
+                    }
+                    cell
+                    == False
+            then
                 ( model, Cmd.none )
 
             else

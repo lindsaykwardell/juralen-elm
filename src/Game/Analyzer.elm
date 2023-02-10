@@ -4,8 +4,8 @@ import Game.Action as Action exposing (UpgradeType)
 import Game.AnalyzerMode exposing (AnalyzerMode(..))
 import Game.Cell exposing (Cell)
 import Game.CellType
-import Game.Core as Core exposing (PlayerStats, allCellsInRange)
-import Game.Grid
+import Game.Core as Core exposing (PlayerStats)
+import Game.Grid exposing (allCellsInRange)
 import Game.Loc as Loc exposing (Loc)
 import Game.Option exposing (Option)
 import Game.Player exposing (Player)
@@ -177,10 +177,20 @@ analyzeMoves model =
                           of
                             Nothing ->
                                 allCellsInRange
-                                    { model
+                                    ({ model
                                         | selectedCell = combination.cell.loc
                                         , selectedUnits = List.map (\unit -> unit.id) combination.unitOptions
-                                    }
+                                     }
+                                        |> (\potentialModel ->
+                                                { selectedUnits = potentialModel.selectedUnits
+                                                , selectedCell = potentialModel.selectedCell
+                                                , actions = Core.currentPlayerStats potentialModel |> .actions
+                                                , moveCost = Core.getMoveCost potentialModel
+                                                , grid = potentialModel.grid
+                                                , activePlayer = potentialModel.activePlayer
+                                                }
+                                           )
+                                    )
                                     |> (\cells ->
                                             Sort.Dict.insert
                                                 ( combination.cell.loc
