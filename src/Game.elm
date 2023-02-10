@@ -109,7 +109,15 @@ view model =
             [ div [ class "w-full lg:w-3/5 p-3" ]
                 [ Grid.view
                     model.grid
-                    { isInRange = isInRange model
+                    { isInRange =
+                        Game.Grid.isInRange
+                            { selectedUnits = model.selectedUnits
+                            , selectedCell = model.selectedCell
+                            , actions = currentPlayerStats model |> .actions
+                            , moveCost = getMoveCost model
+                            , grid = model.grid
+                            , activePlayer = model.activePlayer
+                            }
                     , selectedCell = model.openCell
                     , getCellColor = \cell -> Game.Cell.getColorClass cell model.players
                     , onCellClick =

@@ -8,6 +8,7 @@ type CellType
     = Plains
     | Forest
     | Mountain
+    | Water
 
 
 decoder : Decoder CellType
@@ -24,6 +25,9 @@ decoder =
 
                     "mountain" ->
                         Decode.succeed Mountain
+
+                    "water" ->
+                        Decode.succeed Water
 
                     _ ->
                         Decode.fail "Invalid cell type"
@@ -42,6 +46,9 @@ encoder cellType =
         Mountain ->
             Encode.string "mountain"
 
+        Water ->
+            Encode.string "water"
+
 
 toString : CellType -> String
 toString cellType =
@@ -55,6 +62,9 @@ toString cellType =
         Mountain ->
             "Mountain"
 
+        Water ->
+            "Water"
+
 
 getColorClass : CellType -> String
 getColorClass cellType =
@@ -67,6 +77,9 @@ getColorClass cellType =
 
         Mountain ->
             "bg-terrain-mountain"
+
+        Water ->
+            "bg-terrain-water"
 
 
 isPassable : CellType -> Bool
