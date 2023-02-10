@@ -287,16 +287,26 @@ subscriptions model =
             )
          , analyzed
             (\json ->
-                if json == "null" then
-                    GotGameMsg Game.EndTurn
+                case model.page of
+                    Game gameModel ->
+                        if
+                            List.find (.id >> (==) gameModel.activePlayer) gameModel.players
+                                |> Maybe.map .isHuman
+                                |> Maybe.withDefault False
+                                |> not
+                        then
+                            case Decode.decodeString Analysis.decoder json of
+                                Ok analysis ->
+                                    GotGameMsg (Game.PerformAction analysis)
 
-                else
-                    case Decode.decodeString Analysis.decoder json of
-                        Ok analysis ->
-                            GotGameMsg (Game.PerformAction analysis)
+                                Err _ ->
+                                    GotGameMsg Game.EndTurn
 
-                        Err _ ->
-                            GotGameMsg Game.EndTurn
+                        else
+                            NoOp
+
+                    _ ->
+                        NoOp
             )
          ]
             ++ (case model.page of
