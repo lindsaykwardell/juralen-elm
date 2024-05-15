@@ -1,4 +1,4 @@
-module Game.Grid exposing (Grid, decoder, distanceToEnemy, encoder, farmCountControlledBy, getBorderCells, getGroupBorderingPlayers, getGroups, ofType, replaceCell, sorter, toMatrix, townCountControlledBy, validStartingCell)
+module Game.Grid exposing (..)
 
 import Dict
 import Game.Cell exposing (Cell)
@@ -338,3 +338,163 @@ getGroups grid =
 getGroup : List (List Cell) -> Loc -> Maybe (List Cell)
 getGroup groups loc =
     List.find (\g -> List.find (\cell -> cell.loc == loc) g /= Nothing) groups
+
+
+type alias RangeOptions =
+    { selectedUnits : List Int
+    , selectedCell : Loc
+    , actions : Float
+    , moveCost : Float
+    , grid : Grid
+    , activePlayer : Int
+    }
+
+
+isInRange : RangeOptions -> Cell -> Bool
+isInRange opts cell =
+    -- let
+    --     isWizardSelected =
+    --         List.any (\unitId -> (Game.Unit.fromId model.units unitId).unitType == Game.UnitType.Wizard) model.selectedUnits
+    -- in
+    List.length opts.selectedUnits
+        > 0
+        && opts.selectedCell
+        /= cell.loc
+        && Game.CellType.isPassable cell.cellType
+        && opts.actions
+        >= (Basics.toFloat (Game.Loc.getDistance opts.selectedCell cell.loc) * opts.moveCost)
+        && targetCellIsBordering opts cell
+
+
+allCellsInRange : RangeOptions -> List Cell
+allCellsInRange opts =
+    let
+        selectedLoc =
+            opts.selectedCell
+
+        ( selectedX, selectedY ) =
+            Game.Loc.coords selectedLoc
+
+        allCellsFromDistance : Int -> List Cell -> List Cell
+        allCellsFromDistance distance cells =
+            allCellsAtDistance distance
+                |> (\newCells ->
+                        case newCells of
+                            [] ->
+                                cells
+
+                            _ ->
+                                allCellsFromDistance (distance + 1) (newCells ++ cells)
+                   )
+
+        allCellsAtDistance : Int -> List Cell
+        allCellsAtDistance distance =
+            let
+                minX =
+                    selectedX - distance
+
+                maxX =
+                    selectedX + distance
+
+                minY =
+                    selectedY - distance
+
+                maxY =
+                    selectedY + distance
+
+                xRange =
+                    List.range minX maxX
+
+                yRange =
+                    List.range minY maxY
+
+                locsAtDistance : List Loc
+                locsAtDistance =
+                    List.concat
+                        [ List.map (\y -> Game.Loc.at minX y) yRange
+                        , List.map (\y -> Game.Loc.at maxX y) yRange
+                        , List.map (\x -> Game.Loc.at x minY) xRange
+                        , List.map (\x -> Game.Loc.at x maxY) xRange
+                        ]
+            in
+            locsAtDistance
+                |> List.filterMap (\loc -> Sort.Dict.get loc opts.grid)
+                |> List.filter
+                    (isInRange opts)
+    in
+    allCellsFromDistance 1 []
+
+
+targetCellIsBordering : { a | grid : Grid, activePlayer : Int } -> Cell -> Bool
+targetCellIsBordering model cell =
+    let
+        borderingCells : List Cell
+        borderingCells =
+            getBorderCells model.grid cell.loc
+    in
+    List.filter
+        (\borderCell ->
+            case borderCell.controlledBy of
+                Just playerId ->
+                    let
+                        borderingForests : List Cell
+                        borderingForests =
+                            getBorderCells model.grid cell.loc
+                                |> List.filter
+                                    (.cellType >> (==) Game.CellType.Forest)
+
+                        borderingPlayers =
+                            List.foldl
+                                (\f players ->
+                                    (model.grid
+                                        |> ofType Game.CellType.Forest
+                                        |> getGroups
+                                        |> getGroupBorderingPlayers model.grid f.loc
+                                    )
+                                        ++ players
+                                )
+                                []
+                                borderingForests
+                    in
+                    playerId
+                        == model.activePlayer
+                        || List.any
+                            (\player ->
+                                case player of
+                                    Just pid ->
+                                        pid == model.activePlayer
+
+                                    Nothing ->
+                                        False
+                            )
+                            borderingPlayers
+
+                Nothing ->
+                    case borderCell.cellType of
+                        Game.CellType.Mountain ->
+                            False
+
+                        -- Game.CellType.Plains ->
+                        --     True
+                        _ ->
+                            let
+                                borderingPlayers =
+                                    model.grid
+                                        |> ofType borderCell.cellType
+                                        |> getGroups
+                                        |> getGroupBorderingPlayers model.grid cell.loc
+                            in
+                            List.any
+                                (\player ->
+                                    case player of
+                                        Just playerId ->
+                                            playerId == model.activePlayer
+
+                                        Nothing ->
+                                            False
+                                )
+                                borderingPlayers
+         -- False
+        )
+        borderingCells
+        /= []

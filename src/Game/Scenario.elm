@@ -2,6 +2,7 @@ module Game.Scenario exposing (Flags, Model, Msg(..), ScenarioType(..), decoder,
 
 import Dict
 import Game.Cell exposing (Cell)
+import Game.CellType as CellType
 import Game.Grid exposing (Grid)
 import Game.Loc as Loc exposing (Loc)
 import Game.NewPlayer
@@ -159,6 +160,7 @@ type Msg
     | RollStartingLocY Player (List Player) Int
     | MakeLocFromRolls Player (List Player) Int Int
     | DetermineFirstPlayer Int
+    | UpdateUnpassableTerrain
     | ScenarioLoaded
 
 
@@ -365,9 +367,75 @@ update msg scenario =
                         newScenario =
                             { scenario | activePlayerId = player.id }
                     in
-                    ( newScenario, Task.succeed Cmd.none |> Task.perform (\_ -> ScenarioLoaded) )
+                    ( newScenario, Task.succeed Cmd.none |> Task.perform (\_ -> UpdateUnpassableTerrain) )
 
-        -- update ScenarioLoaded newScenario
+        UpdateUnpassableTerrain ->
+            let
+                cells : List Cell
+                cells =
+                    Sort.Dict.toList scenario.grid |> List.map Tuple.second
+
+                testCell : Maybe Cell
+                testCell =
+                    cells
+                        |> List.find
+                            (\cell ->
+                                cell.controlledBy == Just scenario.activePlayerId
+                            )
+
+                unitIdInCell : Maybe Int
+                unitIdInCell =
+                    testCell
+                        |> Maybe.andThen
+                            (\cell ->
+                                scenario.units
+                                    |> List.find
+                                        (\unit ->
+                                            unit.loc == cell.loc
+                                        )
+                                    |> Maybe.map .id
+                            )
+            in
+            case ( testCell, unitIdInCell ) of
+                ( Just cell, Just unitId ) ->
+                    let
+                        cellsInRange : List Cell
+                        cellsInRange =
+                            Game.Grid.allCellsInRange
+                                { selectedUnits = [ unitId ]
+                                , selectedCell = cell.loc
+                                , actions = 999999
+                                , moveCost = 0
+                                , grid = scenario.grid
+                                , activePlayer = scenario.activePlayerId
+                                }
+
+                        invalidCells : List Cell
+                        invalidCells =
+                            cells
+                                |> List.filter
+                                    (\c ->
+                                        List.find (.loc >> (==) c.loc) cellsInRange == Nothing
+                                    )
+                                -- |> Debug.log "invalid cells"
+
+                        updatedGrid : Grid
+                        updatedGrid =
+                            List.foldl
+                                (\c grid ->
+                                    Sort.Dict.insert
+                                        c.loc
+                                        { c | cellType = CellType.Water }
+                                        grid
+                                )
+                                scenario.grid
+                                invalidCells
+                    in
+                    ( { scenario | grid = updatedGrid }, Task.succeed Cmd.none |> Task.perform (\_ -> ScenarioLoaded) )
+
+                _ ->
+                    ( scenario, Task.succeed Cmd.none |> Task.perform (\_ -> ScenarioLoaded) )
+
         ScenarioLoaded ->
             ( scenario, Cmd.none )
 
